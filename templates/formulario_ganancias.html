@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Formulario de Ganancias</title>
+  </head>
+  <body>
+    <h1>Formulario de Ganancias</h1>
+    <form action="/procesar_ganancias" method="post">
+      <label for="nombre_usuario">Nombre de usuario:</label>
+      <input
+        type="text"
+        id="nombre_usuario"
+        name="nombre_usuario"
+        required
+      /><br /><br />
+      <label for="nombre_periodo">Nombre del período (ej. 2024-MAR-1):</label>
+      <input
+        type="text"
+        id="nombre_periodo"
+        name="nombre_periodo"
+        required
+      /><br /><br />
+      <input type="submit" value="Enviar" />
+    </form>
+  </body>
+</html>
