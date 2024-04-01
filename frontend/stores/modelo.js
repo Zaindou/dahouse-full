@@ -55,5 +55,23 @@ export const useModelosStore = defineStore("modelos", {
         this.error = error.response?.data?.mensaje || error.message;
       }
     },
+    async fetchRolesDisponibles() {
+      try {
+        const response = await axios.get("http://localhost:5000/roles");
+        console.log(response.data);
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.mensaje || error.message;
+      }
+    },
+    async fetchPaginasDisponibles() {
+      try {
+        const response = await axios.get("http://localhost:5000/paginas");
+        console.log(response.data);
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.mensaje || error.message;
+      }
+    },
   },
 });

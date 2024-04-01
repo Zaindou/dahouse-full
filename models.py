@@ -28,6 +28,13 @@ class Ganancia(db.Model):
     periodo = db.relationship("Periodo", backref="ganancias")
 
 
+modelos_paginas = db.Table(
+    "modelos_paginas",
+    db.Column("modelo_id", db.Integer, db.ForeignKey("modelo.id"), primary_key=True),
+    db.Column("pagina_id", db.Integer, db.ForeignKey("pagina.id"), primary_key=True),
+)
+
+
 class Modelo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombres = db.Column(db.String(100), nullable=False)
@@ -35,12 +42,12 @@ class Modelo(db.Model):
     tipo_documento = db.Column(db.String(10), nullable=False)
     numero_documento = db.Column(db.String(20), nullable=False, unique=True)
     nombre_usuario = db.Column(db.String(50), nullable=False, unique=True)
-    paginas_habilitadas = db.relationship(
-        "PaginaHabilitada", backref="modelo", lazy=True
-    )
     habilitado = db.Column(db.Boolean, default=True, nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey("rol.id"), nullable=False)
     rol = db.relationship("Rol", backref="modelos")
+    paginas = db.relationship(
+        "Pagina", secondary=modelos_paginas, backref=db.backref("modelos", lazy=True)
+    )
 
 
 class Rol(db.Model):
@@ -57,12 +64,6 @@ class Deducible(db.Model):
     modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
     modelo = db.relationship("Modelo", backref="deducibles")
     quincenas_restantes = db.Column(db.Integer, nullable=False)
-
-
-class PaginaHabilitada(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
-    pagina_id = db.Column(db.Integer, db.ForeignKey("pagina.id"), nullable=False)
 
 
 class Periodo(db.Model):

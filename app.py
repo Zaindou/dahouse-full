@@ -6,9 +6,9 @@ from models import (
     Ganancia,
     Pagina,
     GananciaPorPagina,
-    PaginaHabilitada,
     Periodo,
     Deducible,
+    Rol,
 )
 from datetime import datetime, timedelta
 
@@ -83,20 +83,28 @@ def crear_modelo():
         tipo_documento=datos["tipo_documento"],
         numero_documento=datos["numero_documento"],
         nombre_usuario=datos["nombre_usuario"],
+        habilitado=True,  # Asume que el modelo está habilitado por defecto
+        rol_id=datos["rol_id"],  # Asume que el rol_id se envía en la solicitud
     )
-    db.session.add(nuevo_modelo)
-    db.session.flush()  # Para obtener el ID del modelo recién creado
 
+    if numero_documento := datos.get("numero_documento"):
+        if Modelo.query.filter_by(numero_documento=numero_documento).first():
+            return (
+                jsonify(
+                    {"mensaje": "Ya existe un usuario con este número de documento"}
+                ),
+                400,
+            )
+
+    # Agrega las páginas habilitadas al modelo
     for pagina_nombre in datos["paginas_habilitadas"]:
         pagina = Pagina.query.filter_by(nombre=pagina_nombre).first()
         if pagina:
-            nueva_pagina_habilitada = PaginaHabilitada(
-                modelo_id=nuevo_modelo.id, pagina_id=pagina.id
-            )
-            db.session.add(nueva_pagina_habilitada)
+            nuevo_modelo.paginas.append(pagina)
 
+    db.session.add(nuevo_modelo)
     db.session.commit()
-    return jsonify({"mensaje": "Modelo creado con éxito"})
+    return jsonify({"mensaje": "Usuario creado correctamente!"})
 
 
 @app.route("/modelos", methods=["GET"])
@@ -136,33 +144,6 @@ def actualizar_modelo(modelo_id):
 
     db.session.commit()
     return jsonify({"mensaje": "Modelo actualizado con éxito"})
-
-
-@app.route("/modelos/<int:modelo_id>", methods=["DELETE"])
-def eliminar_modelo(modelo_id):
-    modelo = Modelo.query.get_or_404(modelo_id)
-
-    # Verifica si el modelo tiene deducibles pendientes
-    deducibles_pendientes = Deducible.query.filter(
-        Deducible.modelo_id == modelo.id, Deducible.quincenas_restantes > 0
-    ).first()
-    if deducibles_pendientes:
-        return (
-            jsonify(
-                {
-                    "mensaje": "El modelo tiene deducibles pendientes y no puede ser eliminado"
-                }
-            ),
-            400,
-        )
-
-    # Elimina las ganancias y páginas habilitadas asociadas con el modelo
-    Ganancia.query.filter_by(modelo_id=modelo.id).delete()
-    PaginaHabilitada.query.filter_by(modelo_id=modelo.id).delete()
-
-    db.session.delete(modelo)
-    db.session.commit()
-    return jsonify({"mensaje": "Modelo y registros asociados eliminados con éxito"})
 
 
 @app.route("/modelos/<int:modelo_id>", methods=["GET"])
@@ -351,8 +332,24 @@ def agregar_deducible(nombre_usuario):
     return jsonify({"mensaje": "Deducible agregado con éxito"})
 
 
+@app.route("/roles", methods=["GET"])
+def obtener_roles():
+    roles = Rol.query.all()
+    lista_roles = [{"id": rol.id, "nombre": rol.nombre} for rol in roles]
+    print(lista_roles)
+    return jsonify(lista_roles)
+
+
+@app.route("/paginas", methods=["GET"])
+def obtener_paginas():
+    paginas = Pagina.query.all()
+    lista_paginas = [{"id": pagina.id, "nombre": pagina.nombre} for pagina in paginas]
+    return jsonify(lista_paginas)
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()  # Crea las tablas de la base de datos si no existen
         inicializar_paginas()  # Inicializa las páginas preestablecidas
+        inicializar_roles()
     app.run(debug=True)
