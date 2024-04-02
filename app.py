@@ -70,7 +70,6 @@ def obtener_trm():
     valor = float(data[0]["valor"])
     print(valor)
     valor = valor - 90
-    print(valor, "MENOS 80 PESOS POR DOLAR")
     return valor
 
 
@@ -78,13 +77,18 @@ def obtener_trm():
 def crear_modelo():
     datos = request.json
     nuevo_modelo = Modelo(
-        nombres=datos["nombres"],
-        apellidos=datos["apellidos"],
         tipo_documento=datos["tipo_documento"],
         numero_documento=datos["numero_documento"],
+        nombres=datos["nombres"],
+        apellidos=datos["apellidos"],
+        fecha_nacimiento=datetime.strptime(datos["fecha_nacimiento"], "%Y-%m-%d"),
+        correo_electronico=datos["correo_electronico"],
         nombre_usuario=datos["nombre_usuario"],
-        habilitado=True,  # Asume que el modelo está habilitado por defecto
-        rol_id=datos["rol_id"],  # Asume que el rol_id se envía en la solicitud
+        rol_id=datos["rol_id"],
+        banco=datos["banco"],
+        numero_cuenta=datos["numero_cuenta"],
+        habilitado=True,
+        fecha_registro=datetime.now(),
     )
 
     if numero_documento := datos.get("numero_documento"):
@@ -92,6 +96,14 @@ def crear_modelo():
             return (
                 jsonify(
                     {"mensaje": "Ya existe un usuario con este número de documento"}
+                ),
+                400,
+            )
+    if correo_electronico := datos.get("correo_electronico"):
+        if Modelo.query.filter_by(correo_electronico=correo_electronico).first():
+            return (
+                jsonify(
+                    {"mensaje": "Ya existe un usuario con este correo electrónico"}
                 ),
                 400,
             )
@@ -121,6 +133,24 @@ def obtener_modelos():
                 "tipo_documento": modelo.tipo_documento,
                 "numero_documento": modelo.numero_documento,
                 "nombre_usuario": modelo.nombre_usuario,
+                "habilitado": modelo.habilitado,
+                "rol": modelo.rol.nombre,
+                "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
+                "correo_electronico": modelo.correo_electronico,
+                "fecha_nacimiento": modelo.fecha_nacimiento.strftime("%Y-%m-%d"),
+                "fecha_registro": modelo.fecha_registro.strftime("%Y-%m-%d"),
+                "banco": modelo.banco,
+                "numero_cuenta": modelo.numero_cuenta,
+                "deducibles": [
+                    {
+                        "concepto": deducible.concepto,
+                        "valor_total": deducible.valor_total,
+                        "valor_quincenal": deducible.valor_quincenal,
+                        "plazo": deducible.plazo,
+                        "quincenas_restantes": deducible.quincenas_restantes,
+                    }
+                    for deducible in modelo.deducibles
+                ],
             }
             for modelo in modelos
         ]
@@ -141,13 +171,50 @@ def actualizar_modelo(modelo_id):
     modelo.tipo_documento = datos.get("tipo_documento", modelo.tipo_documento)
     modelo.numero_documento = datos.get("numero_documento", modelo.numero_documento)
     modelo.nombre_usuario = datos.get("nombre_usuario", modelo.nombre_usuario)
+    modelo.habilitado = datos.get("habilitado", modelo.habilitado)
+    modelo.banco = datos.get("banco", modelo.banco)
+    modelo.numero_cuenta = datos.get("numero_cuenta", modelo.numero_cuenta)
+    modelo.correo_electronico = datos.get(
+        "correo_electronico", modelo.correo_electronico
+    )
+    modelo.fecha_nacimiento = datetime.strptime(
+        datos.get("fecha_nacimiento", modelo.fecha_nacimiento), "%Y-%m-%d"
+    )
+
+    if correo_electronico := datos.get("correo_electronico"):
+        if Modelo.query.filter_by(correo_electronico=correo_electronico).first():
+            return (
+                jsonify(
+                    {"mensaje": "Ya existe un usuario con este correo electrónico"}
+                ),
+                400,
+            )
+
+    rol_id = datos.get("rol_id")
+    if rol_id:
+        rol = Rol.query.get(rol_id)
+        if rol:
+            modelo.rol = rol
+        else:
+            return jsonify({"mensaje": "Rol no encontrado"}), 404
+
+    # Actualizar páginas
+    if "paginas_habilitadas" in datos:
+        # Eliminar relaciones existentes
+        modelo.paginas.clear()
+        # Agregar nuevas relaciones
+        for nombre_pagina in datos["paginas_habilitadas"]:
+            pagina = Pagina.query.filter_by(nombre=nombre_pagina).first()
+            if pagina:
+                modelo.paginas.append(pagina)
 
     db.session.commit()
-    return jsonify({"mensaje": "Modelo actualizado con éxito"})
+    return jsonify({"mensaje": "Usuario actualizado con éxito"})
 
 
 @app.route("/modelos/<int:modelo_id>", methods=["GET"])
 def obtener_modelo(modelo_id):
+    print(modelo_id, "MODELO ID")
     modelo = Modelo.query.get_or_404(modelo_id)
     detalles_modelo = {
         "id": modelo.id,
@@ -156,6 +223,9 @@ def obtener_modelo(modelo_id):
         "tipo_documento": modelo.tipo_documento,
         "numero_documento": modelo.numero_documento,
         "nombre_usuario": modelo.nombre_usuario,
+        "habilitado": modelo.habilitado,
+        "rol": modelo.rol.nombre,
+        "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
     }
     return jsonify(detalles_modelo)
 

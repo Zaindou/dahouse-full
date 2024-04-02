@@ -48,6 +48,12 @@ class Modelo(db.Model):
     paginas = db.relationship(
         "Pagina", secondary=modelos_paginas, backref=db.backref("modelos", lazy=True)
     )
+    ganancias = db.relationship("Ganancia", backref="modelo", lazy=True)
+    banco = db.Column(db.String(50), nullable=False)
+    numero_cuenta = db.Column(db.String(50), nullable=False)
+    correo_electronico = db.Column(db.String(100), nullable=False)
+    fecha_nacimiento = db.Column(db.Date, nullable=False)
+    fecha_registro = db.Column(db.DateTime, nullable=False)
 
 
 class Rol(db.Model):

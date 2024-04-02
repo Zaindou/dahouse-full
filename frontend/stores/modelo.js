@@ -29,7 +29,6 @@ export const useModelosStore = defineStore("modelos", {
         this.error = error.response?.data?.mensaje || error.message;
       }
     },
-    // Agrega aquí más acciones como editar y eliminar modelos
     async editModelo(modeloData) {
       try {
         const response = await axios.put(
@@ -40,6 +39,8 @@ export const useModelosStore = defineStore("modelos", {
           (modelo) => modelo.id === modeloData.id
         );
         this.modelos[index] = response.data;
+
+        return response.data;
       } catch (error) {
         this.error = error.response?.data?.mensaje || error.message;
       }

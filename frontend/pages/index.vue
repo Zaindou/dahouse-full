@@ -1,8 +1,8 @@
 <template>
     <NuxtLayout>
         <div class="container mx-auto">
-            <h1>Inicio</h1>
-            <Modelo />
+            <!-- Mensaje de bienvenida -->
+            <h1 class="text-3xl font-bold text-center mt-10">Bienvenido a Dahouse</h1>
         </div>
     </NuxtLayout>
 
