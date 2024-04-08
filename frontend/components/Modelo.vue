@@ -152,7 +152,7 @@
                         <td class="py-4 px-6 border-b border-grey-light">{{ modelo.rol }}</td>
                         <td class="py-4 px-6 border-b border-grey-light">
                             <button @click="editarModelo(modelo)"
-                                class="text-sm bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded">
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Editar
                             </button>
                             <!-- <button @click="eliminarModelo(modelo.id)"
@@ -214,11 +214,12 @@ const modeloForm = ref({
 })
 
 onMounted(async () => {
+    isLoading.value = true;
     const paginas = await modelosStore.fetchPaginasDisponibles();
     paginasDisponibles.value = paginas.map(pagina => ({ ...pagina, habilitada: false }));
     modelos.value = await modelosStore.fetchModelos()
     rolesDisponibles.value = await modelosStore.fetchRolesDisponibles(); // Implementa esta función
-
+    isLoading.value = false;
 });
 
 function nuevoModelo() {
@@ -260,6 +261,7 @@ async function guardarModelo() {
             rol_id: null,
             paginas_habilitadas: []
         };
+
         Swal.fire('Éxito', response.mensaje, 'success');
     } catch (error) {
         const mensaje = error.response?.data?.mensaje || 'Error desconocido';

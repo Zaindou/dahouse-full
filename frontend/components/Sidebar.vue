@@ -14,7 +14,7 @@
         </nuxt-link>
         <nuxt-link to="/liquidacion" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
             <Icon class="menu-icon" name="ic:sharp-attach-money" />
-            Liquidar ganancias
+            Liquidar modelo
         </nuxt-link>
     </div>
 </template>

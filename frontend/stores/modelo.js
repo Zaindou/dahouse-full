@@ -6,6 +6,7 @@ export const useModelosStore = defineStore("modelos", {
   state: () => ({
     modelos: [],
     error: null,
+    gananciaInfo: null,
   }),
   actions: {
     async fetchModelos() {
@@ -43,6 +44,7 @@ export const useModelosStore = defineStore("modelos", {
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.mensaje || error.message;
+        console.log(error.response?.data?.mensaje || error.message, "XDDDD");
       }
     },
     async deleteModelo(modeloId) {
@@ -72,6 +74,30 @@ export const useModelosStore = defineStore("modelos", {
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.mensaje || error.message;
+      }
+    },
+    async liquidarGanancias(gananciaForm) {
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:5000/ganancias",
+          gananciaForm
+        );
+        console.log(response.data);
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.mensaje || error.message;
+      }
+    },
+    async fetchGananciaInfo(nombreUsuario, nombrePeriodo) {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:5000/ganancias/usuario/${nombreUsuario}/periodo/${nombrePeriodo}`
+        );
+        this.gananciaInfo = response.data;
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.mensaje || error.message;
+        this.gananciaInfo = null;
       }
     },
   },

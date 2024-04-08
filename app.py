@@ -10,7 +10,7 @@ from models import (
     Deducible,
     Rol,
 )
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 from config import Config
 
@@ -43,23 +43,62 @@ def inicializar_roles():
 from datetime import datetime, date
 
 
-def obtener_periodo_actual():
-    hoy = datetime.today().date()
-    mes = hoy.strftime(
-        "%b"
-    ).upper()  # Obtiene el mes en formato abreviado y en mayúsculas
-    año = hoy.year
-    if hoy.day <= 15:
-        nombre_periodo = f"{año}-{mes}-1"
-        fecha_inicio = date(hoy.year, hoy.month, 1)
-        fecha_fin = date(hoy.year, hoy.month, 15)
+from datetime import datetime, timedelta
+
+
+def calcular_porcentaje(tokens, exclusividad):
+    if exclusividad:
+        if tokens <= 29999:
+            return 0.6
+        elif tokens <= 40000:
+            return 0.65
+        else:
+            return min(0.7, 0.65 + (tokens - 40000) // 4000 * 0.01)
     else:
+        if tokens <= 20000:
+            return 0.5
+        elif tokens <= 25999:
+            return 0.55
+        elif tokens <= 30999:
+            return 0.6
+        elif tokens <= 36000:
+            return 0.65
+        else:
+            return min(0.7, 0.65 + (tokens - 36000) // 4000 * 0.01)
+
+
+def obtener_martes_del_mes(año, mes, n):
+    """Devuelve el n-ésimo martes del mes especificado."""
+    primer_dia_del_mes = datetime(año, mes, 1)
+    dias_hasta_martes = (1 - primer_dia_del_mes.weekday() + 7) % 7
+    primer_martes = primer_dia_del_mes + timedelta(days=dias_hasta_martes)
+    return primer_martes + timedelta(weeks=n - 1)
+
+
+def obtener_periodo_actual():
+    hoy = datetime.today()
+    # hoy = datetime(2025, 4, 12)
+    año = hoy.year
+    mes = hoy.strftime("%b").upper()
+
+    segundo_martes = obtener_martes_del_mes(año, hoy.month, 2)
+    cuarto_martes = obtener_martes_del_mes(año, hoy.month, 4)
+
+    if hoy.date() <= segundo_martes.date():
+        nombre_periodo = f"{año}-{mes}-1"
+        fecha_inicio = segundo_martes - timedelta(days=14)
+        fecha_fin = segundo_martes
+    elif hoy.date() <= cuarto_martes.date():
         nombre_periodo = f"{año}-{mes}-2"
-        fecha_inicio = date(hoy.year, hoy.month, 16)
-        ultimo_dia = (hoy.replace(day=28) + timedelta(days=4)).replace(
-            day=1
-        ) - timedelta(days=1)
-        fecha_fin = date(hoy.year, hoy.month, ultimo_dia.day)
+        fecha_inicio = segundo_martes
+        fecha_fin = cuarto_martes
+    else:
+        nombre_periodo = f"{año}-{mes}-3"
+        fecha_inicio = cuarto_martes
+        fecha_fin = cuarto_martes + timedelta(days=14)
+    fecha_inicio = fecha_inicio.strftime("%Y-%m-%d")
+    fecha_fin = fecha_fin.strftime("%Y-%m-%d")
+
     return nombre_periodo, fecha_inicio, fecha_fin
 
 
@@ -68,9 +107,45 @@ def obtener_trm():
     response = requests.get(url)
     data = response.json()
     valor = float(data[0]["valor"])
-    print(valor)
     valor = valor - 90
     return valor
+
+
+def ganancias_totales_periodo(nombre_periodo):
+    periodo = Periodo.query.filter_by(nombre=nombre_periodo).first()
+    if not periodo:
+        return {"mensaje": "Período no encontrado", "codigo": 404}
+
+    ganancias = Ganancia.query.filter_by(periodo_id=periodo.id).all()
+    if not ganancias:
+        return {
+            "mensaje": "No se encontraron ganancias para el período especificado",
+            "codigo": 404,
+        }
+
+    total_cop = sum(ganancia.total_cop for ganancia in ganancias)
+    return {"total_cop": total_cop, "codigo": 200}
+
+
+@app.route("/financiero", methods=["GET"])
+def financiero():
+    trm_actual = obtener_trm() + 90
+    periodo_actual = obtener_periodo_actual()
+    # periodo_ganancias = ganancias_totales_periodo(periodo_actual[0])
+
+    # if periodo_ganancias["codigo"] != 200:
+    #     return (
+    #         jsonify({"mensaje": periodo_ganancias["mensaje"]}),
+    #         periodo_ganancias["codigo"],
+    #     )
+
+    datos_financieros = {
+        "trm_liquidacion": obtener_trm(),
+        "trm_actual": trm_actual,
+        "periodo_actual": periodo_actual,
+        # "ganancias_totales_periodo": periodo_ganancias["total_cop"],
+    }
+    return jsonify(datos_financieros)
 
 
 @app.route("/modelos", methods=["POST"])
@@ -89,6 +164,7 @@ def crear_modelo():
         numero_cuenta=datos["numero_cuenta"],
         habilitado=True,
         fecha_registro=datetime.now(),
+        exclusividad=False,
     )
 
     if numero_documento := datos.get("numero_documento"):
@@ -122,42 +198,71 @@ def crear_modelo():
 @app.route("/modelos", methods=["GET"])
 def obtener_modelos():
     try:
-        # Consulta todos los modelos
         modelos = Modelo.query.all()
-        # Serializa los datos para enviarlos como JSON
-        lista_modelos = [
-            {
-                "id": modelo.id,
-                "nombres": modelo.nombres,
-                "apellidos": modelo.apellidos,
-                "tipo_documento": modelo.tipo_documento,
-                "numero_documento": modelo.numero_documento,
-                "nombre_usuario": modelo.nombre_usuario,
-                "habilitado": modelo.habilitado,
-                "rol": modelo.rol.nombre,
-                "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
-                "correo_electronico": modelo.correo_electronico,
-                "fecha_nacimiento": modelo.fecha_nacimiento.strftime("%Y-%m-%d"),
-                "fecha_registro": modelo.fecha_registro.strftime("%Y-%m-%d"),
-                "banco": modelo.banco,
-                "numero_cuenta": modelo.numero_cuenta,
-                "deducibles": [
+        lista_modelos = []
+        for modelo in modelos:
+            ultimo_estado_ganancia = "Sin ganancias"
+            if modelo.ganancias:
+                ultima_ganancia = modelo.ganancias.order_by(Ganancia.id.desc()).first()
+                ultimo_estado_ganancia = (
+                    ultima_ganancia.estado if ultima_ganancia else "Sin ganancias"
+                )
+                # con el periodo_id traer el nombre del periodo en la tabla ganancia
+                periodo_id = ultima_ganancia.periodo_id if ultima_ganancia else "Sin ID"
+
+                nombre_perido = None
+                if periodo_id == "Sin ID":
+                    nombre_perido = "Sin periodo asociado"
+                else:
+                    ganancia = Periodo.query.filter_by(id=periodo_id).first()
+                    nombre_periodo = ganancia.nombre
+
+                ganancia_info = (
                     {
-                        "concepto": deducible.concepto,
-                        "valor_total": deducible.valor_total,
-                        "valor_quincenal": deducible.valor_quincenal,
-                        "plazo": deducible.plazo,
-                        "quincenas_restantes": deducible.quincenas_restantes,
+                        "id": ultima_ganancia.id,
+                        "total_cop": ultima_ganancia.total_cop,
+                        "trm": ultima_ganancia.trm,
+                        "estado": ultimo_estado_ganancia,
+                        "ultimo_periodo": nombre_periodo,
+                        "porcentaje": ultima_ganancia.porcentaje,
                     }
-                    for deducible in modelo.deducibles
-                ],
-            }
-            for modelo in modelos
-        ]
-        print(lista_modelos)
+                    if ultima_ganancia
+                    else "Sin infomación"
+                )
+
+            lista_modelos.append(
+                {
+                    "id": modelo.id,
+                    "nombres": modelo.nombres,
+                    "apellidos": modelo.apellidos,
+                    "tipo_documento": modelo.tipo_documento,
+                    "numero_documento": modelo.numero_documento,
+                    "nombre_usuario": modelo.nombre_usuario,
+                    "habilitado": modelo.habilitado,
+                    "rol": modelo.rol.nombre,
+                    "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
+                    "correo_electronico": modelo.correo_electronico,
+                    "fecha_nacimiento": modelo.fecha_nacimiento.strftime("%Y-%m-%d"),
+                    "fecha_registro": modelo.fecha_registro.strftime("%Y-%m-%d"),
+                    "numero_cuenta": modelo.numero_cuenta,
+                    "banco": modelo.banco,
+                    "ganancia_info": ganancia_info,
+                    "estado_ganancia": ultimo_estado_ganancia,
+                    "periodo_actual": obtener_periodo_actual()[0],
+                    "deducibles": [
+                        {
+                            "concepto": deducible.concepto,
+                            "valor_total": deducible.valor_total,
+                            "valor_quincenal": deducible.valor_quincenal,
+                            "plazo": deducible.plazo,
+                            "quincenas_restantes": deducible.quincenas_restantes,
+                        }
+                        for deducible in modelo.deducibles
+                    ],
+                }
+            )
         return jsonify(lista_modelos)
     except Exception as e:
-        # En caso de error, envía una respuesta de error
         return jsonify({"mensaje": str(e)}), 500
 
 
@@ -181,15 +286,6 @@ def actualizar_modelo(modelo_id):
         datos.get("fecha_nacimiento", modelo.fecha_nacimiento), "%Y-%m-%d"
     )
 
-    if correo_electronico := datos.get("correo_electronico"):
-        if Modelo.query.filter_by(correo_electronico=correo_electronico).first():
-            return (
-                jsonify(
-                    {"mensaje": "Ya existe un usuario con este correo electrónico"}
-                ),
-                400,
-            )
-
     rol_id = datos.get("rol_id")
     if rol_id:
         rol = Rol.query.get(rol_id)
@@ -209,25 +305,7 @@ def actualizar_modelo(modelo_id):
                 modelo.paginas.append(pagina)
 
     db.session.commit()
-    return jsonify({"mensaje": "Usuario actualizado con éxito"})
-
-
-@app.route("/modelos/<int:modelo_id>", methods=["GET"])
-def obtener_modelo(modelo_id):
-    print(modelo_id, "MODELO ID")
-    modelo = Modelo.query.get_or_404(modelo_id)
-    detalles_modelo = {
-        "id": modelo.id,
-        "nombres": modelo.nombres,
-        "apellidos": modelo.apellidos,
-        "tipo_documento": modelo.tipo_documento,
-        "numero_documento": modelo.numero_documento,
-        "nombre_usuario": modelo.nombre_usuario,
-        "habilitado": modelo.habilitado,
-        "rol": modelo.rol.nombre,
-        "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
-    }
-    return jsonify(detalles_modelo)
+    return jsonify({"mensaje": "Usuario actualizado con éxito."})
 
 
 @app.route("/ganancias", methods=["POST"])
@@ -270,10 +348,15 @@ def liquidar_ganancias():
 
     # Crea la nueva ganancia y asocia el período
     nueva_ganancia = Ganancia(
-        trm=trm, total_cop=0, modelo_id=modelo.id, periodo_id=periodo.id
+        trm=trm,
+        total_cop=0,
+        modelo_id=modelo.id,
+        periodo_id=periodo.id,
+        estado="Liquidado",
+        porcentaje=0,  # Inicializa el porcentaje con 0, se actualizará más adelante
     )
-    db.session.add(nueva_ganancia)
-    db.session.flush()
+    db.session.add(nueva_ganancia)  # Agrega la nueva ganancia a la sesión
+    db.session.flush()  # Asegúrate de que la nueva ganancia tenga un ID
 
     for deducible in modelo.deducibles:
         if deducible.quincenas_restantes > 0:
@@ -288,6 +371,8 @@ def liquidar_ganancias():
             )
         db.session.commit()
 
+    total_tokens = 0  # Total de tokens generados por la modelo
+    ganancias_por_pagina = []  # Lista para almacenar las ganancias por página
     for pagina in datos["paginas"]:
         pagina_nombre = pagina["nombre"]
         valor = pagina["valor"]
@@ -297,9 +382,7 @@ def liquidar_ganancias():
         else:
             tokens = valor
 
-        total_usd = tokens * 0.05 * 0.6
-        total_cop = round(total_usd * trm)  # Redondea el total en COP
-        gran_total_cop += total_cop
+        total_tokens += tokens  # Acumula los tokens generados
 
         pagina_obj = Pagina.query.filter_by(nombre=pagina_nombre).first()
         if not pagina_obj:
@@ -309,23 +392,60 @@ def liquidar_ganancias():
 
         nueva_ganancia_por_pagina = GananciaPorPagina(
             tokens=tokens,
-            total_cop=total_cop,
+            total_cop=0,  # Se actualizará después de calcular el porcentaje
             ganancia_id=nueva_ganancia.id,
             pagina_id=pagina_obj.id,
         )
         db.session.add(nueva_ganancia_por_pagina)
+        ganancias_por_pagina.append(nueva_ganancia_por_pagina)
+
+    # Determina el porcentaje según la cantidad total de tokens y la exclusividad
+    if modelo.exclusividad:
+        if total_tokens <= 29999:
+            porcentaje = 0.60
+        elif total_tokens <= 40000:
+            porcentaje = 0.65
+        else:
+            porcentaje = min(0.65 + (total_tokens - 40000) // 4000 * 0.01, 0.70)
+    else:
+        if total_tokens < 20000:
+            porcentaje = 0.50
+        elif total_tokens < 26000:
+            porcentaje = 0.55
+        elif total_tokens < 31000:
+            porcentaje = 0.60
+        elif total_tokens < 36000:
+            porcentaje = 0.65
+        else:
+            porcentaje = min(0.65 + (total_tokens - 36000) // 4000 * 0.01, 0.70)
+
+    # Actualiza el porcentaje en la nueva ganancia
+    nueva_ganancia.porcentaje = porcentaje
+
+    # Actualiza el total en COP y los detalles de cada página con el porcentaje correcto
+    for ganancia_pagina in ganancias_por_pagina:
+        tokens = ganancia_pagina.tokens
+        total_usd = tokens * 0.05 * porcentaje
+        total_cop = round(total_usd * trm)  # Redondea el total en COP
+        gran_total_cop += total_cop
+        ganancia_pagina.total_cop = total_cop
 
         # Añade los detalles de la página a la lista
         detalles_paginas.append(
-            {"nombre_pagina": pagina_nombre, "tokens": tokens, "total_cop": total_cop}
+            {
+                "nombre_pagina": ganancia_pagina.pagina.nombre,
+                "tokens": tokens,
+                "total_cop": total_cop,
+            }
         )
-    print(gran_total_cop, "GRAN TOTAL COP")
+
     gran_total_cop -= deducciones
 
     impuesto = round(gran_total_cop * 4 / 1000)  # Calcula el 4% del total
     gran_total_cop -= impuesto  # Resta el descuento del total
 
     nueva_ganancia.total_cop = round(gran_total_cop)  # Redondea el gran total
+    nueva_ganancia.estado = "Liquidado"
     db.session.commit()
 
     # Incluye los detalles de las páginas en la respuesta
@@ -341,6 +461,7 @@ def liquidar_ganancias():
             "deducciones": deducciones,
             "detalles_deducibles": detalles_deducibles,
             "detalles_paginas": detalles_paginas,
+            "porcentaje": porcentaje,
         }
     )
 
@@ -357,10 +478,12 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
     if periodo is None:
         return jsonify({"mensaje": "Período no encontrado"}), 404
 
-    ganancias = Ganancia.query.filter_by(
-        modelo_id=modelo.id, periodo_id=periodo.id
-    ).all()
-    if not ganancias:
+    ganancia = (
+        Ganancia.query.filter_by(modelo_id=modelo.id, periodo_id=periodo.id)
+        .order_by(Ganancia.id.desc())
+        .first()
+    )
+    if not ganancia:
         return (
             jsonify(
                 {"mensaje": "No se encontraron ganancias para el período especificado"}
@@ -368,15 +491,40 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
             404,
         )
 
-    # ULTIMA GANANCIA
-    ganancia = ganancias[-1]
+    detalles_paginas = [
+        {
+            "nombre_pagina": ganancia_por_pagina.pagina.nombre,
+            "tokens": ganancia_por_pagina.tokens,
+            "total_cop": ganancia_por_pagina.total_cop,
+        }
+        for ganancia_por_pagina in ganancia.ganancias_por_pagina
+    ]
 
-    total_cop = ganancia.total_cop
+    detalles_deducibles = [
+        {
+            "concepto": deducible.concepto,
+            "valor_quincenal": deducible.valor_quincenal,
+            "quincenas_restantes": deducible.quincenas_restantes,
+            "plazo": deducible.plazo,
+            "tasa": deducible.tasa,
+            "fecha_inicio": deducible.fecha_inicio.strftime("%Y-%m-%d"),
+            "fecha_fin": deducible.fecha_fin.strftime("%Y-%m-%d"),
+        }
+        for deducible in modelo.deducibles
+    ]
+
     return jsonify(
         {
+            "id": ganancia.id,
             "nombre_usuario": nombre_usuario,
             "nombre_periodo": nombre_periodo,
-            "total_cop": total_cop,
+            "trm": ganancia.trm,
+            "gran_total_cop": ganancia.total_cop,
+            "deducciones": sum(d["valor_quincenal"] for d in detalles_deducibles),
+            "detalles_deducibles": detalles_deducibles,
+            "detalles_paginas": detalles_paginas,
+            "estado": ganancia.estado,
+            "porcentaje": ganancia.porcentaje,
         }
     )
 
@@ -388,12 +536,18 @@ def agregar_deducible(nombre_usuario):
         return jsonify({"mensaje": "Modelo no encontrado"}), 404
 
     datos = request.json
+
+    tasa_quincenal = datos["tasa"] / 2
+    valor_quincenal = datos["valor_total"] / datos["plazo"] * (1 + tasa_quincenal)
     nuevo_deducible = Deducible(
         concepto=datos["concepto"],
         valor_total=datos["valor_total"],
-        valor_quincenal=datos["valor_quincenal"],
         plazo=datos["plazo"],
+        tasa=tasa_quincenal,
+        valor_quincenal=valor_quincenal,
         quincenas_restantes=datos["plazo"],
+        fecha_inicio=datetime.now(),
+        fecha_fin=datetime.now() + timedelta(days=datos["plazo"] * 15),
         modelo_id=modelo.id,
     )
     db.session.add(nuevo_deducible)
@@ -406,7 +560,6 @@ def agregar_deducible(nombre_usuario):
 def obtener_roles():
     roles = Rol.query.all()
     lista_roles = [{"id": rol.id, "nombre": rol.nombre} for rol in roles]
-    print(lista_roles)
     return jsonify(lista_roles)
 
 
@@ -415,6 +568,26 @@ def obtener_paginas():
     paginas = Pagina.query.all()
     lista_paginas = [{"id": pagina.id, "nombre": pagina.nombre} for pagina in paginas]
     return jsonify(lista_paginas)
+
+
+@app.route("/ganancias/<int:ganancia_id>/pagar", methods=["POST"])
+def pagar_ganancia(ganancia_id):
+    ganancia = Ganancia.query.get_or_404(ganancia_id)
+    ganancia.estado = "Pagado"
+    db.session.commit()
+    return jsonify({"mensaje": "Ganancia pagada con éxito"})
+
+
+@app.route("/periodoactual", methods=["GET"])
+def obtener_periodo_actual_endpoint():
+    nombre_periodo, fecha_inicio, fecha_fin = obtener_periodo_actual()
+    return jsonify(
+        {
+            "nombre": nombre_periodo,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+        }
+    )
 
 
 if __name__ == "__main__":

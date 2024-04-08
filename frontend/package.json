@@ -15,7 +15,8 @@
     "nuxt": "^3.11.1",
     "sweetalert2": "^11.10.7",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@nuxt/ui": "^2.15.0",

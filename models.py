@@ -14,6 +14,7 @@ class GananciaPorPagina(db.Model):
     total_cop = db.Column(db.Float, nullable=False)  # Nuevo campo
     ganancia_id = db.Column(db.Integer, db.ForeignKey("ganancia.id"), nullable=False)
     pagina_id = db.Column(db.Integer, db.ForeignKey("pagina.id"), nullable=False)
+    pagina = db.relationship("Pagina", backref="ganancias_por_pagina")
 
 
 class Ganancia(db.Model):
@@ -25,7 +26,8 @@ class Ganancia(db.Model):
         "GananciaPorPagina", backref="ganancia", lazy=True
     )
     periodo_id = db.Column(db.Integer, db.ForeignKey("periodo.id"), nullable=False)
-    periodo = db.relationship("Periodo", backref="ganancias")
+    estado = db.Column(db.String(60), nullable=False, default="Pendiente")
+    porcentaje = db.Column(db.Float, nullable=False)
 
 
 modelos_paginas = db.Table(
@@ -48,12 +50,14 @@ class Modelo(db.Model):
     paginas = db.relationship(
         "Pagina", secondary=modelos_paginas, backref=db.backref("modelos", lazy=True)
     )
-    ganancias = db.relationship("Ganancia", backref="modelo", lazy=True)
+    ganancias = db.relationship("Ganancia", backref="modelo", lazy="dynamic")
     banco = db.Column(db.String(50), nullable=False)
     numero_cuenta = db.Column(db.String(50), nullable=False)
     correo_electronico = db.Column(db.String(100), nullable=False)
     fecha_nacimiento = db.Column(db.Date, nullable=False)
     fecha_registro = db.Column(db.DateTime, nullable=False)
+    exclusividad = db.Column(db.Boolean, default="False", nullable=False)
+    password = db.Column(db.String(100), nullable=True, default=None)
 
 
 class Rol(db.Model):
@@ -70,6 +74,12 @@ class Deducible(db.Model):
     modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
     modelo = db.relationship("Modelo", backref="deducibles")
     quincenas_restantes = db.Column(db.Integer, nullable=False)
+    fecha_inicio = db.Column(db.Date, nullable=False)
+    fecha_fin = db.Column(db.Date, nullable=False)
+    tasa = db.Column(db.Float, nullable=False)
+    valor_pagado = db.Column(db.Float, nullable=True)
+    valor_restante = db.Column(db.Float, nullable=True)
+    estado = db.Column(db.String(60), nullable=True, default="Pendiente")
 
 
 class Periodo(db.Model):
