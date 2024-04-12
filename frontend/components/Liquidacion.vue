@@ -50,10 +50,33 @@
                     <p class="font-semibold">Periodo:</p>
                     <p>{{ gananciaSeleccionada.nombre_periodo }}</p>
                 </div>
-                <div class="bg-gray-100 p-2 rounded">
-                    <p class="font-semibold">Deducción:</p>
-                    <p>{{ formatCurrency(gananciaSeleccionada.deducciones) }}</p>
-                    <p>{{ gananciaSeleccionada.detalles_deducibles }}</p>
+                <div>
+                    <div class="bg-gray-100 p-2 rounded" @click="openModal = true">
+                        <p class="font-semibold">Deducción:</p>
+                        <p>{{ formatCurrency(gananciaSeleccionada.total_deducibles) }}</p>
+                    </div>
+
+                    <!-- Modal -->
+                    <div v-if="openModal"
+                        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+                        <div class="bg-white p-4 rounded-lg max-w-md w-full">
+                            <h3 class="font-bold text-lg">Detalles de deducibles</h3>
+                            <div v-for="deducible in gananciaSeleccionada.detalles_deducibles.filter(d => d.estado === 'Activo' || d.estado === 'Pendiente')"
+                                :key="deducible.concepto" class="py-2">
+                                <p>Concepto: {{ deducible.concepto }}</p>
+                                <p>Estado: {{ deducible.estado }}</p>
+                                <p>Valor total: {{ formatCurrency(deducible.valor_total) }}</p>
+                                <p>Valor quincenal: {{ formatCurrency(deducible.valor_quincenal) }}</p>
+                                <p>Fecha de inicio: {{ deducible.fecha_inicio }}</p>
+                                <p>Fecha de fin: {{ deducible.fecha_fin }}</p>
+                                <!-- Agrega más detalles según necesites -->
+                            </div>
+                            <div class="flex justify-end mt-4">
+                                <button @click="openModal = false"
+                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="bg-gray-100 p-2 rounded">
                     <p class="font-semibold">Total COP:</p>
@@ -114,6 +137,7 @@ import { useModelosStore } from '~/stores/modelo';
 
 const modelosStore = useModelosStore();
 const isLoading = ref(false);
+const openModal = ref(false);
 const modelos = ref([]);
 const filtro = ref('');
 const modeloSeleccionado = ref(null);

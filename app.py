@@ -76,8 +76,8 @@ def obtener_martes_del_mes(año, mes, n):
 
 
 def obtener_periodo_actual():
-    hoy = datetime.today()
-    # hoy = datetime(2025, 4, 12)
+    # hoy = datetime.today()
+    hoy = datetime(2025, 10, 12)
     año = hoy.year
     mes = hoy.strftime("%b").upper()
 
@@ -256,6 +256,7 @@ def obtener_modelos():
                             "valor_quincenal": deducible.valor_quincenal,
                             "plazo": deducible.plazo,
                             "quincenas_restantes": deducible.quincenas_restantes,
+                            "estado": deducible.estado,
                         }
                         for deducible in modelo.deducibles
                     ],
@@ -354,22 +355,45 @@ def liquidar_ganancias():
         periodo_id=periodo.id,
         estado="Liquidado",
         porcentaje=0,  # Inicializa el porcentaje con 0, se actualizará más adelante
+        ganancia_general_cop=0,  # Inicializa la ganancia del estudio con 0
     )
     db.session.add(nueva_ganancia)  # Agrega la nueva ganancia a la sesión
     db.session.flush()  # Asegúrate de que la nueva ganancia tenga un ID
 
+    deducciones_activas = (
+        0  # Inicializa una variable para sumar solo las deducciones activas
+    )
+
     for deducible in modelo.deducibles:
         if deducible.quincenas_restantes > 0:
-            deducciones += deducible.valor_quincenal
             deducible.quincenas_restantes -= 1  # Disminuye las quincenas restantes
+            deducible.estado = (
+                "Activo"  # El deducible está activo y aún se están realizando pagos
+            )
+            deducible.valor_pagado = (
+                deducible.plazo - deducible.quincenas_restantes
+            ) * deducible.valor_quincenal
+            deducible.valor_restante = deducible.valor_total - deducible.valor_pagado
+
+            deducciones_activas += (
+                deducible.valor_quincenal
+            )  # Suma solo las deducciones activas
+
             detalles_deducibles.append(
                 {
                     "concepto": deducible.concepto,
                     "valor_quincenal": deducible.valor_quincenal,
                     "quincenas_restantes": deducible.quincenas_restantes,
+                    "estado": deducible.estado,  # Incluye el estado del deducible en los detalles
                 }
             )
-        db.session.commit()
+
+        else:
+            deducible.estado = "Pagado"
+
+    db.session.commit()
+
+    # Utiliza la variable deducciones_activas en lugar de deducciones para los cálculos y la respuesta JSON
 
     total_tokens = 0  # Total de tokens generados por la modelo
     ganancias_por_pagina = []  # Lista para almacenar las ganancias por página
@@ -393,6 +417,7 @@ def liquidar_ganancias():
         nueva_ganancia_por_pagina = GananciaPorPagina(
             tokens=tokens,
             total_cop=0,  # Se actualizará después de calcular el porcentaje
+            ganancia_estudio_cop=0,  # Inicializa la ganancia del estudio por página con 0
             ganancia_id=nueva_ganancia.id,
             pagina_id=pagina_obj.id,
         )
@@ -419,27 +444,45 @@ def liquidar_ganancias():
         else:
             porcentaje = min(0.65 + (total_tokens - 36000) // 4000 * 0.01, 0.70)
 
+    porcentaje_estudio = 1 - porcentaje  # Porcentaje de ganancia del estudio
+
     # Actualiza el porcentaje en la nueva ganancia
     nueva_ganancia.porcentaje = porcentaje
 
-    # Actualiza el total en COP y los detalles de cada página con el porcentaje correcto
+    # Actualiza el total en COP, la ganancia del estudio por página y los detalles de cada página con el porcentaje correcto
     for ganancia_pagina in ganancias_por_pagina:
         tokens = ganancia_pagina.tokens
-        total_usd = tokens * 0.05 * porcentaje
-        total_cop = round(total_usd * trm)  # Redondea el total en COP
-        gran_total_cop += total_cop
-        ganancia_pagina.total_cop = total_cop
-
-        # Añade los detalles de la página a la lista
-        detalles_paginas.append(
-            {
-                "nombre_pagina": ganancia_pagina.pagina.nombre,
-                "tokens": tokens,
-                "total_cop": total_cop,
-            }
+        total_usd = tokens * 0.05  # Total en USD de los tokens generados
+        total_cop_modelo = round(
+            total_usd * porcentaje * trm
+        )  # Total en COP pagado a la modelo
+        total_cop_estudio = round(
+            total_usd * porcentaje_estudio * trm
+        )  # Total en COP de la ganancia del estudio
+        gran_total_cop += total_cop_modelo
+        ganancia_pagina.total_cop = total_cop_modelo
+        ganancia_pagina.ganancia_estudio_cop = (
+            total_cop_estudio  # Actualiza la ganancia del estudio por página
         )
 
-    gran_total_cop -= deducciones
+        # Añade los detalles de la página a la lista
+    detalles_paginas.append(
+        {
+            "nombre_pagina": ganancia_pagina.pagina.nombre,
+            "tokens": tokens,
+            "total_cop_modelo": total_cop_modelo,
+            "ganancia_estudio_cop": total_cop_estudio,  # Incluye la ganancia del estudio por página en los detalles
+        }
+    )
+
+    # Calcula la ganancia general del estudio
+    # Calcula la ganancia general del estudio
+    ganancia_general_cop = sum([gp.ganancia_estudio_cop for gp in ganancias_por_pagina])
+    nueva_ganancia.ganancia_general_cop = (
+        ganancia_general_cop  # Actualiza la ganancia general del estudio
+    )
+
+    gran_total_cop -= deducciones_activas
 
     impuesto = round(gran_total_cop * 4 / 1000)  # Calcula el 4% del total
     gran_total_cop -= impuesto  # Resta el descuento del total
@@ -448,7 +491,7 @@ def liquidar_ganancias():
     nueva_ganancia.estado = "Liquidado"
     db.session.commit()
 
-    # Incluye los detalles de las páginas en la respuesta
+    # Incluye los detalles de las páginas y la ganancia del estudio en la respuesta
     return jsonify(
         {
             "mensaje": "Ganancias liquidadas",
@@ -458,10 +501,10 @@ def liquidar_ganancias():
                 "fecha_fin": periodo.fecha_fin.strftime("%Y-%m-%d"),
             },
             "gran_total_cop": gran_total_cop,
-            "deducciones": deducciones,
             "detalles_deducibles": detalles_deducibles,
             "detalles_paginas": detalles_paginas,
             "porcentaje": porcentaje,
+            "ganancia_estudio_general_cop": ganancia_general_cop,  # Incluye la ganancia general del estudio en la respuesta
         }
     )
 
@@ -500,6 +543,10 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
         for ganancia_por_pagina in ganancia.ganancias_por_pagina
     ]
 
+    restante_deducibles = sum(
+        deducible.valor_restante for deducible in modelo.deducibles
+    )
+
     detalles_deducibles = [
         {
             "concepto": deducible.concepto,
@@ -509,9 +556,17 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
             "tasa": deducible.tasa,
             "fecha_inicio": deducible.fecha_inicio.strftime("%Y-%m-%d"),
             "fecha_fin": deducible.fecha_fin.strftime("%Y-%m-%d"),
+            "estado": deducible.estado,
+            "valor_pagado": deducible.valor_pagado,
+            "valor_restante": deducible.valor_restante,
         }
         for deducible in modelo.deducibles
     ]
+
+    total_deducible = 0
+    for deducible in modelo.deducibles:
+        if deducible.estado != "Pagado":
+            total_deducible += deducible.valor_quincenal
 
     return jsonify(
         {
@@ -525,6 +580,8 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
             "detalles_paginas": detalles_paginas,
             "estado": ganancia.estado,
             "porcentaje": ganancia.porcentaje,
+            "restante_deducibles": restante_deducibles,
+            "total_deducibles": total_deducible,
         }
     )
 
@@ -541,14 +598,18 @@ def agregar_deducible(nombre_usuario):
     valor_quincenal = datos["valor_total"] / datos["plazo"] * (1 + tasa_quincenal)
     nuevo_deducible = Deducible(
         concepto=datos["concepto"],
-        valor_total=datos["valor_total"],
+        valor_sin_interes=datos["valor_total"],
+        valor_total=datos["valor_total"] * (1 + tasa_quincenal),
         plazo=datos["plazo"],
         tasa=tasa_quincenal,
         valor_quincenal=valor_quincenal,
         quincenas_restantes=datos["plazo"],
         fecha_inicio=datetime.now(),
         fecha_fin=datetime.now() + timedelta(days=datos["plazo"] * 15),
+        valor_pagado=0,
+        valor_restante=datos["valor_total"] * (1 + tasa_quincenal),
         modelo_id=modelo.id,
+        estado="Activo",
     )
     db.session.add(nuevo_deducible)
     db.session.commit()

@@ -11,7 +11,8 @@ class Pagina(db.Model):
 class GananciaPorPagina(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tokens = db.Column(db.Integer, nullable=False)
-    total_cop = db.Column(db.Float, nullable=False)  # Nuevo campo
+    total_cop = db.Column(db.Float, nullable=False)
+    ganancia_estudio_cop = db.Column(db.Float, nullable=False, default=0)
     ganancia_id = db.Column(db.Integer, db.ForeignKey("ganancia.id"), nullable=False)
     pagina_id = db.Column(db.Integer, db.ForeignKey("pagina.id"), nullable=False)
     pagina = db.relationship("Pagina", backref="ganancias_por_pagina")
@@ -21,6 +22,9 @@ class Ganancia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     trm = db.Column(db.Float, nullable=False)
     total_cop = db.Column(db.Float, nullable=False)
+    ganancia_general_cop = db.Column(
+        db.Float, nullable=False, default=0
+    )  # Ganancia general del estudio
     modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
     ganancias_por_pagina = db.relationship(
         "GananciaPorPagina", backref="ganancia", lazy=True
@@ -80,6 +84,7 @@ class Deducible(db.Model):
     valor_pagado = db.Column(db.Float, nullable=True)
     valor_restante = db.Column(db.Float, nullable=True)
     estado = db.Column(db.String(60), nullable=True, default="Pendiente")
+    valor_sin_interes = db.Column(db.Float, nullable=True)
 
 
 class Periodo(db.Model):
