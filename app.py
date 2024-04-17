@@ -15,6 +15,10 @@ from datetime import datetime, date, timedelta
 from config import Config
 
 import requests
+import environ
+import os
+
+env = environ.Env()
 
 
 app = Flask(__name__)
@@ -103,7 +107,7 @@ def obtener_periodo_actual():
 
 
 def obtener_trm():
-    url = "https://www.datos.gov.co/resource/32sa-8pi3.json"
+    url = os.environ.get("TRM_URL")
     response = requests.get(url)
     data = response.json()
     valor = float(data[0]["valor"])
