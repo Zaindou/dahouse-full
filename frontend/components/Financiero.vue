@@ -1,7 +1,7 @@
 <template>
     <div class="p-4">
         <loading :is-loading="isLoading"></loading>
-        <h2 class="text-xl font-bold mb-2">Datos Financieros</h2>
+        <h2 class="text-xl font-bold mb-2">Datos de liquidación</h2>
         <div v-if="datosFinancieros" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">

@@ -10,11 +10,15 @@
         </nuxt-link>
         <nuxt-link to="/admcreadoras" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
             <Icon class="menu-icon" name="ic:sharp-people" />
-            Administrar usuarios
+            Usuarios
+        </nuxt-link>
+        <nuxt-link to="/prestamos" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
+            <Icon class="menu-icon" name="material-symbols:account-balance" />
+            Deducción
         </nuxt-link>
         <nuxt-link to="/liquidacion" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
             <Icon class="menu-icon" name="ic:sharp-attach-money" />
-            Liquidar modelo
+            Liquidación
         </nuxt-link>
     </div>
 </template>

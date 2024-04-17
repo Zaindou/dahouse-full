@@ -34,7 +34,7 @@
                                 :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
                                 :class="{ 'button-disabled': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
                                 class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">Ver
-                                Ganancia</button>
+                                ganancia</button>
                         </td>
                     </tr>
                 </tbody>
@@ -58,26 +58,38 @@
 
                     <!-- Modal -->
                     <div v-if="openModal"
-                        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-                        <div class="bg-white p-4 rounded-lg max-w-md w-full">
-                            <h3 class="font-bold text-lg">Detalles de deducibles</h3>
-                            <div v-for="deducible in gananciaSeleccionada.detalles_deducibles.filter(d => d.estado === 'Activo' || d.estado === 'Pendiente')"
-                                :key="deducible.concepto" class="py-2">
-                                <p>Concepto: {{ deducible.concepto }}</p>
-                                <p>Estado: {{ deducible.estado }}</p>
-                                <p>Valor total: {{ formatCurrency(deducible.valor_total) }}</p>
-                                <p>Valor quincenal: {{ formatCurrency(deducible.valor_quincenal) }}</p>
-                                <p>Fecha de inicio: {{ deducible.fecha_inicio }}</p>
-                                <p>Fecha de fin: {{ deducible.fecha_fin }}</p>
-                                <!-- Agrega más detalles según necesites -->
+                        class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
+                        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
+                            <h3 class="text-xl font-bold text-center text-gray-800 mb-6">Detalles de Deducibles</h3>
+                            <div class="space-y-4">
+                                <div v-for="deducible in gananciaSeleccionada.detalles_deducibles.filter(d => d.estado === 'Activo' || d.estado === 'Pendiente')"
+                                    :key="deducible.concepto" class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                                    <h4 class="text-md font-semibold text-blue-600">{{ deducible.concepto }}</h4>
+                                    <p class="text-sm text-gray-700">Estado: <span class="font-medium">{{
+            deducible.estado }}</span></p>
+                                    <p class="text-sm text-gray-700">Plazo: <span class="font-medium">{{ deducible.plazo
+                                            }} quincena(s)</span></p>
+                                    <p class="text-sm text-gray-700">Valor total: <span class="font-medium">{{
+            formatCurrency(deducible.valor_total) }}</span></p>
+                                    <p class="text-sm text-gray-700">Valor quincenal: <span class="font-medium">{{
+            formatCurrency(deducible.valor_quincenal) }}</span></p>
+                                    <p class="text-sm text-gray-700">Tasa: <span class="font-medium">{{ deducible.tasa
+                                            }}% quincenal</span></p>
+                                    <p class="text-sm text-gray-700">Fecha de inicio: <span class="font-medium">{{
+            formatDate(deducible.fecha_inicio) }}</span></p>
+                                    <p class="text-sm text-gray-700">Fecha de fin aproximada: <span
+                                            class="font-medium">{{ formatDate(deducible.fecha_fin) }}</span></p>
+                                </div>
                             </div>
-                            <div class="flex justify-end mt-4">
+                            <div class="mt-6 flex justify-center">
                                 <button @click="openModal = false"
-                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cerrar</button>
+                                    class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">Cerrar</button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+
                 <div class="bg-gray-100 p-2 rounded">
                     <p class="font-semibold">Total COP:</p>
                     <p>{{ formatCurrency(gananciaSeleccionada.gran_total_cop) }}</p>
@@ -105,7 +117,8 @@
         </div>
         <div v-if="modeloSeleccionado" class="mt-8">
             <div class="bg-white p-5 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 text-gray-800">Liquidar a {{ modeloSeleccionado.nombre_usuario }}
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">Liquidar a {{ modeloSeleccionado.nombre_usuario
+                    }}
                 </h3>
                 <div class="grid grid-cols-2 gap-6">
                     <div v-for="pagina in modeloSeleccionado.paginas_habilitadas" :key="pagina"
@@ -146,6 +159,10 @@ const gananciaForm = ref({
     nombre_usuario: '',
     paginas: {}
 });
+
+useHead({
+    titleTemplate: '%s - Liquidación de ganancias',
+})
 
 const modelosFiltrados = computed(() => {
     if (!modelos.value) {
@@ -223,9 +240,13 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
+const formatDate = (date) => {
+    // Formato de fecha en español, nombre del mes y día de la semana
+    return new Intl.DateTimeFormat('es-CO', {
+        dateStyle: 'full',
+    }).format(new Date(date));
 
-
-
+};
 
 modelos.value = await modelosStore.fetchModelos();
 </script>

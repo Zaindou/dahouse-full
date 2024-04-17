@@ -7,6 +7,10 @@
 
 </template>
 
-<script>
+<script setup>
+
+useHead({
+    titleTemplate: '%s - Administración de usuarios',
+})
 import Modelo from '~/components/Modelo.vue'
 </script>

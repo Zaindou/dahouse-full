@@ -100,5 +100,17 @@ export const useModelosStore = defineStore("modelos", {
         this.gananciaInfo = null;
       }
     },
+    async crearDeduccion(nombreUsuario, DeducibleData) {
+      try {
+        const response = await axios.post(
+          `http://127.0.0.1:5000/modelos/${nombreUsuario}/creardeducible`,
+          DeducibleData
+        );
+        console.log(response.data);
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.mensaje || error.message;
+      }
+    },
   },
 });

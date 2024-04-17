@@ -1,6 +1,9 @@
 import os
+import environ
+
+env = environ.Env()
 
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = "postgresql://dahouse:2l168s275xwYJejGLecrfr21VYcTXT3H@dpg-co308h821fec738q4d20-a.oregon-postgres.render.com/dahouse"
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False

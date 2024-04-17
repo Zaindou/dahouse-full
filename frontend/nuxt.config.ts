@@ -8,7 +8,7 @@ export default defineNuxtConfig({
 
   app: {
   head: {
-
+    title: 'DAHOUSE',
     script: [
       // <script src="https://myawesome-lib.js"></script>
       { src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11' },

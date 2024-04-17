@@ -76,8 +76,8 @@ def obtener_martes_del_mes(año, mes, n):
 
 
 def obtener_periodo_actual():
-    # hoy = datetime.today()
-    hoy = datetime(2025, 10, 12)
+    hoy = datetime.today()
+    # hoy = datetime(2025, 10, 12)
     año = hoy.year
     mes = hoy.strftime("%b").upper()
 
@@ -550,6 +550,7 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
     detalles_deducibles = [
         {
             "concepto": deducible.concepto,
+            "valor_total": deducible.valor_total,
             "valor_quincenal": deducible.valor_quincenal,
             "quincenas_restantes": deducible.quincenas_restantes,
             "plazo": deducible.plazo,
@@ -586,7 +587,7 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
     )
 
 
-@app.route("/modelos/<nombre_usuario>/deducibles", methods=["POST"])
+@app.route("/modelos/<nombre_usuario>/creardeducible", methods=["POST"])
 def agregar_deducible(nombre_usuario):
     modelo = Modelo.query.filter_by(nombre_usuario=nombre_usuario).first()
     if not modelo:
@@ -596,6 +597,7 @@ def agregar_deducible(nombre_usuario):
 
     tasa_quincenal = datos["tasa"] / 2
     valor_quincenal = datos["valor_total"] / datos["plazo"] * (1 + tasa_quincenal)
+
     nuevo_deducible = Deducible(
         concepto=datos["concepto"],
         valor_sin_interes=datos["valor_total"],
