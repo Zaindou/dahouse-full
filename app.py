@@ -10,7 +10,7 @@ from models import (
     Deducible,
     Rol,
 )
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 from config import Config
 
@@ -44,12 +44,6 @@ def inicializar_roles():
     db.session.commit()
 
 
-from datetime import datetime, date
-
-
-from datetime import datetime, timedelta
-
-
 def calcular_porcentaje(tokens, exclusividad):
     if exclusividad:
         if tokens <= 29999:
@@ -80,8 +74,8 @@ def obtener_martes_del_mes(año, mes, n):
 
 
 def obtener_periodo_actual():
-    hoy = datetime.today()
-    # hoy = datetime(2025, 10, 12)
+    hoy = datetime(2031, 10, 12)
+    # hoy = datetime.today()
     año = hoy.year
     mes = hoy.strftime("%b").upper()
 
@@ -111,7 +105,7 @@ def obtener_trm():
     response = requests.get(url)
     data = response.json()
     valor = float(data[0]["valor"])
-    valor = valor - 90
+    valor = valor - float(os.environ.get("TRM_ADICIONAL"))
     return valor
 
 
@@ -133,7 +127,7 @@ def ganancias_totales_periodo(nombre_periodo):
 
 @app.route("/financiero", methods=["GET"])
 def financiero():
-    trm_actual = obtener_trm() + 90
+    trm_actual = obtener_trm() + float(os.environ.get("TRM_ADICIONAL"))
     periodo_actual = obtener_periodo_actual()
     # periodo_ganancias = ganancias_totales_periodo(periodo_actual[0])
 
@@ -261,6 +255,8 @@ def obtener_modelos():
                             "plazo": deducible.plazo,
                             "quincenas_restantes": deducible.quincenas_restantes,
                             "estado": deducible.estado,
+                            "valor_pagado": deducible.valor_pagado,
+                            "valor_restante": deducible.valor_restante,
                         }
                         for deducible in modelo.deducibles
                     ],

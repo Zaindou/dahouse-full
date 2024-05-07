@@ -66,17 +66,21 @@
                                     :key="deducible.concepto" class="bg-gray-50 p-4 rounded-lg shadow-sm">
                                     <h4 class="text-md font-semibold text-blue-600">{{ deducible.concepto }}</h4>
                                     <p class="text-sm text-gray-700">Estado: <span class="font-medium">{{
-            deducible.estado }}</span></p>
+                                            deducible.estado }}</span></p>
                                     <p class="text-sm text-gray-700">Plazo: <span class="font-medium">{{ deducible.plazo
                                             }} quincena(s)</span></p>
                                     <p class="text-sm text-gray-700">Valor total: <span class="font-medium">{{
-            formatCurrency(deducible.valor_total) }}</span></p>
+                                            formatCurrency(deducible.valor_total) }}</span></p>
                                     <p class="text-sm text-gray-700">Valor quincenal: <span class="font-medium">{{
             formatCurrency(deducible.valor_quincenal) }}</span></p>
+                                    <p class="text-sm text-gray-700">Valor pagado: <span class="font-medium">{{
+                                            formatCurrency(deducible.valor_pagado) }}</span></p>
+                                    <p class="text-sm text-gray-700">Valor restante: <span class="font-medium">{{
+                                            formatCurrency(deducible.valor_restante) }}</span></p>
                                     <p class="text-sm text-gray-700">Tasa: <span class="font-medium">{{ deducible.tasa
                                             }}% quincenal</span></p>
                                     <p class="text-sm text-gray-700">Fecha de inicio: <span class="font-medium">{{
-            formatDate(deducible.fecha_inicio) }}</span></p>
+                                            formatDate(deducible.fecha_inicio) }}</span></p>
                                     <p class="text-sm text-gray-700">Fecha de fin aproximada: <span
                                             class="font-medium">{{ formatDate(deducible.fecha_fin) }}</span></p>
                                 </div>
@@ -270,6 +274,6 @@ modelos.value = await modelosStore.fetchModelos();
 .button-disabled {
     background-color: #999;
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.5 !important;
 }
 </style>

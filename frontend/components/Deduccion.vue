@@ -25,10 +25,10 @@
                             <button @click="abrirFormularioDeduccion(modelo)"
                                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Crear
                                 deducción</button>
-                            <button @click="openModal = true"
+                            <button @click="abrirModalDeduciblesActivos(modelo)"
                                 class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-1">Deducibles
                                 activos</button>
-                            <button @click="openModal = true"
+                            <button @click="abrirModalHistorico(modelo)"
                                 class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-1">Historico</button>
                         </td>
                     </tr>
@@ -63,6 +63,78 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal para ver el historial de deducibles activos. -->
+        <div v-if="openActiveDebtModal && modeloSeleccionado"
+            class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
+            <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
+                <h3 class="text-base font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
+                    Deducciones activas para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}</h3>
+                <table class="table-auto">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Valor Total</th>
+                            <th>Plazo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for=" deduccion in
+                            modeloSeleccionado.deducibles " :key="deduccion.id">
+                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.concepto }}</td>
+                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.valor_total }}</td>
+                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.plazo }}</td>
+                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.estado }}</td>
+                        </tr>
+                        <!-- Si ninguno de los deducibles activo mostrar -->
+                        <tr v-if="modeloSeleccionado.deducibles.length === 0">
+                            <td colspan="4" class="text-center">No cuenta con deducciones activas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="flex justify-end mt-4">
+                    <button @click="openActiveDebtModal = false"
+                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para ver el historial de deducibles activos. -->
+        <div v-if="openRecordModal && modeloSeleccionado"
+            class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
+            <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
+                <h3 class="text-base font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
+                    Historial de deducciones para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}
+                </h3>
+                <table class="table-auto">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Valor Total</th>
+                            <th>Plazo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="deduccion in modeloSeleccionado.deducibles" :key="deduccion.id">
+                            <td>{{ deduccion.concepto }}</td>
+                            <td>{{ deduccion.valor_total }}</td>
+                            <td>{{ deduccion.plazo }}</td>
+                            <td>{{ deduccion.estado }}</td>
+                        </tr>
+                        <tr v-if="modeloSeleccionado.deducibles.length === 0">
+                            <td colspan="4" class="text-center">No tienes un historico de deducciones.</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                <div class="flex justify-end mt-4">
+                    <button @click="openRecordModal = false"
+                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 </template>
@@ -80,9 +152,12 @@ import { useModelosStore } from '~/stores/modelo';
 const modelosStore = useModelosStore();
 const isLoading = ref(false);
 const openModal = ref(false);
+const openActiveDebtModal = ref(false);
+const openRecordModal = ref(false);
 const modelos = ref([]);
 const filtro = ref('');
 const modeloSeleccionado = ref(null);
+
 
 const deduccion = ref({
     concepto: '',
@@ -108,6 +183,27 @@ const abrirFormularioDeduccion = (modelo) => {
     openModal.value = true;
     // Restablecer la deduccion
     deduccion.value = { concepto: '', valor_total: '', plazo: '', tasa: '' };
+};
+
+const abrirModalDeduciblesActivos = (modelo) => {
+    modeloSeleccionado.value = modelo;
+    openActiveDebtModal.value = true;
+    // Restablecer la deduccion
+    deduccion.value = { concepto: '', valor_total: '', plazo: '', tasa: '' };
+};
+
+const abrirModalHistorico = (modelo) => {
+    modeloSeleccionado.value = modelo;
+    openRecordModal.value = true;
+    // Restablecer la deduccion
+    deduccion.value = { concepto: '', valor_total: '', plazo: '', tasa: '' };
+};
+
+const estadoDeduccion = (deduccion) => {
+    if (deduccion.estado === 'Activo') {
+        return 'Activo';
+    }
+    return 'Pagado';
 };
 
 const guardarDeduccion = async () => {
