@@ -11,7 +11,7 @@ export const useModelosStore = defineStore("modelos", {
   actions: {
     async fetchModelos() {
       try {
-        const response = await axios.get("http://localhost:5000/modelos");
+        const response = await axios.get("http://127.0.0.1:5000/modelos");
         this.modelos = response.data;
         return response.data;
       } catch (error) {
@@ -21,7 +21,7 @@ export const useModelosStore = defineStore("modelos", {
     async addModelo(modeloData) {
       try {
         const response = await axios.post(
-          "http://localhost:5000/modelos",
+          "http://127.0.0.1:5000/modelos",
           modeloData
         );
         this.modelos.push(response.data);
@@ -33,7 +33,7 @@ export const useModelosStore = defineStore("modelos", {
     async editModelo(modeloData) {
       try {
         const response = await axios.put(
-          `http://localhost:5000/modelos/${modeloData.id}`,
+          `http://127.0.0.1:5000/modelos/${modeloData.id}`,
           modeloData
         );
         const index = this.modelos.findIndex(
@@ -50,7 +50,7 @@ export const useModelosStore = defineStore("modelos", {
     async deleteModelo(modeloId) {
       try {
         const response = await axios.delete(
-          `http://localhost:5000/modelos/${modeloId}`
+          `http://127.0.0.1:5000/modelos/${modeloId}`
         );
         this.modelos = this.modelos.filter((modelo) => modelo.id !== modeloId);
         return response.data;
@@ -60,7 +60,7 @@ export const useModelosStore = defineStore("modelos", {
     },
     async fetchRolesDisponibles() {
       try {
-        const response = await axios.get("http://localhost:5000/roles");
+        const response = await axios.get("http://127.0.0.1:5000/roles");
         console.log(response.data);
         return response.data;
       } catch (error) {
@@ -69,7 +69,7 @@ export const useModelosStore = defineStore("modelos", {
     },
     async fetchPaginasDisponibles() {
       try {
-        const response = await axios.get("http://localhost:5000/paginas");
+        const response = await axios.get("http://127.0.0.1:5000/paginas");
         console.log(response.data);
         return response.data;
       } catch (error) {

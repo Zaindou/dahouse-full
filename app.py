@@ -74,8 +74,8 @@ def obtener_martes_del_mes(año, mes, n):
 
 
 def obtener_periodo_actual():
-    hoy = datetime(2031, 10, 12)
-    # hoy = datetime.today()
+    # hoy = datetime(2031, 10, 12)
+    hoy = datetime.today()
     año = hoy.year
     mes = hoy.strftime("%b").upper()
 

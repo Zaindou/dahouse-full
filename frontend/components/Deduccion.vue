@@ -30,41 +30,101 @@
                                 activos</button>
                             <button @click="abrirModalHistorico(modelo)"
                                 class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-1">Historico</button>
+                            <!-- Botón para simular la deducción -->
+                            <button @click="simularDeduccion(modelo)"
+                                class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded ml-1">Simular
+                                Deducción</button>
+
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <div v-if="openSimulationModal"
+            class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+            <div class="bg-white p-4 rounded-lg shadow-lg max-w-4xl w-full mx-2">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Detalle de la Simulación</h3>
+                    <button @click="openSimulationModal = false, removeSimulationButton = true"
+                        class="text-blue-500">Aceptar</button>
+                    <button @click="openSimulationModal = false, removeSimulationButton = false"
+                        class="text-red-500">Cerrar</button>
+
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Periodo</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Cuota Mensual</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Principal</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Interés</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Balance Restante</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr v-for="pago in pagosDetalle" :key="pago.mes">
+                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.mes }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ formatCurrency(pago.cuotaMensual) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.principal }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.interes }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.balanceRestante }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="mt-4 p-4 bg-gray-100 rounded-lg">
+                        <h3 class="text-lg font-semibold">Resumen del Préstamo</h3>
+                        <p>Numero de periodos: {{ resumenPrestamo.numeroPeriodos }}</p>
+                        <p>Valor a adeudar: {{ resumenPrestamo.valorAdeudar }}</p>
+                        <p>Valor total con intereses: {{ resumenPrestamo.valorConIntereses }}</p>
+                        <p>Cuota mensual: {{ resumenPrestamo.cuotaMensual }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal para Crear Deducción -->
         <div v-if="openModal && modeloSeleccionado"
-            class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
-            <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
-                <h3 class="text-lg font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
-                    Crear Deducción para {{
-            modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}</h3>
+            class="fixed inset-0 bg-black bg-opacity-60 z-40 flex justify-center items-center transition-opacity duration-300">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full m-4">
+                <h3 class="text-lg font-semibold text-center text-gray-700 mb-4">
+                    Crear Deducción para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}</h3>
                 <form @submit.prevent="guardarDeduccion">
-                    <input v-model="deduccion.concepto" placeholder="Concepto"
-                        class="block w-full mb-4 p-2 border rounded" required>
-                    <input type="number" v-model="deduccion.valor_total" placeholder="Valor Total"
-                        class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none block w-full mb-4 p-2 border rounded"
-                        required>
-                    <input type="number" v-model="deduccion.plazo" placeholder="Plazo"
-                        class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none block w-full mb-4 p-2 border rounded"
-                        required>
-                    <input type="number" v-model="deduccion.tasa" placeholder="Tasa de Interés"
-                        class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none block w-full mb-4 p-2 border rounded"
-                        required>
+                    <input type="text" v-model="deduccion.concepto" placeholder="Concepto"
+                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    <input type="text" v-model="formattedValorTotal" placeholder="Valor Total"
+                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    <input type="number" v-model.number="deduccion.plazo" placeholder="Plazo (máx 6 periodos)" max="6"
+                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    <input type="number" v-model.number="deduccion.tasa" placeholder="Tasa de Interés" step="0.01"
+                        min="0"
+                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
                     <div class="flex justify-between">
-                        <button type="submit"
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">Guardar</button>
-                        <button @click="openModal = false"
-                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cancelar</button>
+                        <button v-if="!removeSimulationButton" type="button" @click="simularDeduccion"
+                            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Simular</button>
+                        <button v-if="removeSimulationButton" type="submit"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">Crear</button>
+                        <button @click="openModal = false, removeSimulationButton = false"
+                            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Modal para ver el historial de deducibles activos. -->
+
+
+        <!-- Modal para ver deducibles activos. -->
         <div v-if="openActiveDebtModal && modeloSeleccionado"
             class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
             <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
@@ -100,7 +160,7 @@
             </div>
         </div>
 
-        <!-- Modal para ver el historial de deducibles activos. -->
+        <!-- Modal para ver el historial de deducibles. -->
         <div v-if="openRecordModal && modeloSeleccionado"
             class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
             <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
@@ -135,6 +195,9 @@
                 </div>
             </div>
         </div>
+        <!-- Modal de Simulación -->
+
+
     </div>
 
 </template>
@@ -157,14 +220,61 @@ const openRecordModal = ref(false);
 const modelos = ref([]);
 const filtro = ref('');
 const modeloSeleccionado = ref(null);
+const openSimulationModal = ref(false);
+const pagosDetalle = ref([]);
+const resumenPrestamo = ref({});
+const removeSimulationButton = ref(false);
 
 
 const deduccion = ref({
     concepto: '',
-    valor_total: 0,
+    valor_total: 0,  // Asegúrate de que estos no son undefined o strings vacíos
     plazo: 0,
     tasa: 0
 });
+
+
+const simularDeduccion = () => {
+    const valorTotal = parseFloat(deduccion.value.valor_total) || 0;
+    const plazo = parseInt(deduccion.value.plazo, 10) || 0;
+    const tasa = parseFloat(deduccion.value.tasa) || 0;
+
+    if (valorTotal <= 0 || plazo <= 0 || tasa < 0) {
+        alert('Por favor, introduzca valores válidos. Todos los campos deben ser números y mayores que cero.');
+        return;
+    }
+
+    const tasaQuincenal = tasa / 2;
+    const cuotaQuincenal = valorTotal / plazo * (1 + tasaQuincenal);
+    let saldoCapital = valorTotal;
+    pagosDetalle.value = [];
+
+    for (let i = 1; i <= plazo; i++) {
+        const interes = saldoCapital * tasaQuincenal;
+        const principal = cuotaQuincenal - interes;
+        saldoCapital -= principal;
+        pagosDetalle.value.push({
+            periodo: i,
+            cuotaQuincenal: cuotaQuincenal.toFixed(2),
+            principal: principal.toFixed(2),
+            interes: interes.toFixed(2),
+            saldoCapital: saldoCapital.toFixed(2)
+        });
+    }
+
+    resumenPrestamo.value = {
+        numeroPeriodos: plazo,
+        valorAdeudar: valorTotal.toFixed(2),
+        valorConIntereses: (cuotaQuincenal * plazo).toFixed(2),
+        cuotaQuincenal: cuotaQuincenal.toFixed(2)
+    };
+
+    openSimulationModal.value = true;
+    removeSimulationButton.value = true;
+};
+
+
+
 
 const modelosFiltrados = computed(() => {
     if (!modelos.value) {
@@ -206,11 +316,30 @@ const estadoDeduccion = (deduccion) => {
     return 'Pagado';
 };
 
+const formattedValorTotal = computed({
+    get() {
+        if (document.activeElement.id !== "valor-total-input") {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0,
+            }).format(deduccion.value.valor_total);
+        }
+        return deduccion.value.valor_total.toString();
+    },
+    set(newValue) {
+        let parsedValue = newValue.replace(/\D/g, '');
+        deduccion.value.valor_total = parseFloat(parsedValue);
+    }
+});
+
 const guardarDeduccion = async () => {
     try {
         isLoading.value = true;
+        // Parse deduccion.valor_total to ensure it is a number
+        deduccion.value.valor_total = parseFloat(deduccion.value.valor_total);
         const response = await modelosStore.crearDeduccion(modeloSeleccionado.value.nombre_usuario, deduccion.value);
-        modelos.value = await modelosStore.fetchModelos(); // Recargar lista de modelos
+        modelos.value = await modelosStore.fetchModelos(); // Reload list of models
         openModal.value = false;
         isLoading.value = false;
         Swal.fire('Éxito', response.mensaje, 'success');
@@ -218,6 +347,16 @@ const guardarDeduccion = async () => {
         Swal.fire('Error', error.response?.data?.error || 'Ha ocurrido un error', 'error');
     }
 };
+
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+    }).format(value);
+};
+
+
 
 isLoading.value = true;
 modelos.value = await modelosStore.fetchModelos();
