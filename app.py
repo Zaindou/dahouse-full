@@ -658,4 +658,4 @@ if __name__ == "__main__":
         db.create_all()  # Crea las tablas de la base de datos si no existen
         inicializar_paginas()  # Inicializa las páginas preestablecidas
         inicializar_roles()
-    app.run(debug=True)
+    app.run(debug=False)
