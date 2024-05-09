@@ -6,6 +6,10 @@ export default defineNuxtConfig({
     storesDirs: ['./stores/**', './custom-folder/stores/**'],
   },
 
+  runtimeConfig: {
+    API_URL: process.env.API_URL || 'http://localhost:300000',
+  },
+
   app: {
   head: {
     title: 'DAHOUSE',
