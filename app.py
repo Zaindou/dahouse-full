@@ -651,11 +651,3 @@ def obtener_periodo_actual_endpoint():
             "fecha_fin": fecha_fin,
         }
     )
-
-
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()  # Crea las tablas de la base de datos si no existen
-        inicializar_paginas()  # Inicializa las páginas preestablecidas
-        inicializar_roles()
-    app.run(debug=False)
