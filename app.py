@@ -13,13 +13,14 @@ from models import (
 from datetime import datetime, timedelta
 
 from config import Config
+from dotenv import load_dotenv
 
 import requests
 import environ
 import os
 
 env = environ.Env()
-
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
