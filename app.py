@@ -45,27 +45,6 @@ def inicializar_roles():
     db.session.commit()
 
 
-def calcular_porcentaje(tokens, exclusividad):
-    if exclusividad:
-        if tokens <= 29999:
-            return 0.6
-        elif tokens <= 40000:
-            return 0.65
-        else:
-            return min(0.7, 0.65 + (tokens - 40000) // 4000 * 0.01)
-    else:
-        if tokens <= 20000:
-            return 0.5
-        elif tokens <= 25999:
-            return 0.55
-        elif tokens <= 30999:
-            return 0.6
-        elif tokens <= 36000:
-            return 0.65
-        else:
-            return min(0.7, 0.65 + (tokens - 36000) // 4000 * 0.01)
-
-
 def obtener_martes_del_mes(año, mes, n):
     """Devuelve el n-ésimo martes del mes especificado."""
     primer_dia_del_mes = datetime(año, mes, 1)
@@ -75,7 +54,7 @@ def obtener_martes_del_mes(año, mes, n):
 
 
 def obtener_periodo_actual():
-    # hoy = datetime(2031, 10, 12)
+    # hoy = datetime(2024, 6, 11)
     hoy = datetime.today()
     año = hoy.year
     mes = hoy.strftime("%b").upper()
@@ -426,24 +405,29 @@ def liquidar_ganancias():
         ganancias_por_pagina.append(nueva_ganancia_por_pagina)
 
     # Determina el porcentaje según la cantidad total de tokens y la exclusividad
+
     if modelo.exclusividad:
-        if total_tokens <= 29999:
+        if total_tokens <= 44998:  # 29999 * 1.5
             porcentaje = 0.60
-        elif total_tokens <= 40000:
+        elif total_tokens <= 60000:  # 40000 * 1.5
             porcentaje = 0.65
         else:
-            porcentaje = min(0.65 + (total_tokens - 40000) // 4000 * 0.01, 0.70)
+            porcentaje = min(
+                0.65 + (total_tokens - 60000) // 6000 * 0.01, 0.70
+            )  # 4000 * 1.5
     else:
-        if total_tokens < 20000:
+        if total_tokens < 30000:  # 20000 * 1.5
             porcentaje = 0.50
-        elif total_tokens < 26000:
+        elif total_tokens < 39000:  # 26000 * 1.5
             porcentaje = 0.55
-        elif total_tokens < 31000:
+        elif total_tokens < 46500:  # 31000 * 1.5
             porcentaje = 0.60
-        elif total_tokens < 36000:
+        elif total_tokens < 54000:  # 36000 * 1.5
             porcentaje = 0.65
         else:
-            porcentaje = min(0.65 + (total_tokens - 36000) // 4000 * 0.01, 0.70)
+            porcentaje = min(
+                0.65 + (total_tokens - 54000) // 6000 * 0.01, 0.70
+            )  # 4000 * 1.5
 
     porcentaje_estudio = 1 - porcentaje  # Porcentaje de ganancia del estudio
 
@@ -656,7 +640,7 @@ def obtener_periodo_actual_endpoint():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # Crea las tablas de la base de datos si no existen
-        inicializar_paginas()  # Inicializa las páginas preestablecidas
+        db.create_all()
+        inicializar_paginas()
         inicializar_roles()
     app.run(debug=True)
