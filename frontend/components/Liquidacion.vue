@@ -58,36 +58,38 @@
 
                     <!-- Modal -->
                     <div v-if="openModal"
-                        class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
-                        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
+                        class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300 overflow-y-auto">
+                        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4 my-8">
                             <h3 class="text-xl font-bold text-center text-gray-800 mb-6">Detalles de Deducibles</h3>
-                            <div class="space-y-4">
+                            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                                 <div v-for="deducible in gananciaSeleccionada.detalles_deducibles.filter(d => d.estado === 'Activo' || d.estado === 'Pendiente')"
                                     :key="deducible.concepto" class="bg-gray-50 p-4 rounded-lg shadow-sm">
                                     <h4 class="text-md font-semibold text-blue-600">{{ deducible.concepto }}</h4>
                                     <p class="text-sm text-gray-700">Estado: <span class="font-medium">{{
-                                            deducible.estado }}</span></p>
+                                        deducible.estado }}</span></p>
                                     <p class="text-sm text-gray-700">Plazo: <span class="font-medium">{{ deducible.plazo
                                             }} quincena(s)</span></p>
                                     <p class="text-sm text-gray-700">Valor total: <span class="font-medium">{{
-                                            formatCurrency(deducible.valor_total) }}</span></p>
+                                        formatCurrency(deducible.valor_total) }}</span></p>
                                     <p class="text-sm text-gray-700">Valor quincenal: <span class="font-medium">{{
-            formatCurrency(deducible.valor_quincenal) }}</span></p>
+                                        formatCurrency(deducible.valor_quincenal) }}</span></p>
                                     <p class="text-sm text-gray-700">Valor pagado: <span class="font-medium">{{
-                                            formatCurrency(deducible.valor_pagado) }}</span></p>
+                                        formatCurrency(deducible.valor_pagado) }}</span></p>
                                     <p class="text-sm text-gray-700">Valor restante: <span class="font-medium">{{
-                                            formatCurrency(deducible.valor_restante) }}</span></p>
+                                        formatCurrency(deducible.valor_restante) }}</span></p>
                                     <p class="text-sm text-gray-700">Tasa: <span class="font-medium">{{ deducible.tasa
                                             }}% quincenal</span></p>
                                     <p class="text-sm text-gray-700">Fecha de inicio: <span class="font-medium">{{
-                                            formatDate(deducible.fecha_inicio) }}</span></p>
+                                        formatDate(deducible.fecha_inicio) }}</span></p>
                                     <p class="text-sm text-gray-700">Fecha de fin aproximada: <span
                                             class="font-medium">{{ formatDate(deducible.fecha_fin) }}</span></p>
                                 </div>
                             </div>
                             <div class="mt-6 flex justify-center">
                                 <button @click="openModal = false"
-                                    class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">Cerrar</button>
+                                    class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+                                    Cerrar
+                                </button>
                             </div>
                         </div>
                     </div>

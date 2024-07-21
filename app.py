@@ -373,8 +373,6 @@ def liquidar_ganancias():
 
     db.session.commit()
 
-    # Utiliza la variable deducciones_activas en lugar de deducciones para los cálculos y la respuesta JSON
-
     total_tokens = 0  # Total de tokens generados por la modelo
     ganancias_por_pagina = []  # Lista para almacenar las ganancias por página
     for pagina in datos["paginas"]:
@@ -405,7 +403,6 @@ def liquidar_ganancias():
         ganancias_por_pagina.append(nueva_ganancia_por_pagina)
 
     # Determina el porcentaje según la cantidad total de tokens y la exclusividad
-
     if modelo.exclusividad:
         if total_tokens <= 44998:  # 29999 * 1.5
             porcentaje = 0.60
@@ -417,13 +414,13 @@ def liquidar_ganancias():
             )  # 4000 * 1.5
     else:
         if total_tokens < 30000:  # 20000 * 1.5
-            porcentaje = 0.50
+            porcentaje = 0.55
         elif total_tokens < 39000:  # 26000 * 1.5
             porcentaje = 0.55
         elif total_tokens < 46500:  # 31000 * 1.5
-            porcentaje = 0.60
+            porcentaje = 0.55
         elif total_tokens < 54000:  # 36000 * 1.5
-            porcentaje = 0.65
+            porcentaje = 0.55
         else:
             porcentaje = min(
                 0.65 + (total_tokens - 54000) // 6000 * 0.01, 0.70
@@ -433,6 +430,12 @@ def liquidar_ganancias():
 
     # Actualiza el porcentaje en la nueva ganancia
     nueva_ganancia.porcentaje = porcentaje
+
+    # Define las comisiones por retiro para cada página
+    comisiones_retiro = {
+        "Camsoda": 78 * trm,
+        # Agrega las comisiones de otras páginas aquí
+    }
 
     # Actualiza el total en COP, la ganancia del estudio por página y los detalles de cada página con el porcentaje correcto
     for ganancia_pagina in ganancias_por_pagina:
@@ -444,6 +447,11 @@ def liquidar_ganancias():
         total_cop_estudio = round(
             total_usd * porcentaje_estudio * trm
         )  # Total en COP de la ganancia del estudio
+
+        # Aplica la comisión de retiro si la página tiene una comisión definida
+        comision_retiro = comisiones_retiro.get(ganancia_pagina.pagina.nombre, 0)
+        total_cop_modelo -= comision_retiro
+
         gran_total_cop += total_cop_modelo
         ganancia_pagina.total_cop = total_cop_modelo
         ganancia_pagina.ganancia_estudio_cop = (
@@ -451,16 +459,16 @@ def liquidar_ganancias():
         )
 
         # Añade los detalles de la página a la lista
-    detalles_paginas.append(
-        {
-            "nombre_pagina": ganancia_pagina.pagina.nombre,
-            "tokens": tokens,
-            "total_cop_modelo": total_cop_modelo,
-            "ganancia_estudio_cop": total_cop_estudio,  # Incluye la ganancia del estudio por página en los detalles
-        }
-    )
+        detalles_paginas.append(
+            {
+                "nombre_pagina": ganancia_pagina.pagina.nombre,
+                "tokens": tokens,
+                "total_cop_modelo": total_cop_modelo,
+                "ganancia_estudio_cop": total_cop_estudio,  # Incluye la ganancia del estudio por página en los detalles
+                "comision_retiro": comision_retiro,  # Incluye la comisión de retiro en los detalles
+            }
+        )
 
-    # Calcula la ganancia general del estudio
     # Calcula la ganancia general del estudio
     ganancia_general_cop = sum([gp.ganancia_estudio_cop for gp in ganancias_por_pagina])
     nueva_ganancia.ganancia_general_cop = (

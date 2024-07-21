@@ -1,50 +1,42 @@
 <template>
-    <div class="p-4">
+    <div class="p-4 bg-white shadow-md rounded-lg max-w-3xl mx-auto">
         <loading :is-loading="isLoading"></loading>
-        <h2 class="text-xl font-bold mb-2">Datos de liquidación</h2>
-        <div v-if="datosFinancieros" class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Descripción</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Valor</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">TRM Actual</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">{{
-            formatCurrency(datosFinancieros.trm_actual) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">TRM de Liquidación</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">{{
-            formatCurrency(datosFinancieros.trm_liquidacion) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">Período Actual</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                            {{ datosFinancieros.periodo_actual[0] }}
-                            <br>
-                            {{ datosFinancieros.periodo_actual[1] }} a
-                            {{ datosFinancieros.periodo_actual[2] }}
-                        </td>
-                    </tr>
-                    <!-- <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">Ganancias totales modelos</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">{{
-            formatCurrency(datosFinancieros.ganancias_totales_periodo) }}</td>
-                    </tr> -->
-                </tbody>
-            </table>
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Datos de Liquidación</h2>
+        <div v-if="datosFinancieros" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-2 rounded-md shadow-sm">
+                    <h3 class="text-sm font-semibold text-blue-700 mb-1">TRM Actual</h3>
+                    <p class="text-lg font-bold text-blue-800">{{ formatCurrency(datosFinancieros.trm_actual) }}</p>
+                </div>
+                <div class="bg-green-50 p-2 rounded-md shadow-sm">
+                    <h3 class="text-sm font-semibold text-green-700 mb-1">TRM de Liquidación</h3>
+                    <p class="text-lg font-bold text-green-800">{{ formatCurrency(datosFinancieros.trm_liquidacion) }}
+                    </p>
+                </div>
+                <div class="bg-purple-50 p-2 rounded-md shadow-sm">
+                    <h3 class="text-sm font-semibold text-purple-700 mb-1">Período Actual</h3>
+                    <p class="text-base font-bold text-purple-800 text-center">{{ datosFinancieros.periodo_actual[0] }}
+                    </p>
+                    <p class="text-xs text-purple-600">
+                        {{ datosFinancieros.periodo_actual[1] }} a {{ datosFinancieros.periodo_actual[2] }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Espacio para futuras adiciones como ganancias totales -->
+            <!-- <div class="bg-yellow-50 p-3 rounded-md shadow-sm">
+        <h3 class="text-sm font-semibold text-yellow-700 mb-1">Ganancias Totales Modelos</h3>
+        <p class="text-lg font-bold text-yellow-800">{{ formatCurrency(datosFinancieros.ganancias_totales_periodo) }}</p>
+      </div> -->
         </div>
-        <div v-if="error" class="mt-4 text-red-500">
-            Error: {{ error }}
+        <div v-if="error" class="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700 text-sm">
+            <p class="font-bold">Error</p>
+            <p>{{ error }}</p>
         </div>
     </div>
 </template>
+
+
 
 <script>
 import { useFinancieroStore } from '~/stores/financiero';
