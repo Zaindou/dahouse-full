@@ -10,7 +10,9 @@ export const useFinancieroStore = defineStore("financiero", {
   actions: {
     async fetchDatosFinancieros() {
       try {
-        const response = await axios.get(`http://127.0.0.1:5000/financiero`);
+        const response = await axios.get(
+          `${useRuntimeConfig().public.apiUrl}/financiero`
+        );
         this.datosFinancieros = response.data;
         return response.data;
       } catch (error) {

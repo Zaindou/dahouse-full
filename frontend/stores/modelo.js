@@ -11,7 +11,9 @@ export const useModelosStore = defineStore("modelos", {
   actions: {
     async fetchModelos() {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/modelos");
+        const response = await axios.get(
+          `${useRuntimeConfig().public.apiUrl}/modelos`
+        );
         this.modelos = response.data;
         return response.data;
       } catch (error) {
@@ -21,7 +23,7 @@ export const useModelosStore = defineStore("modelos", {
     async addModelo(modeloData) {
       try {
         const response = await axios.post(
-          "http://127.0.0.1:5000/modelos",
+          `${useRuntimeConfig().public.apiUrl}/modelos`,
           modeloData
         );
         this.modelos.push(response.data);
@@ -33,7 +35,7 @@ export const useModelosStore = defineStore("modelos", {
     async editModelo(modeloData) {
       try {
         const response = await axios.put(
-          `http://127.0.0.1:5000/modelos/${modeloData.id}`,
+          `${useRuntimeConfig().public.apiUrl}/modelos/${modeloData.id}`,
           modeloData
         );
         const index = this.modelos.findIndex(
@@ -44,13 +46,13 @@ export const useModelosStore = defineStore("modelos", {
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.mensaje || error.message;
-        console.log(error.response?.data?.mensaje || error.message, "XDDDD");
+        console.log(error.response?.data?.mensaje || error.message);
       }
     },
     async deleteModelo(modeloId) {
       try {
         const response = await axios.delete(
-          `http://127.0.0.1:5000/modelos/${modeloId}`
+          `${useRuntimeConfig().public.apiUrl}/modelos/${modeloId}`
         );
         this.modelos = this.modelos.filter((modelo) => modelo.id !== modeloId);
         return response.data;
@@ -60,7 +62,9 @@ export const useModelosStore = defineStore("modelos", {
     },
     async fetchRolesDisponibles() {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/roles");
+        const response = await axios.get(
+          `${useRuntimeConfig().public.apiUrl}/roles`
+        );
         console.log(response.data);
         return response.data;
       } catch (error) {
@@ -69,7 +73,9 @@ export const useModelosStore = defineStore("modelos", {
     },
     async fetchPaginasDisponibles() {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/paginas");
+        const response = await axios.get(
+          `${useRuntimeConfig().public.apiUrl}/paginas`
+        );
         console.log(response.data);
         return response.data;
       } catch (error) {
@@ -79,7 +85,7 @@ export const useModelosStore = defineStore("modelos", {
     async liquidarGanancias(gananciaForm) {
       try {
         const response = await axios.post(
-          "http://127.0.0.1:5000/ganancias",
+          `${useRuntimeConfig().public.apiUrl}/ganancias`,
           gananciaForm
         );
         console.log(response.data);
@@ -91,7 +97,9 @@ export const useModelosStore = defineStore("modelos", {
     async fetchGananciaInfo(nombreUsuario, nombrePeriodo) {
       try {
         const response = await axios.get(
-          `http://127.0.0.1:5000/ganancias/usuario/${nombreUsuario}/periodo/${nombrePeriodo}`
+          `${
+            useRuntimeConfig().public.apiUrl
+          }/ganancias/usuario/${nombreUsuario}/periodo/${nombrePeriodo}`
         );
         this.gananciaInfo = response.data;
         return response.data;
@@ -103,7 +111,9 @@ export const useModelosStore = defineStore("modelos", {
     async crearDeduccion(nombreUsuario, DeducibleData) {
       try {
         const response = await axios.post(
-          `http://127.0.0.1:5000/modelos/${nombreUsuario}/creardeducible`,
+          `${
+            useRuntimeConfig().public.apiUrl
+          }/modelos/${nombreUsuario}/creardeducible`,
           DeducibleData
         );
         console.log(response.data);
