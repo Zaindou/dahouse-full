@@ -16,7 +16,7 @@
                 <h3 class="text-sm font-semibold text-purple-700 mb-1">Período Actual</h3>
                 <p class="text-base font-bold text-purple-800 text-center">{{ datosFinancieros.periodo_actual[0] }}
                 </p>
-                <p class="text-xs text-purple-600">
+                <p class="text-xs text-purple-600 text-center">
                     {{ datosFinancieros.periodo_actual[1] }} a {{ datosFinancieros.periodo_actual[2] }}
                 </p>
             </div>
