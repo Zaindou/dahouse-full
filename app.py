@@ -107,7 +107,7 @@ def ganancias_totales_periodo(nombre_periodo):
 
 @app.route("/", methods=["GET"])
 def index():
-    return "DAHOUSE API 0.1 BETA DEPLOYED by @dahouse"
+    return "DAHOUSE API 0.1 BETA DEPLOYED by @dahouse 2024"
 
 
 @app.route("/financiero", methods=["GET"])
