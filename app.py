@@ -105,6 +105,11 @@ def ganancias_totales_periodo(nombre_periodo):
     return {"total_cop": total_cop, "codigo": 200}
 
 
+@app.route("/", methods=["GET"])
+def index():
+    return "DAHOUSE API 0.1"
+
+
 @app.route("/financiero", methods=["GET"])
 def financiero():
     trm_actual = obtener_trm() + float(os.environ.get("TRM_ADICIONAL"))
