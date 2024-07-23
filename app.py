@@ -657,4 +657,4 @@ if __name__ == "__main__":
         db.create_all()
         inicializar_paginas()
         inicializar_roles()
-    app.run(debug=True)
+    app.run(debug=False)
