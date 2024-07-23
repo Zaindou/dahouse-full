@@ -407,10 +407,10 @@ def liquidar_ganancias():
         if total_tokens <= 44998:  # 29999 * 1.5
             porcentaje = 0.60
         elif total_tokens <= 60000:  # 40000 * 1.5
-            porcentaje = 0.65
+            porcentaje = 0.60
         else:
             porcentaje = min(
-                0.65 + (total_tokens - 60000) // 6000 * 0.01, 0.70
+                0.60 + (total_tokens - 60000) // 6000 * 0.01, 0.70
             )  # 4000 * 1.5
     else:
         if total_tokens < 30000:  # 20000 * 1.5
@@ -433,7 +433,7 @@ def liquidar_ganancias():
 
     # Define las comisiones por retiro para cada página
     comisiones_retiro = {
-        "Camsoda": 78 * trm,
+        "Stripchat": 50 * trm,
         # Agrega las comisiones de otras páginas aquí
     }
 
@@ -450,8 +450,9 @@ def liquidar_ganancias():
 
         # Aplica la comisión de retiro si la página tiene una comisión definida
         comision_retiro = comisiones_retiro.get(ganancia_pagina.pagina.nombre, 0)
+        print(comision_retiro)
         total_cop_modelo -= comision_retiro
-
+        print(total_cop_modelo)
         gran_total_cop += total_cop_modelo
         ganancia_pagina.total_cop = total_cop_modelo
         ganancia_pagina.ganancia_estudio_cop = (

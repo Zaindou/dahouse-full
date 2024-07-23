@@ -3,7 +3,7 @@
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-2 gap-4">
                 <!-- Ejemplo de módulos importados -->
-                <div class="bg-white p-1 rounded-lg shadow-md">
+                <div class="bg-white p-4 rounded-lg shadow-md">
                     <Financiero />
                 </div>
                 <div class="bg-white p-1 rounded-lg shadow-md">
