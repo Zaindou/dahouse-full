@@ -1,32 +1,82 @@
 <template>
-    <div class="flex flex-col w-64 h-full py-4 px-3 bg-gray-800">
-        <div class="flex items-center justify-center mb-6">
-            <!-- Un texto en blanco que diga Dahouse -->
-            <h1 class="text-white text-2xl font-bold">DAHOUSE</h1>
+    <div>
+        <!-- Botón para mostrar/ocultar el sidebar en móviles -->
+        <button @click="toggleSidebar" class="md:hidden fixed top-4 left-4 z-20 bg-gray-800 text-white p-2 rounded">
+            <Icon name="ic:sharp-menu" class="w-6 h-6" />
+        </button>
+
+        <!-- Overlay para cerrar el sidebar en móviles -->
+        <div v-if="isSidebarOpen" @click="closeSidebar" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden">
         </div>
-        <nuxt-link to="/" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
-            <Icon class="menu-icon" name="ic:sharp-menu" />
-            Inicio
-        </nuxt-link>
-        <nuxt-link to="/admcreadoras" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
-            <Icon class="menu-icon" name="ic:sharp-people" />
-            Usuarios
-        </nuxt-link>
-        <nuxt-link to="/prestamos" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
-            <Icon class="menu-icon" name="material-symbols:account-balance" />
-            Deducción
-        </nuxt-link>
-        <nuxt-link to="/liquidacion" class="flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700">
-            <Icon class="menu-icon" name="ic:sharp-attach-money" />
-            Liquidación
-        </nuxt-link>
+
+        <!-- Sidebar -->
+        <div :class="[
+            'fixed md:static inset-y-0 left-0 z-40 transition-all duration-300 ease-in-out',
+            'flex flex-col h-full py-4 px-3 bg-gray-800',
+            isSidebarOpen ? 'w-64' : 'w-0 md:w-16',
+            'md:transform md:translate-x-0',
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        ]">
+            <div class="flex items-center justify-between mb-6">
+                <h1
+                    :class="['text-white font-bold transition-all duration-300 ease-in-out', isSidebarOpen ? 'text-2xl' : 'text-xs md:text-2xl']">
+                    {{ isSidebarOpen ? 'DAHOUSE' : 'DH' }}
+                </h1>
+                <button @click="toggleSidebar" class="text-white hidden md:block">
+                    <Icon :name="isSidebarOpen ? 'ic:baseline-chevron-left' : 'ic:baseline-chevron-right'"
+                        class="w-6 h-6" />
+                </button>
+            </div>
+
+            <nuxt-link to="/" :class="linkClasses">
+                <Icon name="ic:sharp-menu" :class="iconClasses" />
+                <span :class="{ 'hidden': !isSidebarOpen }">Inicio</span>
+            </nuxt-link>
+            <nuxt-link to="/admcreadoras" :class="linkClasses">
+                <Icon name="ic:sharp-people" :class="iconClasses" />
+                <span :class="{ 'hidden': !isSidebarOpen }">Usuarios</span>
+            </nuxt-link>
+            <nuxt-link to="/prestamos" :class="linkClasses">
+                <Icon name="material-symbols:account-balance" :class="iconClasses" />
+                <span :class="{ 'hidden': !isSidebarOpen }">Deducción</span>
+            </nuxt-link>
+            <nuxt-link to="/liquidacion" :class="linkClasses">
+                <Icon name="ic:sharp-attach-money" :class="iconClasses" />
+                <span :class="{ 'hidden': !isSidebarOpen }">Liquidación</span>
+            </nuxt-link>
+        </div>
     </div>
 </template>
 
-<style>
+<script setup>
+import { ref, computed } from 'vue';
+
+const isSidebarOpen = ref(true);
+
+const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value;
+};
+
+const closeSidebar = () => {
+    if (window.innerWidth < 768) {  // 768px es el breakpoint para 'md' en Tailwind por defecto
+        isSidebarOpen.value = false;
+    }
+};
+
+const linkClasses = computed(() => [
+    'flex items-center text-white p-2 mb-2 rounded hover:bg-gray-700',
+    { 'justify-center': !isSidebarOpen.value }
+]);
+
+const iconClasses = computed(() => [
+    'menu-icon transition-all duration-300 ease-in-out',
+    isSidebarOpen.value ? 'mr-2' : 'mr-0 w-6 h-6'
+]);
+</script>
+
+<style scoped>
 .menu-icon {
     width: 25px;
     height: 25px;
-    margin-right: 10px;
 }
 </style>

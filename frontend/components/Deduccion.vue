@@ -31,9 +31,9 @@
                             <button @click="abrirModalHistorico(modelo)"
                                 class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-1">Historico</button>
                             <!-- Botón para simular la deducción -->
-                            <button @click="simularDeduccion(modelo)"
+                            <!-- <button @click="simularDeduccion(modelo)"
                                 class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded ml-1">Simular
-                                Deducción</button>
+                                Deducción</button>-->
 
                         </td>
                     </tr>
@@ -99,7 +99,8 @@
             class="fixed inset-0 bg-black bg-opacity-60 z-40 flex justify-center items-center transition-opacity duration-300">
             <div class="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full m-4">
                 <h3 class="text-lg font-semibold text-center text-gray-700 mb-4">
-                    Crear Deducción para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}</h3>
+                    Crear Deducción para {{ modeloSeleccionado.nombres }} {{
+                        modeloSeleccionado.apellidos }}</h3>
                 <form @submit.prevent="guardarDeduccion">
                     <input type="text" v-model="deduccion.concepto" placeholder="Concepto"
                         class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
@@ -129,7 +130,8 @@
             class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
             <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
                 <h3 class="text-base font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
-                    Deducciones activas para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}</h3>
+                    Deducciones activas para {{ modeloSeleccionado.nombres }} {{
+                        modeloSeleccionado.apellidos }}</h3>
                 <table class="table-auto">
                     <thead>
                         <tr>
@@ -143,13 +145,15 @@
                         <tr v-for=" deduccion in
                             modeloSeleccionado.deducibles " :key="deduccion.id">
                             <td v-if="deduccion.estado === 'Activo'">{{ deduccion.concepto }}</td>
-                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.valor_total }}</td>
+                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.valor_total }}
+                            </td>
                             <td v-if="deduccion.estado === 'Activo'">{{ deduccion.plazo }}</td>
                             <td v-if="deduccion.estado === 'Activo'">{{ deduccion.estado }}</td>
                         </tr>
                         <!-- Si ninguno de los deducibles activo mostrar -->
                         <tr v-if="modeloSeleccionado.deducibles.length === 0">
-                            <td colspan="4" class="text-center">No cuenta con deducciones activas.</td>
+                            <td colspan="4" class="text-center">No cuenta con deducciones activas.
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -165,7 +169,8 @@
             class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
             <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
                 <h3 class="text-base font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
-                    Historial de deducciones para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}
+                    Historial de deducciones para {{ modeloSeleccionado.nombres }} {{
+                        modeloSeleccionado.apellidos }}
                 </h3>
                 <table class="table-auto">
                     <thead>
@@ -184,7 +189,8 @@
                             <td>{{ deduccion.estado }}</td>
                         </tr>
                         <tr v-if="modeloSeleccionado.deducibles.length === 0">
-                            <td colspan="4" class="text-center">No tienes un historico de deducciones.</td>
+                            <td colspan="4" class="text-center">No tienes un historico de
+                                deducciones.</td>
                         </tr>
 
                     </tbody>

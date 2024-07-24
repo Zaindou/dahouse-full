@@ -16,9 +16,10 @@
                     </tr>
                 </thead>
                 <tbody class="text-gray-600 text-sm font-light">
-                    <tr v-for="modelo in modelosFiltrados.slice(0, 5)" :key="modelo.id"
+                    <tr v-for="modelo in modelosFiltrados.slice(0, 10)" :key="modelo.id"
                         class="border-b border-gray-200 hover:bg-gray-100">
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ modelo.nombres }} {{ modelo.apellidos }}
+                        <td class="py-3 px-6 text-left whitespace-nowrap">{{
+                            modelo.nombres }} {{ modelo.apellidos }}
                         </td>
                         <td class="py-3 px-6 text-center">
                             <span :class="estadoGanancia(modelo).color" class="flex items-center justify-center">
@@ -176,9 +177,9 @@ const modelosFiltrados = computed(() => {
     }
     return modelos.value.filter(modelo => {
         const filtroEnMinusculas = filtro.value.toLowerCase();
-        return modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) ||
-            modelo.nombres.toLowerCase().includes(filtroEnMinusculas) ||
-            modelo.apellidos.toLowerCase().includes(filtroEnMinusculas);
+        return modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) && modelo.habilitado === true ||
+            modelo.nombres.toLowerCase().includes(filtroEnMinusculas) && modelo.habilitado === true ||
+            modelo.apellidos.toLowerCase().includes(filtroEnMinusculas) && modelo.habilitado === true;
     });
 });
 
