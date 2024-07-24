@@ -1,11 +1,27 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
 
 db = SQLAlchemy()
+
+
+class Rol(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(50), unique=True, nullable=False)
+    modelos = db.relationship("Modelo", back_populates="rol", lazy=True)
 
 
 class Pagina(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50), unique=True, nullable=False)
+    ganancias_por_pagina = db.relationship(
+        "GananciaPorPagina", back_populates="pagina", lazy=True
+    )
+    supuestos_ganancias = db.relationship(
+        "SupuestoGanancia", back_populates="pagina", lazy=True
+    )
+    modelos = db.relationship(
+        "Modelo", secondary="modelos_paginas", back_populates="paginas"
+    )
 
 
 class GananciaPorPagina(db.Model):
@@ -15,7 +31,8 @@ class GananciaPorPagina(db.Model):
     ganancia_estudio_cop = db.Column(db.Float, nullable=False, default=0)
     ganancia_id = db.Column(db.Integer, db.ForeignKey("ganancia.id"), nullable=False)
     pagina_id = db.Column(db.Integer, db.ForeignKey("pagina.id"), nullable=False)
-    pagina = db.relationship("Pagina", backref="ganancias_por_pagina")
+    pagina = db.relationship("Pagina", back_populates="ganancias_por_pagina")
+    ganancia = db.relationship("Ganancia", back_populates="ganancias_por_pagina")
 
 
 class Ganancia(db.Model):
@@ -26,12 +43,14 @@ class Ganancia(db.Model):
         db.Float, nullable=False, default=0
     )  # Ganancia general del estudio
     modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
-    ganancias_por_pagina = db.relationship(
-        "GananciaPorPagina", backref="ganancia", lazy=True
-    )
     periodo_id = db.Column(db.Integer, db.ForeignKey("periodo.id"), nullable=False)
     estado = db.Column(db.String(60), nullable=False, default="Pendiente")
     porcentaje = db.Column(db.Float, nullable=False)
+    modelo = db.relationship("Modelo", back_populates="ganancias")
+    periodo = db.relationship("Periodo", back_populates="ganancias")
+    ganancias_por_pagina = db.relationship(
+        "GananciaPorPagina", back_populates="ganancia", lazy="dynamic"
+    )
 
 
 modelos_paginas = db.Table(
@@ -43,30 +62,45 @@ modelos_paginas = db.Table(
 
 class Modelo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    tipo_documento = db.Column(db.String(50), nullable=False)
+    numero_documento = db.Column(db.String(50), unique=True, nullable=False)
     nombres = db.Column(db.String(100), nullable=False)
     apellidos = db.Column(db.String(100), nullable=False)
-    tipo_documento = db.Column(db.String(10), nullable=False)
-    numero_documento = db.Column(db.String(20), nullable=False, unique=True)
-    nombre_usuario = db.Column(db.String(50), nullable=False, unique=True)
-    habilitado = db.Column(db.Boolean, default=True, nullable=False)
-    rol_id = db.Column(db.Integer, db.ForeignKey("rol.id"), nullable=False)
-    rol = db.relationship("Rol", backref="modelos")
-    paginas = db.relationship(
-        "Pagina", secondary=modelos_paginas, backref=db.backref("modelos", lazy=True)
-    )
-    ganancias = db.relationship("Ganancia", backref="modelo", lazy="dynamic")
-    banco = db.Column(db.String(50), nullable=False)
-    numero_cuenta = db.Column(db.String(50), nullable=False)
-    correo_electronico = db.Column(db.String(100), nullable=False)
     fecha_nacimiento = db.Column(db.Date, nullable=False)
-    fecha_registro = db.Column(db.DateTime, nullable=False)
-    exclusividad = db.Column(db.Boolean, default="False", nullable=False)
-    password = db.Column(db.String(100), nullable=True, default=None)
+    correo_electronico = db.Column(db.String(100), unique=True, nullable=False)
+    nombre_usuario = db.Column(db.String(50), unique=True, nullable=False)
+    rol_id = db.Column(db.Integer, db.ForeignKey("rol.id"), nullable=False)
+    banco = db.Column(db.String(50))
+    numero_cuenta = db.Column(db.String(50))
+    habilitado = db.Column(db.Boolean, default=True)
+    fecha_registro = db.Column(db.DateTime, default=datetime.now)
+    exclusividad = db.Column(db.Boolean, default=False)
+    jornada = db.Column(db.String(50), nullable=True)  # Asegurando que es nulleable
+    rol = db.relationship("Rol", back_populates="modelos")
+    ganancias = db.relationship("Ganancia", back_populates="modelo", lazy="dynamic")
+    deducibles = db.relationship("Deducible", back_populates="modelo", lazy=True)
+    paginas = db.relationship(
+        "Pagina", secondary="modelos_paginas", back_populates="modelos"
+    )
+    supuestos_ganancias = db.relationship(
+        "SupuestoGanancia", back_populates="modelo", lazy=True
+    )
+    password = db.Column(db.String(100), nullable=True)
 
 
-class Rol(db.Model):
+class SupuestoGanancia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(50), unique=True, nullable=False)
+    modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
+    pagina_id = db.Column(db.Integer, db.ForeignKey("pagina.id"), nullable=False)
+    tokens = db.Column(db.Float, nullable=False)
+    total_cop = db.Column(db.Float, nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    inicio_periodo = db.Column(db.Date, nullable=False)
+    fin_periodo = db.Column(db.Date, nullable=False)
+    porcentaje = db.Column(db.Float, nullable=False)
+    estado = db.Column(db.String(50), nullable=False)
+    modelo = db.relationship("Modelo", back_populates="supuestos_ganancias")
+    pagina = db.relationship("Pagina", back_populates="supuestos_ganancias")
 
 
 class Deducible(db.Model):
@@ -76,7 +110,6 @@ class Deducible(db.Model):
     valor_quincenal = db.Column(db.Float, nullable=False)
     plazo = db.Column(db.Integer, nullable=False)
     modelo_id = db.Column(db.Integer, db.ForeignKey("modelo.id"), nullable=False)
-    modelo = db.relationship("Modelo", backref="deducibles")
     quincenas_restantes = db.Column(db.Integer, nullable=False)
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
@@ -85,12 +118,25 @@ class Deducible(db.Model):
     valor_restante = db.Column(db.Float, nullable=True)
     estado = db.Column(db.String(60), nullable=True, default="Pendiente")
     valor_sin_interes = db.Column(db.Float, nullable=True)
+    modelo = db.relationship("Modelo", back_populates="deducibles")
 
 
 class Periodo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(
-        db.String(10), nullable=False
-    )  # Asegúrate de que este campo esté definido
+    nombre = db.Column(db.String(10), nullable=False)
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
+    ganancias = db.relationship("Ganancia", back_populates="periodo", lazy=True)
+
+
+# Establecer las relaciones back_populates en la otra dirección
+
+Pagina.ganancias_por_pagina = db.relationship(
+    "GananciaPorPagina", back_populates="pagina", lazy=True
+)
+Pagina.supuestos_ganancias = db.relationship(
+    "SupuestoGanancia", back_populates="pagina", lazy=True
+)
+Pagina.modelos = db.relationship(
+    "Modelo", secondary="modelos_paginas", back_populates="paginas"
+)
