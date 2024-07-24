@@ -1,135 +1,203 @@
 <template>
     <div class="container mx-auto p-4">
         <loading :is-loading="isLoading"></loading>
-        <h2 class="text-xl font-bold mb-4">Liquidar Ganancias</h2>
-        <div class="mb-4">
-            <input v-model="filtro" type="text" placeholder="Buscar por nombre de usuario..."
-                class="block w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 rounded shadow leading-tight focus:outline-none focus:shadow-outline" />
+
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center">
+            <h2 class="text-2xl font-bold mb-4 sm:mb-0">Liquidar Ganancias</h2>
+            <div class="relative w-full sm:w-64">
+                <input v-model="filtro" type="text" placeholder="Buscar usuarios..."
+                    class="w-full pl-10 pr-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
         </div>
-        <div class="bg-white shadow-md rounded my-6 overflow-hidden">
-            <table class="text-left w-full border-collapse">
-                <thead>
-                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 text-left">Nombres</th>
-                        <th class="py-3 px-6 text-center">Estado</th>
-                        <th class="py-3 px-6 text-center">Acciones</th>
+
+        <!-- Vista de tabla para pantallas medianas y grandes -->
+        <div class="hidden md:block overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Usuario</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Estado</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-600 text-sm font-light">
-                    <tr v-for="modelo in modelosFiltrados.slice(0, 10)" :key="modelo.id"
-                        class="border-b border-gray-200 hover:bg-gray-100">
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{
-                            modelo.nombres }} {{ modelo.apellidos }}
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="modelo in paginatedModelos" :key="modelo.id" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full"
+                                        :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
+                                        alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ modelo.nombres }} {{
+                                        modelo.apellidos }}</div>
+                                    <div class="text-sm text-gray-500">{{ modelo.nombre_usuario }}</div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="py-3 px-6 text-center">
-                            <span :class="estadoGanancia(modelo).color" class="flex items-center justify-center">
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span :class="estadoGanancia(modelo).color"
+                                class="flex items-center justify-center text-xs">
                                 <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
                                 {{ estadoGanancia(modelo).texto }}
                             </span>
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button @click="seleccionarModelo(modelo)"
-                                :class="{ 'button-disabled': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
-                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Liquidar</button>
+                                :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
+                                :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
+                                class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                Liquidar
+                            </button>
                             <button @click="verGanancia(modelo)"
                                 :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
-                                :class="{ 'button-disabled': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">Ver
-                                ganancia</button>
+                                :class="{ 'opacity-50 cursor-not-allowed': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
+                                class="text-green-600 hover:text-green-900">
+                                Ver ganancia
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div v-if="gananciaSeleccionada" class="bg-white p-4 rounded-lg shadow-md mb-6">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-100 p-2 rounded">
-                    <p class="font-semibold">Id liquidación:</p>
-                    <p>{{ gananciaSeleccionada.id }}</p>
+
+        <!-- Vista de tarjetas para móviles -->
+        <div class="md:hidden space-y-4">
+            <div v-for="modelo in paginatedModelos" :key="modelo.id"
+                class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <img class="h-10 w-10 rounded-full"
+                                :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
+                                alt="">
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                {{ modelo.nombres }} {{ modelo.apellidos }}
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                {{ modelo.nombre_usuario }}
+                            </p>
+                        </div>
+                    </div>
+                    <span :class="estadoGanancia(modelo).color" class="flex items-center text-xs">
+                        <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
+                        {{ estadoGanancia(modelo).texto }}
+                    </span>
                 </div>
-                <div class="bg-gray-100 p-2 rounded">
-                    <p class="font-semibold">Periodo:</p>
-                    <p>{{ gananciaSeleccionada.nombre_periodo }}</p>
+                <div class="border-t border-gray-200 px-4 py-4">
+                    <div class="flex justify-between">
+                        <button @click="seleccionarModelo(modelo)"
+                            :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
+                            :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
+                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                            Liquidar
+                        </button>
+                        <button @click="verGanancia(modelo)"
+                            :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
+                            :class="{ 'opacity-50 cursor-not-allowed': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
+                            class="text-green-600 hover:text-green-900 text-sm font-medium">
+                            Ver ganancia
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <div class="bg-gray-100 p-2 rounded" @click="openModal = true">
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="mt-4 flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Mostrando <span class="font-medium">{{ paginationStart + 1 }}</span> a <span class="font-medium">{{
+                        paginationEnd }}</span> de <span class="font-medium">{{ modelosFiltrados.length }}</span>
+                    resultados
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button @click="prevPage" :disabled="currentPage === 1"
+                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Anterior
+                    </button>
+                    <button @click="nextPage" :disabled="currentPage === totalPages"
+                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Siguiente
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Modal para ver ganancias -->
+        <div v-if="gananciaSeleccionada"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+            @click="cerrarGananciaSeleccionada">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                @click.stop>
+                <h3 class="text-xl font-semibold mb-4">Detalles de Ganancia</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-100 p-3 rounded">
+                        <p class="font-semibold">Id liquidación:</p>
+                        <p>{{ gananciaSeleccionada.id }}</p>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded">
+                        <p class="font-semibold">Periodo:</p>
+                        <p>{{ gananciaSeleccionada.nombre_periodo }}</p>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded">
                         <p class="font-semibold">Deducción:</p>
                         <p>{{ formatCurrency(gananciaSeleccionada.total_deducibles) }}</p>
                     </div>
-
-                    <!-- Modal -->
-                    <div v-if="openModal"
-                        class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300 overflow-y-auto">
-                        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4 my-8">
-                            <h3 class="text-xl font-bold text-center text-gray-800 mb-6">Detalles de Deducibles</h3>
-                            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                                <div v-for="deducible in gananciaSeleccionada.detalles_deducibles.filter(d => d.estado === 'Activo' || d.estado === 'Pendiente')"
-                                    :key="deducible.concepto" class="bg-gray-50 p-4 rounded-lg shadow-sm">
-                                    <h4 class="text-md font-semibold text-blue-600">{{ deducible.concepto }}</h4>
-                                    <p class="text-sm text-gray-700">Estado: <span class="font-medium">{{
-                                        deducible.estado }}</span></p>
-                                    <p class="text-sm text-gray-700">Plazo: <span class="font-medium">{{ deducible.plazo
-                                            }} quincena(s)</span></p>
-                                    <p class="text-sm text-gray-700">Valor total: <span class="font-medium">{{
-                                        formatCurrency(deducible.valor_total) }}</span></p>
-                                    <p class="text-sm text-gray-700">Valor quincenal: <span class="font-medium">{{
-                                        formatCurrency(deducible.valor_quincenal) }}</span></p>
-                                    <p class="text-sm text-gray-700">Valor pagado: <span class="font-medium">{{
-                                        formatCurrency(deducible.valor_pagado) }}</span></p>
-                                    <p class="text-sm text-gray-700">Valor restante: <span class="font-medium">{{
-                                        formatCurrency(deducible.valor_restante) }}</span></p>
-                                    <p class="text-sm text-gray-700">Tasa: <span class="font-medium">{{ deducible.tasa
-                                            }}% quincenal</span></p>
-                                    <p class="text-sm text-gray-700">Fecha de inicio: <span class="font-medium">{{
-                                        formatDate(deducible.fecha_inicio) }}</span></p>
-                                    <p class="text-sm text-gray-700">Fecha de fin aproximada: <span
-                                            class="font-medium">{{ formatDate(deducible.fecha_fin) }}</span></p>
-                                </div>
-                            </div>
-                            <div class="mt-6 flex justify-center">
-                                <button @click="openModal = false"
-                                    class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
-                                    Cerrar
-                                </button>
-                            </div>
-                        </div>
+                    <div class="bg-gray-100 p-3 rounded">
+                        <p class="font-semibold">Total COP:</p>
+                        <p>{{ formatCurrency(gananciaSeleccionada.gran_total_cop) }}</p>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded">
+                        <p class="font-semibold">Porcentaje de ganancia:</p>
+                        <p>{{ (gananciaSeleccionada.porcentaje * 100).toFixed(2) }}%</p>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded">
+                        <p class="font-semibold">TRM:</p>
+                        <p>{{ formatCurrency(gananciaSeleccionada.trm) }}</p>
                     </div>
                 </div>
 
-
-                <div class="bg-gray-100 p-2 rounded">
-                    <p class="font-semibold">Total COP:</p>
-                    <p>{{ formatCurrency(gananciaSeleccionada.gran_total_cop) }}</p>
-                </div>
-                <div class="bg-gray-100 p-2 rounded">
-                    <p class="font-semibold">Porcentaje de ganancia:</p>
-                    <p>{{ gananciaSeleccionada.porcentaje * 100 }}%</p>
-                </div>
-                <div class="bg-gray-100 p-2 rounded">
-                    <p class="font-semibold">TRM:</p>
-                    <p>{{ formatCurrency(gananciaSeleccionada.trm) }}</p>
+                <h4 class="text-lg font-semibold mt-6 mb-3">Detallado por página</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div v-for="(detalle, index) in gananciaSeleccionada.detalles_paginas" :key="index"
+                        class="bg-gray-100 p-3 rounded flex flex-col items-center justify-center">
+                        <p class="font-semibold">{{ detalle.nombre_pagina }}</p>
+                        <p>Tokens: {{ detalle.tokens }}</p>
+                        <p>Total COP: {{ formatCurrency(detalle.total_cop) }}</p>
+                    </div>
                 </div>
 
-            </div>
-            <h3 class="text-base font-bold mb-4 mt-4">Detallado por página</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div v-for="(detalle, index) in gananciaSeleccionada.detalles_paginas" :key="index"
-                    class="bg-gray-200 p-2 rounded flex flex-col items-center justify-center">
-                    <p class="font-semibold">{{ detalle.nombre_pagina }}</p>
-                    <p>Tokens: {{ detalle.tokens }}</p>
-                    <p>Total COP: {{ formatCurrency(detalle.total_cop) }}</p>
+                <div class="mt-6 flex justify-end">
+                    <button @click="cerrarGananciaSeleccionada"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Cerrar
+                    </button>
                 </div>
             </div>
-
         </div>
-        <div v-if="modeloSeleccionado" class="mt-8">
-            <div class="bg-white p-5 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 text-gray-800">Liquidar a {{ modeloSeleccionado.nombre_usuario
-                    }}
-                </h3>
-                <div class="grid grid-cols-2 gap-6">
+        <!-- Modal para liquidar ganancias -->
+        <div v-if="modeloSeleccionado"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+            @click="cerrarLiquidacion">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                @click.stop>
+                <h3 class="text-xl font-semibold mb-6">Liquidar a {{ modeloSeleccionado.nombre_usuario }}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div v-for="pagina in modeloSeleccionado.paginas_habilitadas" :key="pagina"
-                        class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <label :for="`pagina-${pagina}`" class="block text-sm font-medium text-gray-700 mb-2">
                             {{ pagina }}:
                             <span v-if="pagina === 'Streamate'" class="text-xs text-blue-500">(en dólares)</span>
@@ -139,17 +207,22 @@
                             :placeholder="pagina === 'Streamate' ? 'Ingresar valor en dólares' : 'Ingresar tokens'">
                     </div>
                 </div>
-                <div class="flex justify-end mt-3">
+                <div class="mt-6 flex justify-end space-x-4">
                     <button @click="liquidarGanancias"
-                        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mr-2">Confirmar</button>
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
+                        Confirmar
+                    </button>
                     <button @click="cerrarLiquidacion"
-                        class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">Cerrar</button>
+                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg">
+                        Cancelar
+                    </button>
                 </div>
             </div>
         </div>
 
     </div>
 </template>
+
 
 <script setup>
 import { ref, computed } from 'vue';
@@ -171,17 +244,57 @@ useHead({
     titleTemplate: '%s - Liquidación de ganancias',
 })
 
+const itemsPerPage = ref(10);
+const currentPage = ref(1);
+
+const paginatedModelos = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return modelosFiltrados.value.slice(start, end);
+});
+
+const totalPages = computed(() => Math.ceil(modelosFiltrados.value.length / itemsPerPage.value));
+const paginationStart = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const paginationEnd = computed(() => Math.min(currentPage.value * itemsPerPage.value, modelosFiltrados.value.length));
+
+const prevPage = () => {
+    if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const cerrarGananciaSeleccionada = () => {
+    gananciaSeleccionada.value = null;
+};
+
+const cerrarLiquidacion = () => {
+    modeloSeleccionado.value = null;
+    gananciaForm.value = { nombre_usuario: '', paginas: {} };
+};
+
 const modelosFiltrados = computed(() => {
     if (!modelos.value) {
         return [];
     }
-    return modelos.value.filter(modelo => {
+    let filtered = modelos.value.filter(modelo => {
         const filtroEnMinusculas = filtro.value.toLowerCase();
-        return modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) && modelo.habilitado === true ||
-            modelo.nombres.toLowerCase().includes(filtroEnMinusculas) && modelo.habilitado === true ||
-            modelo.apellidos.toLowerCase().includes(filtroEnMinusculas) && modelo.habilitado === true;
+        return (modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) ||
+            modelo.nombres.toLowerCase().includes(filtroEnMinusculas) ||
+            modelo.apellidos.toLowerCase().includes(filtroEnMinusculas)) &&
+            modelo.habilitado === true;
+    });
+
+    // Ordenar alfabéticamente por nombre completo
+    return filtered.sort((a, b) => {
+        const nombreCompletoA = `${a.nombres} ${a.apellidos}`.toLowerCase();
+        const nombreCompletoB = `${b.nombres} ${b.apellidos}`.toLowerCase();
+        return nombreCompletoA.localeCompare(nombreCompletoB);
     });
 });
+
+
 
 const seleccionarModelo = (modelo) => {
     modeloSeleccionado.value = modelo;
@@ -191,17 +304,18 @@ const seleccionarModelo = (modelo) => {
 };
 
 const verGanancia = async (modelo) => {
-    isLoading.value = true;
-    await modelosStore.fetchGananciaInfo(modelo.nombre_usuario, modelo.periodo_actual);
-    gananciaSeleccionada.value = modelosStore.gananciaInfo;
-    cerrarLiquidacion();
-    isLoading.value = false;
+    try {
+        isLoading.value = true;
+        const response = await modelosStore.fetchGananciaInfo(modelo.nombre_usuario, modelo.periodo_actual);
+        gananciaSeleccionada.value = response;  // Asumiendo que la respuesta contiene directamente la información de ganancia
+        isLoading.value = false;
+    } catch (error) {
+        console.error('Error al obtener la información de ganancia:', error);
+        Swal.fire('Error', 'No se pudo obtener la información de ganancia', 'error');
+        isLoading.value = false;
+    }
 };
 
-const cerrarLiquidacion = () => {
-    modeloSeleccionado.value = null;
-    gananciaForm.value = { nombre_usuario: '', paginas: {} };
-};
 
 const estadoGanancia = (modelo) => {
     if (modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo) {
