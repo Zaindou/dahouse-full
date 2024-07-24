@@ -1,212 +1,361 @@
 <template>
     <div class="container mx-auto p-4">
         <loading :is-loading="isLoading"></loading>
-        <h2 class="text-xl font-bold mb-4">Gestionar Deducciones</h2>
-        <!-- Búsqueda -->
-        <div class="mb-4">
-            <input v-model="filtro" type="text" placeholder="Buscar por nombre de usuario..."
-                class="block w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center">
+            <h2 class="text-2xl font-bold mb-4 sm:mb-0">Gestionar Deducciones</h2>
+            <div class="relative w-full sm:w-64">
+                <input v-model="filtro" type="text" placeholder="Buscar usuarios..."
+                    class="w-full pl-10 pr-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
         </div>
-        <!-- Tabla de Modelos -->
-        <div class="bg-white shadow-md rounded my-6 overflow-hidden">
-            <table class="text-left w-full border-collapse">
-                <thead>
-                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 text-left">Nombre</th>
-                        <th class="py-3 px-6 text-center">Acciones</th>
+
+        <!-- Vista de tabla para pantallas medianas y grandes -->
+        <div class="hidden md:block overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Usuario</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-600 text-sm font-light">
-                    <tr v-for="modelo in modelosFiltrados" :key="modelo.id"
-                        class="border-b border-gray-200 hover:bg-gray-100">
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ modelo.nombres }} {{ modelo.apellidos }}
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="modelo in modelosFiltrados" :key="modelo.id">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full"
+                                        :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
+                                        alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ modelo.nombres }} {{ modelo.apellidos }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ modelo.nombre_usuario }}
+                                    </div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="py-3 px-6 text-center">
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button @click="abrirFormularioDeduccion(modelo)"
-                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Crear
-                                deducción</button>
+                                class="text-indigo-600 hover:text-indigo-900 mr-3">Crear deducción</button>
                             <button @click="abrirModalDeduciblesActivos(modelo)"
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-1">Deducibles
-                                activos</button>
+                                class="text-green-600 hover:text-green-900 mr-3">Deducibles activos</button>
                             <button @click="abrirModalHistorico(modelo)"
-                                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-1">Historico</button>
-                            <!-- Botón para simular la deducción -->
-                            <!-- <button @click="simularDeduccion(modelo)"
-                                class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded ml-1">Simular
-                                Deducción</button>-->
-
+                                class="text-yellow-600 hover:text-yellow-900">Histórico</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div v-if="openSimulationModal"
-            class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
-            <div class="bg-white p-4 rounded-lg shadow-lg max-w-4xl w-full mx-2">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">Detalle de la Simulación</h3>
-                    <button @click="openSimulationModal = false, removeSimulationButton = true"
-                        class="text-blue-500">Aceptar</button>
-                    <button @click="openSimulationModal = false, removeSimulationButton = false"
-                        class="text-red-500">Cerrar</button>
-
+        <!-- Vista de tarjetas para móviles -->
+        <div class="md:hidden">
+            <div v-for="modelo in modelosFiltrados" :key="modelo.id"
+                class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <img class="h-10 w-10 rounded-full"
+                                :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
+                                alt="">
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                {{ modelo.nombres }} {{ modelo.apellidos }}
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                {{ modelo.nombre_usuario }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Periodo</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Cuota Mensual</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Principal</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Interés</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Balance Restante</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="pago in pagosDetalle" :key="pago.mes">
-                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.mes }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ formatCurrency(pago.cuotaMensual) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.principal }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.interes }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ pago.balanceRestante }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+                    <dl class="sm:divide-y sm:divide-gray-200">
+                        <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Acciones</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <button @click="abrirFormularioDeduccion(modelo)"
+                                    class="text-indigo-600 hover:text-indigo-900 mr-3">Crear deducción</button>
+                                <button @click="abrirModalDeduciblesActivos(modelo)"
+                                    class="text-green-600 hover:text-green-900 mr-3">Deducibles activos</button>
+                                <button @click="abrirModalHistorico(modelo)"
+                                    class="text-yellow-600 hover:text-yellow-900">Histórico</button>
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Mostrando <span class="font-medium">{{ paginationStart + 1 }}</span> a <span class="font-medium">{{
+                        paginationEnd }}</span> de <span class="font-medium">{{ modelosFiltrados.length }}</span>
+                    resultados
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button @click="prevPage" :disabled="currentPage === 1"
+                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Anterior
+                    </button>
+                    <button @click="nextPage" :disabled="currentPage === totalPages"
+                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Siguiente
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Modal Base Component -->
+        <div v-if="openModal || openActiveDebtModal || openRecordModal || openSimulationModal"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeAllModals">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                @click.stop>
+                <!-- Modal content goes here -->
+
+                <!-- Modal para Crear Deducción -->
+                <div v-if="openModal && modeloSeleccionado" class="modal-content">
+                    <h3 class="text-lg font-semibold text-center text-gray-700 mb-4">
+                        Crear Deducción para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}
+                    </h3>
+                    <form @submit.prevent="guardarDeduccion" class="space-y-4">
+                        <div>
+                            <label for="concepto" class="block text-sm font-medium text-gray-700">Concepto</label>
+                            <input id="concepto" type="text" v-model="deduccion.concepto"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="valor-total" class="block text-sm font-medium text-gray-700">Valor Total</label>
+                            <input id="valor-total" type="text" v-model="formattedValorTotal"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="plazo" class="block text-sm font-medium text-gray-700">Plazo (máx 6
+                                periodos)</label>
+                            <input id="plazo" type="number" v-model.number="deduccion.plazo" max="6"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="tasa" class="block text-sm font-medium text-gray-700">Tasa de Interés</label>
+                            <input id="tasa" type="number" v-model.number="deduccion.tasa" step="0.01" min="0"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div class="flex justify-between">
+                            <button v-if="!removeSimulationButton" type="button" @click="simularDeduccion"
+                                class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Simular</button>
+                            <button v-if="removeSimulationButton" type="submit"
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">Crear</button>
+                            <button @click="closeAllModals"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal para ver deducibles activos -->
+                <div v-if="openActiveDebtModal && modeloSeleccionado" class="modal-content">
+                    <h3 class="text-2xl font-semibold text-center text-gray-800 mb-6">
+                        Deducciones activas para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos }}
+                    </h3>
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div v-if="modeloSeleccionado.deducibles.filter(d => d.estado === 'Activo').length > 0">
+                            <div v-for="(deducible, index) in modeloSeleccionado.deducibles.filter(d => d.estado === 'Activo')"
+                                :key="index" class="border-t border-gray-200">
+                                <dl>
+                                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Concepto</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{
+                                            deducible.concepto }}</dd>
+                                    </div>
+                                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Valor Total</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{
+                                            formatCurrency(deducible.valor_total) }}</dd>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Plazo</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ deducible.plazo
+                                            }} períodos</dd>
+                                    </div>
+                                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Estado</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                            <span
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {{ deducible.estado }}
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Fecha de inicio</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{
+                                            formatDate(deducible.fecha_inicio) }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+                        <div v-else class="px-4 py-5 sm:px-6">
+                            <p class="text-center text-gray-500">No cuenta con deducciones activas.</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button @click="closeAllModals"
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
+                    </div>
+                </div>
+
+                <!-- Modal para ver el historial de deducibles -->
+                <div v-if="openRecordModal && modeloSeleccionado" class="modal-content">
+                    <h3 class="text-2xl font-semibold text-center text-gray-800 mb-6">
+                        Historial de deducciones para {{ modeloSeleccionado.nombres }} {{ modeloSeleccionado.apellidos
+                        }}
+                    </h3>
+                    <div class="mb-4">
+                        <label for="month-select" class="block text-sm font-medium text-gray-700">Seleccionar
+                            mes:</label>
+                        <select id="month-select" v-model="selectedMonth" @change="filterDeduciblesByMonth"
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option v-for="month in availableMonths" :key="month" :value="month">
+                                {{ formatMonth(month) }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div v-if="paginatedDeducibles.length > 0">
+                            <div v-for="(deducible, index) in paginatedDeducibles" :key="index"
+                                class="border-t border-gray-200">
+                                <dl>
+                                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Concepto</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{
+                                            deducible.concepto }}</dd>
+                                    </div>
+                                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Valor Total</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{
+                                            formatCurrency(deducible.valor_total) }}</dd>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Plazo</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ deducible.plazo
+                                            }} períodos</dd>
+                                    </div>
+                                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Estado</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                            <span
+                                                :class="deducible.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                                                {{ deducible.estado }}
+                                            </span>
+                                        </dd>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                        <dt class="text-sm font-medium text-gray-500">Fecha de inicio</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{
+                                            formatDate(deducible.fecha_inicio) }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+                        <div v-else class="px-4 py-5 sm:px-6">
+                            <p class="text-center text-gray-500">No hay deducciones para este mes.</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Mostrando <span class="font-medium">{{ paginationStart + 1 }}</span> a <span
+                                    class="font-medium">{{ paginationEnd }}</span> de <span class="font-medium">{{
+                                        filteredDeducibles.length }}</span> resultados
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                aria-label="Pagination">
+                                <button @click="prevPage" :disabled="currentPage === 1"
+                                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    Anterior
+                                </button>
+                                <button @click="nextPage" :disabled="currentPage === totalPages"
+                                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    Siguiente
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button @click="closeAllModals"
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
+                    </div>
+                </div>
+                <!-- Modal de Simulación -->
+                <div v-if="openSimulationModal" class="modal-content">
+                    <h3 class="text-lg font-semibold mb-4">Detalle de la Simulación</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Periodo</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Cuota Mensual</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Principal</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Interés</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Balance Restante</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr v-for="pago in pagosDetalle" :key="pago.mes">
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ pago.mes }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ formatCurrency(pago.cuotaMensual) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ formatCurrency(pago.principal) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ formatCurrency(pago.interes) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ formatCurrency(pago.balanceRestante) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="mt-4 p-4 bg-gray-100 rounded-lg">
-                        <h3 class="text-lg font-semibold">Resumen del Préstamo</h3>
-                        <p>Numero de periodos: {{ resumenPrestamo.numeroPeriodos }}</p>
-                        <p>Valor a adeudar: {{ resumenPrestamo.valorAdeudar }}</p>
-                        <p>Valor total con intereses: {{ resumenPrestamo.valorConIntereses }}</p>
-                        <p>Cuota mensual: {{ resumenPrestamo.cuotaMensual }}</p>
+                        <h4 class="text-lg font-semibold mb-2">Resumen del Préstamo</h4>
+                        <p>Número de periodos: {{ resumenPrestamo.numeroPeriodos }}</p>
+                        <p>Valor a adeudar: {{ formatCurrency(resumenPrestamo.valorAdeudar) }}</p>
+                        <p>Valor total con intereses: {{ formatCurrency(resumenPrestamo.valorConIntereses) }}</p>
+                        <p>Cuota mensual: {{ formatCurrency(resumenPrestamo.cuotaMensual) }}</p>
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-4">
+                        <button @click="acceptSimulation"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Aceptar</button>
+                        <button @click="closeAllModals"
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
                     </div>
                 </div>
+
             </div>
         </div>
-
-        <!-- Modal para Crear Deducción -->
-        <div v-if="openModal && modeloSeleccionado"
-            class="fixed inset-0 bg-black bg-opacity-60 z-40 flex justify-center items-center transition-opacity duration-300">
-            <div class="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full m-4">
-                <h3 class="text-lg font-semibold text-center text-gray-700 mb-4">
-                    Crear Deducción para {{ modeloSeleccionado.nombres }} {{
-                        modeloSeleccionado.apellidos }}</h3>
-                <form @submit.prevent="guardarDeduccion">
-                    <input type="text" v-model="deduccion.concepto" placeholder="Concepto"
-                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <input type="text" v-model="formattedValorTotal" placeholder="Valor Total"
-                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <input type="number" v-model.number="deduccion.plazo" placeholder="Plazo (máx 6 periodos)" max="6"
-                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <input type="number" v-model.number="deduccion.tasa" placeholder="Tasa de Interés" step="0.01"
-                        min="0"
-                        class="block w-full mb-4 p-3 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <div class="flex justify-between">
-                        <button v-if="!removeSimulationButton" type="button" @click="simularDeduccion"
-                            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Simular</button>
-                        <button v-if="removeSimulationButton" type="submit"
-                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">Crear</button>
-                        <button @click="openModal = false, removeSimulationButton = false"
-                            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-
-
-        <!-- Modal para ver deducibles activos. -->
-        <div v-if="openActiveDebtModal && modeloSeleccionado"
-            class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
-            <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
-                <h3 class="text-base font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
-                    Deducciones activas para {{ modeloSeleccionado.nombres }} {{
-                        modeloSeleccionado.apellidos }}</h3>
-                <table class="table-auto">
-                    <thead>
-                        <tr>
-                            <th>Concepto</th>
-                            <th>Valor Total</th>
-                            <th>Plazo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for=" deduccion in
-                            modeloSeleccionado.deducibles " :key="deduccion.id">
-                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.concepto }}</td>
-                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.valor_total }}
-                            </td>
-                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.plazo }}</td>
-                            <td v-if="deduccion.estado === 'Activo'">{{ deduccion.estado }}</td>
-                        </tr>
-                        <!-- Si ninguno de los deducibles activo mostrar -->
-                        <tr v-if="modeloSeleccionado.deducibles.length === 0">
-                            <td colspan="4" class="text-center">No cuenta con deducciones activas.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="flex justify-end mt-4">
-                    <button @click="openActiveDebtModal = false"
-                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal para ver el historial de deducibles. -->
-        <div v-if="openRecordModal && modeloSeleccionado"
-            class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex justify-center items-center transition-opacity duration-300">
-            <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full m-4">
-                <h3 class="text-base font-bold text-center text-gray-800 font-bold py-2 px-4 rounded">
-                    Historial de deducciones para {{ modeloSeleccionado.nombres }} {{
-                        modeloSeleccionado.apellidos }}
-                </h3>
-                <table class="table-auto">
-                    <thead>
-                        <tr>
-                            <th>Concepto</th>
-                            <th>Valor Total</th>
-                            <th>Plazo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="deduccion in modeloSeleccionado.deducibles" :key="deduccion.id">
-                            <td>{{ deduccion.concepto }}</td>
-                            <td>{{ deduccion.valor_total }}</td>
-                            <td>{{ deduccion.plazo }}</td>
-                            <td>{{ deduccion.estado }}</td>
-                        </tr>
-                        <tr v-if="modeloSeleccionado.deducibles.length === 0">
-                            <td colspan="4" class="text-center">No tienes un historico de
-                                deducciones.</td>
-                        </tr>
-
-                    </tbody>
-                </table>
-                <div class="flex justify-end mt-4">
-                    <button @click="openRecordModal = false"
-                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Cerrar</button>
-                </div>
-            </div>
-        </div>
-        <!-- Modal de Simulación -->
-
-
     </div>
 
 </template>
+
 
 <script setup>
 
@@ -232,6 +381,8 @@ const resumenPrestamo = ref({});
 const removeSimulationButton = ref(false);
 
 
+
+
 const deduccion = ref({
     concepto: '',
     valor_total: 0,  // Asegúrate de que estos no son undefined o strings vacíos
@@ -239,6 +390,79 @@ const deduccion = ref({
     tasa: 0
 });
 
+const selectedMonth = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 5;
+
+
+
+const availableMonths = computed(() => {
+    if (!modeloSeleccionado.value || !modeloSeleccionado.value.deducibles) return [];
+    const months = modeloSeleccionado.value.deducibles.map(d => {
+        const date = new Date(d.fecha_inicio);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    });
+    return [...new Set(months)].sort();
+});
+
+const filteredDeducibles = computed(() => {
+    if (!modeloSeleccionado.value || !modeloSeleccionado.value.deducibles) return [];
+    if (!selectedMonth.value) return modeloSeleccionado.value.deducibles;
+    return modeloSeleccionado.value.deducibles.filter(d => {
+        const date = new Date(d.fecha_inicio);
+        const deducibleMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return deducibleMonth === selectedMonth.value;
+    });
+});
+
+const totalPages = computed(() => Math.ceil(filteredDeducibles.value.length / itemsPerPage));
+
+const paginatedDeducibles = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredDeducibles.value.slice(start, end);
+});
+
+const paginationStart = computed(() => (currentPage.value - 1) * itemsPerPage);
+const paginationEnd = computed(() => Math.min(currentPage.value * itemsPerPage, filteredDeducibles.value.length));
+
+const filterDeduciblesByMonth = () => {
+    currentPage.value = 1;
+};
+
+const prevPage = () => {
+    if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const formatMonth = (dateString) => {
+    const [year, month] = dateString.split('-');
+    const date = new Date(year, month - 1);
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+};
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
+
+
+const closeAllModals = () => {
+    openModal.value = false;
+    openActiveDebtModal.value = false;
+    openRecordModal.value = false;
+    openSimulationModal.value = false;
+    removeSimulationButton.value = false;
+};
+
+const acceptSimulation = () => {
+    openSimulationModal.value = false;
+    removeSimulationButton.value = true;
+};
 
 const simularDeduccion = () => {
     const valorTotal = parseFloat(deduccion.value.valor_total) || 0;
@@ -279,20 +503,32 @@ const simularDeduccion = () => {
     removeSimulationButton.value = true;
 };
 
-
-
-
 const modelosFiltrados = computed(() => {
     if (!modelos.value) {
         return [];
     }
-    return modelos.value.filter(modelo => {
-        const filtroEnMinusculas = filtro.value.toLowerCase();
-        return modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) ||
-            modelo.nombres.toLowerCase().includes(filtroEnMinusculas) ||
-            modelo.apellidos.toLowerCase().includes(filtroEnMinusculas);
+
+    // Filtrar solo usuarios habilitados
+    let filtered = modelos.value.filter(modelo => modelo.habilitado);
+
+    // Aplicar filtro de búsqueda
+    if (filtro.value) {
+        const filtroLowerCase = filtro.value.toLowerCase();
+        filtered = filtered.filter(modelo =>
+            modelo.nombre_usuario.toLowerCase().includes(filtroLowerCase) ||
+            modelo.nombres.toLowerCase().includes(filtroLowerCase) ||
+            modelo.apellidos.toLowerCase().includes(filtroLowerCase)
+        );
+    }
+
+    // Ordenar alfabéticamente por nombre completo
+    return filtered.sort((a, b) => {
+        const nombreCompletoA = `${a.nombres} ${a.apellidos}`.toLowerCase();
+        const nombreCompletoB = `${b.nombres} ${b.apellidos}`.toLowerCase();
+        return nombreCompletoA.localeCompare(nombreCompletoB);
     });
 });
+
 
 const abrirFormularioDeduccion = (modelo) => {
     modeloSeleccionado.value = modelo;

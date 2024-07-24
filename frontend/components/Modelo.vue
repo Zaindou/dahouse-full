@@ -249,8 +249,6 @@
         </div>
 
 
-
-
         <div class="mt-4 flex flex-col sm:flex-row justify-between items-center">
             <div class="mb-4 sm:mb-0">
                 <span class="mr-2">Filas por página:</span>
@@ -260,16 +258,17 @@
                     <option :value="50">50</option>
                 </select>
             </div>
-            <div class="flex items-center">
-                <button @click="prevPage" :disabled="currentPage === 1"
-                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l focus:outline-none focus:ring focus:border-gray-300">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="px-4">Página {{ currentPage }} de {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="currentPage === totalPages"
-                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r focus:outline-none focus:ring focus:border-gray-300">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button @click="prevPage" :disabled="currentPage === 1"
+                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Anterior
+                    </button>
+                    <button @click="nextPage" :disabled="currentPage === totalPages"
+                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Siguiente
+                    </button>
+                </nav>
             </div>
         </div>
     </div>
