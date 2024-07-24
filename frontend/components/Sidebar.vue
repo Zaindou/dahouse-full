@@ -28,19 +28,19 @@
                 </button>
             </div>
 
-            <nuxt-link to="/" :class="linkClasses">
+            <nuxt-link to="/" :class="linkClasses" @click="handleLinkClick">
                 <Icon name="ic:sharp-menu" :class="iconClasses" />
                 <span :class="{ 'hidden': !isSidebarOpen }">Inicio</span>
             </nuxt-link>
-            <nuxt-link to="/admcreadoras" :class="linkClasses">
+            <nuxt-link to="/admcreadoras" :class="linkClasses" @click="handleLinkClick">
                 <Icon name="ic:sharp-people" :class="iconClasses" />
                 <span :class="{ 'hidden': !isSidebarOpen }">Usuarios</span>
             </nuxt-link>
-            <nuxt-link to="/prestamos" :class="linkClasses">
+            <nuxt-link to="/prestamos" :class="linkClasses" @click="handleLinkClick">
                 <Icon name="material-symbols:account-balance" :class="iconClasses" />
                 <span :class="{ 'hidden': !isSidebarOpen }">Deducción</span>
             </nuxt-link>
-            <nuxt-link to="/liquidacion" :class="linkClasses">
+            <nuxt-link to="/liquidacion" :class="linkClasses" @click="handleLinkClick">
                 <Icon name="ic:sharp-attach-money" :class="iconClasses" />
                 <span :class="{ 'hidden': !isSidebarOpen }">Liquidación</span>
             </nuxt-link>
@@ -61,6 +61,10 @@ const closeSidebar = () => {
     if (window.innerWidth < 768) {  // 768px es el breakpoint para 'md' en Tailwind por defecto
         isSidebarOpen.value = false;
     }
+};
+
+const handleLinkClick = () => {
+    closeSidebar();
 };
 
 const linkClasses = computed(() => [

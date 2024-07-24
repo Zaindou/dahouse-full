@@ -2,14 +2,17 @@
     <div class="container mx-auto p-4">
         <loading :is-loading="isLoading"></loading>
 
-        <div class="mb-4 flex justify-between items-center">
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center">
             <button @click="nuevoModelo"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                <i class="fas fa-user-plus mr-2"></i> Crear usuario
+                class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 mb-4 sm:mb-0">
+                <i class="fas fa-user-plus mr-2"></i>
+                <span class="hidden sm:inline">Crear usuario</span>
+                <span class="sm:hidden">Crear usuario</span>
             </button>
-            <div class="relative">
+            <div class="relative w-full sm:w-auto">
                 <input type="text" v-model="searchQuery" placeholder="Buscar usuarios..."
-                    class="pl-10 pr-4 py-2 border rounded-full" aria-label="Buscar usuarios">
+                    class="w-full sm:w-64 pl-10 pr-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out"
+                    aria-label="Buscar usuarios">
                 <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
             </div>
         </div>
@@ -240,13 +243,16 @@
                             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
                             {{ modelo.habilitado ? 'Desactivar' : 'Activar' }}
                         </button>
-                    </div </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-4 flex justify-between items-center">
-            <div>
+
+
+
+        <div class="mt-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="mb-4 sm:mb-0">
                 <span class="mr-2">Filas por página:</span>
                 <select v-model="perPage" @change="changePage(1)" class="border rounded p-1">
                     <option :value="10">10</option>
@@ -254,15 +260,15 @@
                     <option :value="50">50</option>
                 </select>
             </div>
-            <div>
+            <div class="flex items-center">
                 <button @click="prevPage" :disabled="currentPage === 1"
-                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l focus:outline-none focus:ring focus:border-gray-300 mr-2">
-                    <i class="fas fa-chevron-left"></i> Anterior
+                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l focus:outline-none focus:ring focus:border-gray-300">
+                    <i class="fas fa-chevron-left"></i>
                 </button>
-                <span>Página {{ currentPage }} de {{ totalPages }}</span>
+                <span class="px-4">Página {{ currentPage }} de {{ totalPages }}</span>
                 <button @click="nextPage" :disabled="currentPage === totalPages"
-                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r focus:outline-none focus:ring focus:border-gray-300 ml-2">
-                    Siguiente <i class="fas fa-chevron-right"></i>
+                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r focus:outline-none focus:ring focus:border-gray-300">
+                    <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -318,7 +324,16 @@ const filteredModelos = computed(() => {
             modelo.correo_electronico.toLowerCase().includes(query)
         )
     }
-    return filtered
+    // Ordenar usuarios: activos primero, luego por orden alfabético
+    return filtered.sort((a, b) => {
+        if (a.habilitado !== b.habilitado) {
+            return a.habilitado ? -1 : 1; // activos primero
+        }
+        // Si tienen el mismo estado, ordenar alfabéticamente por nombre completo
+        const nombreCompletoA = `${a.nombres} ${a.apellidos}`.toLowerCase();
+        const nombreCompletoB = `${b.nombres} ${b.apellidos}`.toLowerCase();
+        return nombreCompletoA.localeCompare(nombreCompletoB);
+    });
 })
 
 const paginatedModelos = computed(() => {
