@@ -235,35 +235,61 @@ export const useModelosStore = defineStore("modelos", {
         this.error = error.message;
       }
     },
-    async fetchGananciaInfo(nombreUsuario, nombrePeriodo) {
+    async fetchPeriodosDisponibles() {
       try {
         const response = await fetch(
-          `${
-            useRuntimeConfig().public.apiUrl
-          }/ganancias/usuario/${nombreUsuario}/periodo/${nombrePeriodo}`
+          `${useRuntimeConfig().public.apiUrl}/periodos`
         );
         if (!response.ok) {
           const message = await response.text();
           throw new Error(message);
         }
-        this.gananciaInfo = await response.json();
-        return this.gananciaInfo;
+        this.periodosDisponibles = await response.json();
+        return this.periodosDisponibles;
       } catch (error) {
         this.error = error.message;
-        this.gananciaInfo = null;
+        throw new Error(this.error);
       }
     },
-    async crearDeduccion(nombreUsuario, DeducibleData) {
+    async fetchDiasDisponibles(periodoId) {
       try {
         const response = await fetch(
-          `${
-            useRuntimeConfig().public.apiUrl
-          }/modelos/${nombreUsuario}/creardeducible`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(DeducibleData),
-          }
+          `${useRuntimeConfig().public.apiUrl}/periodos/${periodoId}/dias`
+        );
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message);
+        }
+        this.diasDisponibles = await response.json();
+        return this.diasDisponibles;
+      } catch (error) {
+        this.error = error.message;
+        throw new Error(this.error);
+      }
+    },
+    async fetchGananciasConsolidadas(periodoId, tipoPeriodo, fecha = null) {
+      try {
+        let url = `${
+          useRuntimeConfig().public.apiUrl
+        }/ganancias/consolidadas?periodo_id=${periodoId}&tipo_periodo=${tipoPeriodo}`;
+        if (fecha) {
+          url += `&fecha=${fecha}`;
+        }
+        const response = await fetch(url);
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message);
+        }
+        return await response.json();
+      } catch (error) {
+        this.error = error.message;
+        throw new Error(this.error);
+      }
+    },
+    async fetchUltimoPeriodo() {
+      try {
+        const response = await fetch(
+          `${useRuntimeConfig().public.apiUrl}/periodos/ultimo`
         );
         if (!response.ok) {
           const message = await response.text();
@@ -272,6 +298,7 @@ export const useModelosStore = defineStore("modelos", {
         return await response.json();
       } catch (error) {
         this.error = error.message;
+        throw new Error(this.error);
       }
     },
   },

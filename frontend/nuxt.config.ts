@@ -7,6 +7,10 @@ export default defineNuxtConfig({
     storesDirs: ['./stores/**', './custom-folder/stores/**'],
   },
 
+  plugins: [
+    '~/plugins/notyf.client.js'
+  ],
+
   runtimeConfig: {
     public: {
       apiUrl: process.env.API_URL 

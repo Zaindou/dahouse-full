@@ -129,6 +129,14 @@ class Periodo(db.Model):
     ganancias = db.relationship("Ganancia", back_populates="periodo", lazy=True)
 
 
+class MetaPeriodo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    periodo = db.Column(db.String(50), unique=True, nullable=False)
+    meta = db.Column(db.Integer, nullable=False)
+    fecha_inicio = db.Column(db.Date, nullable=False)
+    fecha_fin = db.Column(db.Date, nullable=False)
+
+
 # Establecer las relaciones back_populates en la otra dirección
 
 Pagina.ganancias_por_pagina = db.relationship(

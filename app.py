@@ -11,6 +11,7 @@ from models import (
     Deducible,
     Rol,
     SupuestoGanancia,
+    MetaPeriodo,
 )
 from datetime import datetime, timedelta
 
@@ -859,7 +860,7 @@ def registrar_supuesto_ganancia(modelo_id):
             fecha=fecha,
             inicio_periodo=inicio_periodo,
             fin_periodo=fin_periodo,  # Asignando una fecha válida aquí
-            porcentaje=0.55,  # Aplica la lógica que determine el porcentaje
+            porcentaje=1,  # Aplica la lógica que determine el porcentaje
             estado="Supuesto",
         )
         db.session.add(supuesto_ganancia)
@@ -868,6 +869,154 @@ def registrar_supuesto_ganancia(modelo_id):
     return jsonify(
         {"mensaje": "Ganancias registradas", "supuestos": [s.id for s in supuestos]}
     )
+
+
+@app.route("/periodos", methods=["GET"])
+def obtener_periodos_disponibles():
+    periodos = Periodo.query.order_by(Periodo.fecha_fin.desc()).all()
+    return jsonify(
+        [
+            {
+                "id": periodo.id,
+                "nombre": periodo.nombre,
+                "fecha_inicio": periodo.fecha_inicio.strftime("%Y-%m-%d"),
+                "fecha_fin": periodo.fecha_fin.strftime("%Y-%m-%d"),
+            }
+            for periodo in periodos
+        ]
+    )
+
+
+@app.route("/periodos/<int:periodo_id>/dias", methods=["GET"])
+def obtener_dias_disponibles(periodo_id):
+    periodo = Periodo.query.get_or_404(periodo_id)
+    supuestos = SupuestoGanancia.query.filter(
+        SupuestoGanancia.fecha >= periodo.fecha_inicio,
+        SupuestoGanancia.fecha <= periodo.fecha_fin,
+    ).all()
+    dias_disponibles = sorted(set(s.fecha.strftime("%Y-%m-%d") for s in supuestos))
+    return jsonify(dias_disponibles)
+
+
+@app.route("/ganancias/consolidadas", methods=["GET"])
+def obtener_ganancias_consolidadas():
+    periodo_id = request.args.get("periodo_id")
+    tipo_periodo = request.args.get("tipo_periodo")
+    periodo = Periodo.query.get_or_404(periodo_id)
+
+    if tipo_periodo == "dia":
+        fecha = request.args.get("fecha")
+        supuestos = SupuestoGanancia.query.filter(SupuestoGanancia.fecha == fecha).all()
+    elif tipo_periodo == "semana":
+        supuestos = SupuestoGanancia.query.filter(
+            SupuestoGanancia.fecha >= periodo.fecha_inicio,
+            SupuestoGanancia.fecha < periodo.fecha_inicio + timedelta(days=7),
+        ).all()
+    else:  # mes
+        supuestos = SupuestoGanancia.query.filter(
+            SupuestoGanancia.fecha >= periodo.fecha_inicio,
+            SupuestoGanancia.fecha <= periodo.fecha_fin,
+        ).all()
+
+    total_ganancias = sum([s.tokens for s in supuestos])
+    ganancias_por_modelo = {}
+    for supuesto in supuestos:
+        modelo_nombre = f"{supuesto.modelo.nombres} {supuesto.modelo.apellidos}"
+        if modelo_nombre not in ganancias_por_modelo:
+            ganancias_por_modelo[modelo_nombre] = 0
+        ganancias_por_modelo[modelo_nombre] += supuesto.tokens
+
+    return jsonify(
+        {
+            "total_ganancias": total_ganancias,
+            "ganancias_por_modelo": ganancias_por_modelo,
+            "tipo_periodo": tipo_periodo,
+        }
+    )
+
+
+def calcular_ganancias_consolidadas(fecha_inicio, fecha_fin):
+    supuestos = SupuestoGanancia.query.filter(
+        SupuestoGanancia.fecha >= fecha_inicio, SupuestoGanancia.fecha <= fecha_fin
+    ).all()
+
+    total_ganancias = sum([s.total_cop for s in supuestos])
+    ganancias_por_modelo = {}
+    for supuesto in supuestos:
+        modelo_nombre = f"{supuesto.modelo.nombres} {supuesto.modelo.apellidos}"
+        if modelo_nombre not in ganancias_por_modelo:
+            ganancias_por_modelo[modelo_nombre] = 0
+        ganancias_por_modelo[modelo_nombre] += supuesto.total_cop
+
+    return {
+        "total_ganancias": total_ganancias,
+        "ganancias_por_modelo": ganancias_por_modelo,
+    }
+
+
+def obtener_periodo_semanal():
+    fecha_actual = datetime.now()
+    fecha_inicio = fecha_actual - timedelta(days=fecha_actual.weekday())
+    fecha_fin = fecha_inicio + timedelta(days=6)
+    return fecha_inicio, fecha_fin
+
+
+def obtener_periodo_dos_semanas():
+    fecha_actual = datetime.now()
+    fecha_inicio = fecha_actual - timedelta(days=fecha_actual.weekday() + 7)
+    fecha_fin = fecha_inicio + timedelta(days=13)
+    return fecha_inicio, fecha_fin
+
+
+@app.route("/metas", methods=["POST"])
+def establecer_meta():
+    datos = request.json
+    periodo = datos.get("periodo")
+    meta = datos.get("meta")
+    nueva_meta = MetaPeriodo(
+        periodo=periodo,
+        meta=meta,
+        fecha_inicio=datos.get("fecha_inicio"),
+        fecha_fin=datos.get("fecha_fin"),
+    )
+    db.session.add(nueva_meta)
+    db.session.commit()
+    return jsonify({"mensaje": "Meta establecida correctamente"})
+
+
+@app.route("/metas/<string:periodo>", methods=["GET"])
+def obtener_meta(periodo):
+    meta = MetaPeriodo.query.filter_by(periodo=periodo).first()
+    if meta:
+        return jsonify(
+            {
+                "meta": meta.meta,
+                "fecha_inicio": meta.fecha_inicio.strftime("%Y-%m-%d"),
+                "fecha_fin": meta.fecha_fin.strftime("%Y-%m-%d"),
+            }
+        )
+    return (
+        jsonify({"mensaje": "No se encontró la meta para el periodo especificado"}),
+        404,
+    )
+
+
+@app.route("/periodos/ultimo", methods=["GET"])
+def obtener_ultimo_periodo():
+    ultimo_periodo = (
+        db.session.query(SupuestoGanancia.inicio_periodo, SupuestoGanancia.fin_periodo)
+        .order_by(SupuestoGanancia.fin_periodo.desc())
+        .first()
+    )
+    if ultimo_periodo:
+        return jsonify(
+            {
+                "periodo": f"{ultimo_periodo.inicio_periodo} - {ultimo_periodo.fin_periodo}",
+                "fecha_inicio": ultimo_periodo.inicio_periodo.strftime("%Y-%m-%d"),
+                "fecha_fin": ultimo_periodo.fin_periodo.strftime("%Y-%m-%d"),
+            }
+        )
+    return jsonify({"mensaje": "No se encontró ningún periodo"}), 404
 
 
 if __name__ == "__main__":
