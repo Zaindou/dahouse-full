@@ -14,6 +14,7 @@ from models import (
     MetaPeriodo,
 )
 from datetime import datetime, timedelta
+import pytz
 
 from config import Config
 from dotenv import load_dotenv
@@ -657,29 +658,51 @@ def obtener_periodo_actual_endpoint():
     )
 
 
+HORARIOS_PAGINAS = {
+    "Streamate": pytz.timezone("GMT"),
+    "Camsoda": pytz.timezone("GMT"),
+    "Stripchat": pytz.timezone("UTC"),
+    "Chaturbate": pytz.timezone("UTC"),
+    "CherryTV": pytz.timezone("GMT"),
+    "default": pytz.timezone("UTC"),
+}
+
+# Zona horaria del servidor
+SERVIDOR_TZ = pytz.timezone("America/Bogota")  # UTC-5
+
+
+# Adaptamos la función para considerar los husos horarios
 def obtener_cierre_por_pagina(pagina_nombre, fecha):
+    tz = HORARIOS_PAGINAS.get(pagina_nombre, HORARIOS_PAGINAS["default"])
+    fecha_servidor = fecha.replace(tzinfo=SERVIDOR_TZ)
+    fecha_local = fecha_servidor.astimezone(tz)
+
     if pagina_nombre == "Streamate":
         # Streamate va de domingo a domingo
-        inicio_periodo = fecha - timedelta(days=(fecha.weekday() + 1) % 7)
+        inicio_periodo = fecha_local - timedelta(days=(fecha_local.weekday() + 1) % 7)
         fin_periodo = inicio_periodo + timedelta(days=7)
     elif pagina_nombre in ["Camsoda", "Stripchat"]:
         # Camsoda y Stripchat van de lunes a domingo
-        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        inicio_periodo = fecha_local - timedelta(days=fecha_local.weekday())
         fin_periodo = inicio_periodo + timedelta(days=6)
     elif pagina_nombre == "Chaturbate":
         # Chaturbate va de lunes a lunes
-        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        inicio_periodo = fecha_local - timedelta(days=fecha_local.weekday())
         fin_periodo = inicio_periodo + timedelta(days=7)
     elif pagina_nombre == "CherryTV":
         # CherryTV va de domingo a domingo
-        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        inicio_periodo = fecha_local - timedelta(days=fecha_local.weekday())
         fin_periodo = inicio_periodo + timedelta(days=7)
     else:
         # Para otros casos, se usa un periodo semanal estándar de lunes a domingo
-        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        inicio_periodo = fecha_local - timedelta(days=fecha_local.weekday())
         fin_periodo = inicio_periodo + timedelta(days=6)
 
-    return inicio_periodo, fin_periodo
+    # Convertimos las fechas de nuevo a la zona horaria del servidor (UTC-5)
+    inicio_periodo_servidor = inicio_periodo.astimezone(SERVIDOR_TZ)
+    fin_periodo_servidor = fin_periodo.astimezone(SERVIDOR_TZ)
+
+    return inicio_periodo_servidor, fin_periodo_servidor
 
 
 @app.route("/jornadas", methods=["GET"])
@@ -714,7 +737,7 @@ def listar_paginas_por_modelo(modelo_id):
 def listar_cierres_paginas():
     try:
         paginas = ["Chaturbate", "Stripchat", "Camsoda", "Streamate", "CherryTV"]
-        fecha_actual = datetime.now()
+        fecha_actual = SERVIDOR_TZ.localize(datetime.now())
         cierres = []
 
         for pagina in paginas:
@@ -761,26 +784,48 @@ def obtener_supuestos_ganancia(modelo_id):
     methods=["GET"],
 )
 def listar_supuestos_ganancias_por_periodo(inicio_periodo, fin_periodo):
-    inicio_periodo_dt = datetime.strptime(inicio_periodo, "%Y-%m-%d")
-    fin_periodo_dt = datetime.strptime(fin_periodo, "%Y-%m-%d")
+    inicio_periodo_dt = datetime.strptime(inicio_periodo, "%Y-%m-%d").replace(
+        tzinfo=pytz.UTC
+    )
+    fin_periodo_dt = datetime.strptime(fin_periodo, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
 
     supuestos = SupuestoGanancia.query.filter(
-        SupuestoGanancia.inicio_periodo == inicio_periodo_dt,
-        SupuestoGanancia.fin_periodo == fin_periodo_dt,
+        SupuestoGanancia.inicio_periodo >= inicio_periodo_dt,
+        SupuestoGanancia.fin_periodo <= fin_periodo_dt,
     ).all()
 
-    supuestos_lista = [
+    resultado = {}
+    total_ganancias = 0
+    total_ganancias_turno = {
+        "Tarde": 0,
+        "Tarde Satélite": 0,
+        "Noche": 0,
+        "Noche Satélite": 0,
+    }
+
+    for supuesto in supuestos:
+        modelo_nombre = f"{supuesto.modelo.nombres} {supuesto.modelo.apellidos}"
+        pagina_nombre = supuesto.pagina.nombre
+        turno = supuesto.modelo.jornada or "Desconocido"
+
+        if modelo_nombre not in resultado:
+            resultado[modelo_nombre] = {"total": 0, "por_pagina": {}, "turno": turno}
+
+        if pagina_nombre not in resultado[modelo_nombre]["por_pagina"]:
+            resultado[modelo_nombre]["por_pagina"][pagina_nombre] = 0
+
+        resultado[modelo_nombre]["por_pagina"][pagina_nombre] += supuesto.tokens
+        resultado[modelo_nombre]["total"] += supuesto.tokens
+        total_ganancias_turno[turno] += supuesto.tokens
+        total_ganancias += supuesto.tokens
+
+    return jsonify(
         {
-            "id": supuesto.id,
-            "modelo": f"{supuesto.modelo.nombres} {supuesto.modelo.apellidos}",
-            "pagina": supuesto.pagina.nombre,
-            "tokens": supuesto.tokens,
-            "total_cop": supuesto.total_cop,
-            "fecha": supuesto.fecha.strftime("%Y-%m-%d"),
+            "total_ganancias": total_ganancias,
+            "total_ganancias_turno": total_ganancias_turno,
+            "ganancias_por_modelo": resultado,
         }
-        for supuesto in supuestos
-    ]
-    return jsonify(supuestos_lista)
+    )
 
 
 @app.route("/supuestos/ganancia/<int:id>", methods=["PUT"])
@@ -921,7 +966,7 @@ def obtener_ganancias_consolidadas():
     total_ganancias = sum([s.tokens for s in supuestos])
     ganancias_por_modelo = {}
     for supuesto in supuestos:
-        modelo_nombre = f"{supuesto.modelo.nombres} {supuesto.modelo.apellidos}"
+        modelo_nombre = f"{supuesto.modelo.nombre_usuario}"
         if modelo_nombre not in ganancias_por_modelo:
             ganancias_por_modelo[modelo_nombre] = 0
         ganancias_por_modelo[modelo_nombre] += supuesto.tokens

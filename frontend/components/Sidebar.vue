@@ -45,7 +45,7 @@
                 <span :class="{ 'hidden': !isSidebarOpen }">Liquidación</span>
             </nuxt-link>
             <nuxt-link to="/ganancias" :class="linkClasses" @click="handleLinkClick">
-                <Icon name="ic:sharp-attach-money" :class="iconClasses" />
+                <Icon name="carbon:align-vertical-bottom" :class="iconClasses" />
                 <span :class="{ 'hidden': !isSidebarOpen }">Ganancias</span>
             </nuxt-link>
         </div>
