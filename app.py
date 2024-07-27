@@ -10,6 +10,7 @@ from models import (
     Periodo,
     Deducible,
     Rol,
+    SupuestoGanancia,
 )
 from datetime import datetime, timedelta
 
@@ -24,7 +25,7 @@ env = environ.Env()
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 app.config.from_object(Config)
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -56,7 +57,6 @@ def obtener_martes_del_mes(año, mes, n):
 
 
 def obtener_periodo_actual():
-    # hoy = datetime(2024, 6, 11)
     hoy = datetime.today()
     año = hoy.year
     mes = hoy.strftime("%b").upper()
@@ -76,6 +76,7 @@ def obtener_periodo_actual():
         nombre_periodo = f"{año}-{mes}-3"
         fecha_inicio = cuarto_martes
         fecha_fin = cuarto_martes + timedelta(days=14)
+
     fecha_inicio = fecha_inicio.strftime("%Y-%m-%d")
     fecha_fin = fecha_fin.strftime("%Y-%m-%d")
 
@@ -642,6 +643,7 @@ def pagar_ganancia(ganancia_id):
     return jsonify({"mensaje": "Ganancia pagada con éxito"})
 
 
+##NUEVO MODULO GANANCIAS
 @app.route("/periodoactual", methods=["GET"])
 def obtener_periodo_actual_endpoint():
     nombre_periodo, fecha_inicio, fecha_fin = obtener_periodo_actual()
@@ -654,9 +656,223 @@ def obtener_periodo_actual_endpoint():
     )
 
 
+def obtener_cierre_por_pagina(pagina_nombre, fecha):
+    if pagina_nombre == "Streamate":
+        # Streamate va de domingo a domingo
+        inicio_periodo = fecha - timedelta(days=(fecha.weekday() + 1) % 7)
+        fin_periodo = inicio_periodo + timedelta(days=7)
+    elif pagina_nombre in ["Camsoda", "Stripchat"]:
+        # Camsoda y Stripchat van de lunes a domingo
+        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=6)
+    elif pagina_nombre == "Chaturbate":
+        # Chaturbate va de lunes a lunes
+        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=7)
+    elif pagina_nombre == "CherryTV":
+        # CherryTV va de domingo a domingo
+        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=7)
+    else:
+        # Para otros casos, se usa un periodo semanal estándar de lunes a domingo
+        inicio_periodo = fecha - timedelta(days=fecha.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=6)
+
+    return inicio_periodo, fin_periodo
+
+
+@app.route("/jornadas", methods=["GET"])
+def listar_jornadas():
+    jornadas = ["Tarde", "Tarde Satélite", "Noche", "Noche Satélite"]
+    return jsonify(jornadas)
+
+
+@app.route("/modelos/jornada/<jornada>", methods=["GET"])
+def listar_modelos_por_jornada(jornada):
+    modelos = Modelo.query.filter_by(jornada=jornada).all()
+    return jsonify(
+        [
+            {
+                "id": modelo.id,
+                "nombre": f"{modelo.nombres} {modelo.apellidos}",
+                "nombre_usuario": modelo.nombre_usuario,
+            }
+            for modelo in modelos
+        ]
+    )
+
+
+@app.route("/modelos/<int:modelo_id>/paginas", methods=["GET"])
+def listar_paginas_por_modelo(modelo_id):
+    modelo = Modelo.query.get_or_404(modelo_id)
+    paginas = modelo.paginas
+    return jsonify([{"id": pagina.id, "nombre": pagina.nombre} for pagina in paginas])
+
+
+@app.route("/paginas/cierres", methods=["GET"])
+def listar_cierres_paginas():
+    try:
+        paginas = ["Chaturbate", "Stripchat", "Camsoda", "Streamate", "CherryTV"]
+        fecha_actual = datetime.now()
+        cierres = []
+
+        for pagina in paginas:
+            inicio_periodo, fin_periodo = obtener_cierre_por_pagina(
+                pagina, fecha_actual
+            )
+            proximo_cierre = fin_periodo
+            dias_restantes = (proximo_cierre - fecha_actual).days
+            cierres.append(
+                {
+                    "pagina": pagina,
+                    "proximo_cierre": proximo_cierre.strftime("%Y-%m-%d"),
+                    "dias_restantes": dias_restantes,
+                    "inicio_periodo": inicio_periodo.strftime("%Y-%m-%d"),
+                    "fin_periodo": fin_periodo.strftime("%Y-%m-%d"),
+                }
+            )
+
+        return jsonify(cierres)
+    except Exception as e:
+        return jsonify({"mensaje": str(e)}), 500
+
+
+@app.route("/supuestos/ganancia/<int:modelo_id>", methods=["GET"])
+def obtener_supuestos_ganancia(modelo_id):
+    supuestos = SupuestoGanancia.query.filter_by(modelo_id=modelo_id).all()
+    supuestos_lista = [
+        {
+            "id": supuesto.id,
+            "pagina": supuesto.pagina.nombre,
+            "tokens": supuesto.tokens,
+            "total_cop": supuesto.total_cop,
+            "fecha": supuesto.fecha.strftime("%Y-%m-%d"),
+            "inicio_periodo": supuesto.inicio_periodo.strftime("%Y-%m-%d"),
+            "fin_periodo": supuesto.fin_periodo.strftime("%Y-%m-%d"),
+        }
+        for supuesto in supuestos
+    ]
+    return jsonify(supuestos_lista)
+
+
+@app.route(
+    "/supuestos/ganancias/periodo/<string:inicio_periodo>/<string:fin_periodo>",
+    methods=["GET"],
+)
+def listar_supuestos_ganancias_por_periodo(inicio_periodo, fin_periodo):
+    inicio_periodo_dt = datetime.strptime(inicio_periodo, "%Y-%m-%d")
+    fin_periodo_dt = datetime.strptime(fin_periodo, "%Y-%m-%d")
+
+    supuestos = SupuestoGanancia.query.filter(
+        SupuestoGanancia.inicio_periodo == inicio_periodo_dt,
+        SupuestoGanancia.fin_periodo == fin_periodo_dt,
+    ).all()
+
+    supuestos_lista = [
+        {
+            "id": supuesto.id,
+            "modelo": f"{supuesto.modelo.nombres} {supuesto.modelo.apellidos}",
+            "pagina": supuesto.pagina.nombre,
+            "tokens": supuesto.tokens,
+            "total_cop": supuesto.total_cop,
+            "fecha": supuesto.fecha.strftime("%Y-%m-%d"),
+        }
+        for supuesto in supuestos
+    ]
+    return jsonify(supuestos_lista)
+
+
+@app.route("/supuestos/ganancia/<int:id>", methods=["PUT"])
+def editar_supuesto_ganancia(id):
+    supuesto = SupuestoGanancia.query.get_or_404(id)
+    datos = request.json
+    tokens = datos.get("tokens")
+    if tokens:
+        supuesto.tokens = tokens
+        supuesto.total_cop = tokens * 0.05 * obtener_trm()
+        db.session.commit()
+        return jsonify({"mensaje": "Supuesto de ganancia actualizado correctamente"})
+    return jsonify({"mensaje": "No se proporcionaron tokens"}), 400
+
+
+@app.route("/periodos/supuestos", methods=["GET"])
+def listar_periodos_supuestos():
+    periodos_supuestos = (
+        db.session.query(SupuestoGanancia.inicio_periodo, SupuestoGanancia.fin_periodo)
+        .distinct()
+        .all()
+    )
+    return jsonify(
+        [
+            {
+                "inicio_periodo": periodo[0].strftime("%Y-%m-%d"),
+                "fin_periodo": periodo[1].strftime("%Y-%m-%d"),
+            }
+            for periodo in periodos_supuestos
+        ]
+    )
+
+
+@app.route("/modelos/<int:modelo_id>/ganancias", methods=["POST"])
+def registrar_supuesto_ganancia(modelo_id):
+    modelo = Modelo.query.get_or_404(modelo_id)
+    datos = request.json
+    fecha = datetime.strptime(datos["fecha"], "%Y-%m-%d")
+    _, fecha_inicio, fecha_fin = obtener_periodo_actual()
+    fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+    fecha_limite = fecha_fin_dt - timedelta(days=1)
+
+    if fecha > fecha_limite:
+        return (
+            jsonify(
+                {
+                    "mensaje": "No se pueden agregar ganancias después del periodo límite."
+                }
+            ),
+            400,
+        )
+
+    supuestos_existentes = SupuestoGanancia.query.filter_by(
+        modelo_id=modelo_id, fecha=fecha
+    ).all()
+    if supuestos_existentes:
+        return (
+            jsonify(
+                {
+                    "mensaje": "Ya existe una ganancia registrada para este modelo en esta fecha."
+                }
+            ),
+            400,
+        )
+
+    supuestos = []
+    for pagina in datos["paginas"]:
+        pagina_obj = Pagina.query.get_or_404(pagina["pagina_id"])
+        inicio_periodo, fin_periodo = obtener_cierre_por_pagina(
+            pagina_obj.nombre, fecha
+        )
+        supuesto_ganancia = SupuestoGanancia(
+            modelo_id=modelo.id,
+            pagina_id=pagina_obj.id,
+            tokens=pagina["tokens"],
+            total_cop=pagina["tokens"] * 0.05 * obtener_trm(),
+            fecha=fecha,
+            inicio_periodo=inicio_periodo,
+            fin_periodo=fin_periodo,  # Asignando una fecha válida aquí
+            porcentaje=0.55,  # Aplica la lógica que determine el porcentaje
+            estado="Supuesto",
+        )
+        db.session.add(supuesto_ganancia)
+        supuestos.append(supuesto_ganancia)
+    db.session.commit()
+    return jsonify(
+        {"mensaje": "Ganancias registradas", "supuestos": [s.id for s in supuestos]}
+    )
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         inicializar_paginas()
         inicializar_roles()
-    app.run(debug=False)
+    app.run(debug=True)
