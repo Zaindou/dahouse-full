@@ -194,3 +194,8 @@ logs
 .env.*
 
 !.env.example
+/.idea
+/node_modules
+/node_modules
+/node_modules
+/node_modules/.bin
