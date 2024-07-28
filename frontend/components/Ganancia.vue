@@ -42,12 +42,6 @@
                                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <label for="fechaRegistro" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                        <input type="date" id="fechaRegistro" v-model="fechaRegistro" :min="fechaInicioPeriodo"
-                            :max="fechaFinPeriodo"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                    </div>
                     <button type="submit"
                         class="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                         Registrar Ganancias
@@ -62,15 +56,17 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div v-for="cierre in cierres" :key="cierre.pagina" class="bg-gray-100 p-4 rounded-lg">
                     <h3 class="font-semibold text-lg mb-2">{{ cierre.pagina }}</h3>
-                    <p class="text-sm text-gray-600">Próximo cierre: {{ cierre.proximo_cierre }}</p>
+                    <p class="text-sm text-gray-600">Próximo cierre: {{ formatFechaHora(cierre.proximo_cierre) }}</p>
                     <p class="text-sm text-gray-600">Días restantes: {{ cierre.dias_restantes }}</p>
-                    <p class="text-sm text-gray-600">Inicio del periodo: {{ cierre.inicio_periodo }}</p>
+                    <p class="text-sm text-gray-600">Inicio del periodo: {{ formatFechaHora(cierre.inicio_periodio) }}
+                    </p>
+                    <p class="text-sm text-gray-600">Fin del periodo: {{ formatFechaHora(cierre.fin_periodio) }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Sección de Establecer Meta -->
-        <!-- <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+        <div class="mt-8 bg-white shadow-md rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-700">Establecer Meta por Periodo</h2>
             <form @submit.prevent="establecerMeta" class="flex items-end space-x-4">
                 <div class="flex-grow">
@@ -83,7 +79,7 @@
                     Establecer Meta
                 </button>
             </form>
-        </div>-->
+        </div>
 
         <!-- Sección de Ganancias Consolidadas -->
         <div class="mt-8 bg-white shadow-md rounded-lg p-6">
@@ -91,28 +87,23 @@
             <div class="flex space-x-4 mb-4">
                 <div class="flex-grow">
                     <label for="periodo" class="block text-sm font-medium text-gray-700 mb-1">Periodo</label>
-                    <select id="periodo" v-model="selectedPeriodo" @change="handlePeriodoChange"
+                    <select id="periodo" v-model="selectedPeriodo" @change="fetchGananciasConsolidadas"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">Seleccione un periodo</option>
                         <option v-for="periodo in periodosDisponibles" :key="periodo.id" :value="periodo.id">
-                            {{ periodo.nombre }}: {{ periodo.fecha_inicio }} - {{ periodo.fecha_fin }}
+                            {{ periodo.nombre }}: {{ formatFechaHora(periodo.fecha_inicio) }} - {{
+                                formatFechaHora(periodo.fecha_fin) }}
                         </option>
                     </select>
                 </div>
                 <div>
                     <label for="tipoPeriodo" class="block text-sm font-medium text-gray-700 mb-1">Filtrar por</label>
-                    <select id="tipoPeriodo" v-model="tipoPeriodo" @change="handleTipoPeriodoChange"
+                    <select id="tipoPeriodo" v-model="tipoPeriodo" @change="fetchGananciasConsolidadas"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="dia">Día</option>
                         <option value="semana">Semana</option>
                         <option value="mes">Mes</option>
                     </select>
-                </div>
-                <div v-if="tipoPeriodo === 'dia'">
-                    <label for="fechaFiltro" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                    <input type="date" id="fechaFiltro" v-model="fechaFiltro" @change="fetchGananciasConsolidadas"
-                        :min="fechaInicioPeriodo" :max="fechaFinPeriodo"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                 </div>
             </div>
 
@@ -128,15 +119,14 @@
                     </div>
                 </div>
             </div>
-            <div v-else class="mt-4">
-                <p class="text-lg font-semibold">No hay datos disponibles para este periodo y filtro.</p>
-            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useModelosStore } from '~/stores/modelo';
 import { useFinancieroStore } from '~/stores/financiero';
 
@@ -157,17 +147,26 @@ const selectedPeriodo = ref("");
 const tipoPeriodo = ref("dia");
 const gananciasConsolidadas = ref(null);
 const periodosDisponibles = ref([]);
-const diasDisponibles = ref([]);
-const fechaRegistro = ref("");
-const fechaFiltro = ref("");
-const fechaInicioPeriodo = ref("");
-const fechaFinPeriodo = ref(new Date().toISOString().split('T')[0]);
 
 const promedioTokens = computed(() => {
     if (!gananciasConsolidadas.value) return 0;
-    const totalDias = tipoPeriodo.value === "mes" ? 25 : tipoPeriodo.value === "semana" ? 6 : 1;
+    const totalDias = tipoPeriodo.value === "mes" ? 25 : 6;
     return (gananciasConsolidadas.value.total_ganancias / totalDias).toFixed(2);
 });
+
+const formatFechaHora = (fecha) => {
+    try {
+        const date = new Date(fecha);
+        if (isNaN(date)) {
+            console.error('Fecha inválida:', fecha);
+            return 'Fecha inválida';
+        }
+        return format(date, "EEEE, dd 'de' MMMM 'del' yyyy HH:mm", { locale: es });
+    } catch (error) {
+        console.error('Error formateando la fecha:', fecha, error);
+        return 'Fecha inválida';
+    }
+};
 
 const fetchModelosPorJornada = async () => {
     if (selectedJornada.value) {
@@ -197,7 +196,7 @@ const registrarSupuestoGanancia = async () => {
     try {
         const supuestoGananciaData = {
             modelo_id: selectedModelo.value,
-            fecha: fechaRegistro.value,
+            fecha: new Date().toISOString().split('T')[0],
             paginas: paginas.value.map(pagina => ({
                 pagina_id: pagina.id,
                 tokens: tokens.value[pagina.id] || 0,
@@ -207,7 +206,6 @@ const registrarSupuestoGanancia = async () => {
         tokens.value = {};
         selectedModelo.value = null;
         paginas.value = [];
-        fechaRegistro.value = "";
         $notify.success("Supuestos de ganancias registrados correctamente");
     } catch (error) {
         $notify.error(`Error al registrar ganancias: ${error.message}`);
@@ -241,13 +239,8 @@ const establecerMeta = async () => {
 
 const fetchGananciasConsolidadas = async () => {
     try {
-        gananciasConsolidadas.value = null;
         if (selectedPeriodo.value) {
-            if (tipoPeriodo.value === "dia" && fechaFiltro.value) {
-                gananciasConsolidadas.value = await modelosStore.fetchGananciasConsolidadas(selectedPeriodo.value, tipoPeriodo.value, fechaFiltro.value);
-            } else {
-                gananciasConsolidadas.value = await modelosStore.fetchGananciasConsolidadas(selectedPeriodo.value, tipoPeriodo.value);
-            }
+            gananciasConsolidadas.value = await modelosStore.fetchGananciasConsolidadas(selectedPeriodo.value, tipoPeriodo.value);
         }
     } catch (error) {
         $notify.error(`Error al obtener ganancias consolidadas: ${error.message}`);
@@ -262,47 +255,10 @@ const fetchPeriodosDisponibles = async () => {
     }
 };
 
-const fetchDiasDisponibles = async () => {
-    if (selectedPeriodo.value) {
-        try {
-            fechaFiltro.value = "";
-            diasDisponibles.value = await modelosStore.fetchDiasDisponibles(selectedPeriodo.value);
-        } catch (error) {
-            $notify.error(`Error al obtener días disponibles: ${error.message}`);
-        }
-    }
-};
-
-const handlePeriodoChange = async () => {
-    await fetchDiasDisponibles();
-    const periodo = periodosDisponibles.value.find(p => p.id === selectedPeriodo.value);
-    fechaInicioPeriodo.value = periodo.fecha_inicio;
-    fetchGananciasConsolidadas();
-};
-
-const handleTipoPeriodoChange = async () => {
-    if (tipoPeriodo.value !== 'dia') {
-        fechaFiltro.value = "";
-    }
-    fetchGananciasConsolidadas();
-};
-
-const fetchDatosFinancieros = async () => {
-    try {
-        const datos = await financieroStore.fetchDatosFinancieros();
-        fechaInicioPeriodo.value = datos.periodo_actual[1];
-    } catch (error) {
-        $notify.error(`Error al obtener datos financieros: ${error.message}`);
-    }
-};
-
 onMounted(() => {
     fetchCierresPaginas();
     fetchPeriodosDisponibles();
-    fetchDatosFinancieros();
 });
-
-watch([selectedPeriodo, tipoPeriodo, fechaFiltro], fetchGananciasConsolidadas);
 </script>
 
 <style scoped>
