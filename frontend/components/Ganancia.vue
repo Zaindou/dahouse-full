@@ -105,17 +105,30 @@
                         <option value="mes">Mes</option>
                     </select>
                 </div>
+                <div v-if="tipoPeriodo === 'dia'">
+                    <label for="fechaFiltro" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                    <input type="date" id="fechaFiltro" v-model="fechaFiltro" @change="fetchGananciasConsolidadas"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
             </div>
 
             <div v-if="gananciasConsolidadas" class="mt-4">
                 <p class="text-lg font-semibold">Total Ganancias en Tokens: {{ gananciasConsolidadas.total_ganancias }}
                 </p>
                 <p class="text-lg font-semibold">Promedio de Tokens: {{ promedioTokens }}</p>
-                <div class="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div v-for="(ganancia, modelo) in gananciasConsolidadas.ganancias_por_modelo" :key="modelo"
-                        class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="font-semibold">{{ modelo }}</h3>
-                        <p>{{ ganancia }} tokens</p>
+                <div class="mt-4">
+                    <h3 class="text-xl font-semibold">Ganancias por Turno</h3>
+                    <div v-for="turno in ['Tarde', 'Tarde Satélite', 'Noche', 'Noche Satélite']" :key="turno">
+                        <h4 class="text-lg font-semibold mt-4">Turno {{ turno }}</h4>
+                        <div v-for="(ganancia, modelo) in modelosPorTurno(turno)" :key="modelo"
+                            class="bg-gray-100 p-4 rounded-lg mb-2">
+                            <h5 class="font-semibold">{{ modelo }}</h5>
+                            <p>
+                                <span v-for="(tokens, pagina) in ganancia.por_pagina" :key="pagina">{{ pagina }}: {{
+                                    tokens }} tokens</span>
+                            </p>
+                            <p>Total: {{ ganancia.total }} tokens</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -145,6 +158,7 @@ const cierres = ref([]);
 const meta = ref(0);
 const selectedPeriodo = ref("");
 const tipoPeriodo = ref("dia");
+const fechaFiltro = ref("");
 const gananciasConsolidadas = ref(null);
 const periodosDisponibles = ref([]);
 
@@ -240,7 +254,16 @@ const establecerMeta = async () => {
 const fetchGananciasConsolidadas = async () => {
     try {
         if (selectedPeriodo.value) {
-            gananciasConsolidadas.value = await modelosStore.fetchGananciasConsolidadas(selectedPeriodo.value, tipoPeriodo.value);
+            let url = `${useRuntimeConfig().public.apiUrl}/ganancias/consolidadas?periodo_id=${selectedPeriodo.value}&tipo_periodo=${tipoPeriodo.value}`;
+            if (tipoPeriodo.value === 'dia') {
+                url += `&fecha=${fechaFiltro.value}`;
+            }
+            const response = await fetch(url);
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message);
+            }
+            gananciasConsolidadas.value = await response.json();
         }
     } catch (error) {
         $notify.error(`Error al obtener ganancias consolidadas: ${error.message}`);
@@ -253,6 +276,15 @@ const fetchPeriodosDisponibles = async () => {
     } catch (error) {
         $notify.error(`Error al obtener periodos disponibles: ${error.message}`);
     }
+};
+
+const modelosPorTurno = (turno) => {
+    return Object.entries(gananciasConsolidadas.value.ganancias_por_modelo || {})
+        .filter(([_, ganancia]) => ganancia.turno === turno)
+        .reduce((acc, [modelo, ganancia]) => {
+            acc[modelo] = ganancia;
+            return acc;
+        }, {});
 };
 
 onMounted(() => {
