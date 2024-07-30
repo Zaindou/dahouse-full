@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
+from sqlalchemy import func, extract, or_
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import (
@@ -659,8 +660,6 @@ def obtener_periodo_actual_endpoint():
 
 
 # Definimos las zonas horarias y horarios específicos de cierre
-# Definimos las zonas horarias y horarios específicos de cierre
-# Definimos las zonas horarias y horarios específicos de cierre
 HORARIOS_PAGINAS = {
     "Streamate": pytz.timezone("GMT"),  # Sábado a sábado a las 00:00 GMT
     "Camsoda": pytz.timezone("UTC"),  # Lunes a domingo a las 00:00 UTC
@@ -683,53 +682,73 @@ def obtener_cierre_por_pagina(pagina_nombre, fecha):
 
     if pagina_nombre == "Streamate":
         # Streamate cierra de sábado a sábado a las 00:00 GMT
-        inicio_periodio = fecha_pagina - timedelta(
-            days=(fecha_pagina.weekday() + 1) % 7
-        )
-        fin_periodio = inicio_periodio + timedelta(
+        inicio_periodo = fecha_pagina - timedelta(days=(fecha_pagina.weekday() + 1) % 7)
+        fin_periodo = inicio_periodo + timedelta(
             days=6, hours=23, minutes=59, seconds=59
         )
-        proximo_cierre = fin_periodio + timedelta(
+        proximo_cierre = fin_periodo + timedelta(
             seconds=1
         )  # Ajuste para el próximo cierre a 00:00 GMT
-        fin_periodio = fin_periodio.replace(
+        fin_periodo = fin_periodo.replace(
             hour=23, minute=59, second=59
         )  # Fin del periodo es el sábado
 
     elif pagina_nombre == "Camsoda":
         # Camsoda va de lunes a domingo (domingo a las 23:59 UTC)
-        inicio_periodio = fecha_pagina - timedelta(days=fecha_pagina.weekday())
-        fin_periodio = inicio_periodio + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodio  # El próximo cierre es el mismo que el fin del periodo para Camsoda y Stripchat
+        inicio_periodo = fecha_pagina - timedelta(days=fecha_pagina.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
+        proximo_cierre = fin_periodo  # El próximo cierre es el mismo que el fin del periodo para Camsoda y Stripchat
 
     elif pagina_nombre == "Stripchat":
         # Stripchat va de lunes a domingo (domingo a las 23:59 UTC)
-        inicio_periodio = fecha_pagina - timedelta(days=fecha_pagina.weekday())
-        fin_periodio = inicio_periodio + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodio  # El próximo cierre es el mismo que el fin del periodo para Camsoda y Stripchat
+        inicio_periodo = fecha_pagina - timedelta(days=fecha_pagina.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
+        proximo_cierre = fin_periodo  # El próximo cierre es el mismo que el fin del periodo para Camsoda y Stripchat
 
     elif pagina_nombre in ["Chaturbate", "CherryTV"]:
         # Chaturbate y CherryTV cierran de lunes a lunes a las 00:00 UTC-5 (de martes a lunes)
-        inicio_periodio = fecha_pagina - timedelta(
+        inicio_periodo = fecha_pagina - timedelta(
             days=(fecha_pagina.weekday() + 6) % 7
         )  # Inicia el martes
-        fin_periodio = inicio_periodio + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodio  # El próximo cierre es el mismo que el fin del periodo para Chaturbate y CherryTV
+        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
+        proximo_cierre = fin_periodo  # El próximo cierre es el mismo que el fin del periodo para Chaturbate y CherryTV
 
     else:
         # Para otros casos, se usa un periodo semanal estándar de lunes a domingo
-        inicio_periodio = fecha_pagina - timedelta(days=fecha_pagina.weekday())
-        fin_periodio = inicio_periodio + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodio + timedelta(
+        inicio_periodo = fecha_pagina - timedelta(days=fecha_pagina.weekday())
+        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
+        proximo_cierre = fin_periodo + timedelta(
             days=1
         )  # Ajuste para el próximo cierre
 
     # Convertimos a la zona horaria del servidor
-    inicio_periodio = inicio_periodio.astimezone(SERVIDOR_TZ)
-    fin_periodio = fin_periodio.astimezone(SERVIDOR_TZ)
+    inicio_periodo = inicio_periodo.astimezone(SERVIDOR_TZ)
+    fin_periodo = fin_periodo.astimezone(SERVIDOR_TZ)
     proximo_cierre = proximo_cierre.astimezone(SERVIDOR_TZ)
 
-    return inicio_periodio, fin_periodio, proximo_cierre
+    print(
+        f"Página: {pagina_nombre}, Fecha: {fecha}, Inicio Periodo: {inicio_periodo}, Fin Periodo: {fin_periodo}, Próximo Cierre: {proximo_cierre}"
+    )
+
+    return inicio_periodo, fin_periodo, proximo_cierre
+
+
+def asignar_ganancias_a_periodos(supuesto, pagina_nombre, fecha):
+    inicio_periodo, fin_periodo, proximo_cierre = obtener_cierre_por_pagina(
+        pagina_nombre, fecha
+    )
+
+    if pagina_nombre in ["Chaturbate", "CherryTV"]:
+        # Ajustar lógica para que las ganancias del lunes hasta las 23:59 se asignen al periodo anterior
+        if fecha.weekday() == 0:  # Si es lunes
+            inicio_periodo -= timedelta(days=7)
+            fin_periodo -= timedelta(days=7)
+
+    supuesto.inicio_periodo = inicio_periodo
+    supuesto.fin_periodo = fin_periodo
+    supuesto.proximo_cierre = proximo_cierre
+
+    return supuesto
 
 
 @app.route("/paginas/cierres", methods=["GET"])
@@ -740,17 +759,17 @@ def listar_cierres_paginas():
         cierres = []
 
         for pagina in paginas:
-            inicio_periodio, fin_periodio, proximo_cierre = obtener_cierre_por_pagina(
+            inicio_periodo, fin_periodo, proximo_cierre = obtener_cierre_por_pagina(
                 pagina, fecha_actual
             )
             dias_restantes = (proximo_cierre - fecha_actual).days
             cierres.append(
                 {
                     "pagina": pagina,
-                    "proximo_cierre": proximo_cierre.strftime("%Y-%m-%d %H:%M"),
+                    "proximo_cierre": proximo_cierre.strftime("%Y-%m-%d %H:%M:%S"),
                     "dias_restantes": dias_restantes,
-                    "inicio_periodio": inicio_periodio.strftime("%Y-%m-%d %H:%M"),
-                    "fin_periodio": fin_periodio.strftime("%Y-%m-%d %H:%M"),
+                    "inicio_periodo": inicio_periodo.strftime("%Y-%m-%d %H:%M:%S"),
+                    "fin_periodo": fin_periodo.strftime("%Y-%m-%d %H:%M:%S"),
                 }
             )
 
@@ -925,8 +944,11 @@ def registrar_supuesto_ganancia(modelo_id):
     supuestos = []
     for pagina in datos["paginas"]:
         pagina_obj = Pagina.query.get_or_404(pagina["pagina_id"])
-        inicio_periodo, fin_periodo = obtener_cierre_por_pagina(
+        inicio_periodo, fin_periodo, _ = obtener_cierre_por_pagina(
             pagina_obj.nombre, fecha
+        )
+        print(
+            f"Registrando ganancia para {pagina_obj.nombre}: {fecha}, {inicio_periodo}, {fin_periodo}"
         )
         supuesto_ganancia = SupuestoGanancia(
             modelo_id=modelo.id,
@@ -935,8 +957,8 @@ def registrar_supuesto_ganancia(modelo_id):
             total_cop=pagina["tokens"] * 0.05 * obtener_trm(),
             fecha=fecha,
             inicio_periodo=inicio_periodo,
-            fin_periodo=fin_periodo,  # Asignando una fecha válida aquí
-            porcentaje=1,  # Aplica la lógica que determine el porcentaje
+            fin_periodo=fin_periodo,
+            porcentaje=1,
             estado="Supuesto",
         )
         db.session.add(supuesto_ganancia)
@@ -981,18 +1003,52 @@ def obtener_ganancias_consolidadas():
     periodo = Periodo.query.get_or_404(periodo_id)
 
     if tipo_periodo == "dia":
-        fecha = request.args.get("fecha")
-        supuestos = SupuestoGanancia.query.filter(SupuestoGanancia.fecha == fecha).all()
+        fecha = datetime.strptime(request.args.get("fecha"), "%Y-%m-%d")
+        supuestos = SupuestoGanancia.query.filter(
+            (SupuestoGanancia.fecha == fecha)
+            | (
+                (SupuestoGanancia.fecha == fecha + timedelta(days=1))
+                & (
+                    SupuestoGanancia.pagina.has(
+                        Pagina.nombre.in_(["Chaturbate", "CherryTV"])
+                    )
+                )
+            )
+        ).all()
     elif tipo_periodo == "semana":
         supuestos = SupuestoGanancia.query.filter(
-            SupuestoGanancia.fecha >= periodo.fecha_inicio,
-            SupuestoGanancia.fecha < periodo.fecha_inicio + timedelta(days=7),
+            (
+                (SupuestoGanancia.fecha >= periodo.fecha_inicio)
+                & (SupuestoGanancia.fecha < periodo.fecha_inicio + timedelta(days=7))
+            )
+            | (
+                (SupuestoGanancia.fecha == periodo.fecha_inicio + timedelta(days=7))
+                & (
+                    SupuestoGanancia.pagina.has(
+                        Pagina.nombre.in_(["Chaturbate", "CherryTV"])
+                    )
+                )
+            )
         ).all()
     else:  # mes
-        supuestos = SupuestoGanancia.query.filter(
-            SupuestoGanancia.fecha >= periodo.fecha_inicio,
-            SupuestoGanancia.fecha <= periodo.fecha_fin,
+        # Obtener todos los periodos que pertenecen al mismo mes y año del periodo especificado
+        year = periodo.fecha_inicio.year
+        month = periodo.fecha_inicio.month
+
+        periodos_mes = Periodo.query.filter(
+            extract("year", Periodo.fecha_inicio) == year,
+            extract("month", Periodo.fecha_inicio) == month,
         ).all()
+
+        fechas_inicio = [p.fecha_inicio for p in periodos_mes]
+        fechas_fin = [p.fecha_fin for p in periodos_mes]
+
+        filtros = [
+            (SupuestoGanancia.fecha >= inicio) & (SupuestoGanancia.fecha <= fin)
+            for inicio, fin in zip(fechas_inicio, fechas_fin)
+        ]
+
+        supuestos = SupuestoGanancia.query.filter(or_(*filtros)).all()
 
     total_ganancias = sum([s.tokens for s in supuestos])
     ganancias_por_modelo = {}

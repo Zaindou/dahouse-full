@@ -28,6 +28,45 @@ export const useModelosStore = defineStore("modelos", {
         this.error = error.message;
       }
     },
+    async crearDeduccion(nombreUsuario, DeducibleData) {
+      try {
+        const response = await fetch(
+          `${
+            useRuntimeConfig().public.apiUrl
+          }/modelos/${nombreUsuario}/creardeducible`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(DeducibleData),
+          }
+        );
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message);
+        }
+        return await response.json();
+      } catch (error) {
+        this.error = error.message;
+      }
+    },
+    async fetchGananciaInfo(nombreUsuario, nombrePeriodo) {
+      try {
+        const response = await fetch(
+          `${
+            useRuntimeConfig().public.apiUrl
+          }/ganancias/usuario/${nombreUsuario}/periodo/${nombrePeriodo}`
+        );
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message);
+        }
+        this.gananciaInfo = await response.json();
+        return this.gananciaInfo;
+      } catch (error) {
+        this.error = error.message;
+        this.gananciaInfo = null;
+      }
+    },
     async fetchModelosPorJornada(jornada) {
       try {
         const response = await fetch(

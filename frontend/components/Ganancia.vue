@@ -2,8 +2,8 @@
     <div class="container mx-auto p-4">
         <h1 class="text-3xl font-bold mb-8 text-gray-800">Gestión de Ganancias</h1>
 
-        <div class="grid md:grid-cols-2 gap-8">
-            <!-- Sección de Jornadas y Modelos -->
+        <!-- Sección de Jornadas y Modelos -->
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
             <div class="bg-white shadow-md rounded-lg p-6">
                 <h2 class="text-xl font-semibold mb-4 text-gray-700">Selección de Modelo</h2>
                 <div class="mb-4">
@@ -42,6 +42,12 @@
                                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                     </div>
+                    <div class="flex flex-col mb-4">
+                        <label for="fechaRegistro" class="text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                        <input type="date" id="fechaRegistro" v-model="fechaRegistro"
+                            :min="periodoActual.fecha_inicio - 1" :max="periodoActual.fecha_fin"
+                            class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                    </div>
                     <button type="submit"
                         class="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                         Registrar Ganancias
@@ -51,41 +57,51 @@
         </div>
 
         <!-- Sección de Cierres de Páginas -->
-        <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
             <h2 class="text-xl font-semibold mb-4 text-gray-700">Cierres de Páginas</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div v-for="cierre in cierres" :key="cierre.pagina" class="bg-gray-100 p-4 rounded-lg">
-                    <h3 class="font-semibold text-lg mb-2">{{ cierre.pagina }}</h3>
-                    <p class="text-sm text-gray-600">Próximo cierre: {{ formatFechaHora(cierre.proximo_cierre) }}</p>
-                    <p class="text-sm text-gray-600">Días restantes: {{ cierre.dias_restantes }}</p>
-                    <p class="text-sm text-gray-600">Inicio del periodo: {{ formatFechaHora(cierre.inicio_periodio) }}
-                    </p>
-                    <p class="text-sm text-gray-600">Fin del periodo: {{ formatFechaHora(cierre.fin_periodio) }}</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div v-for="cierre in cierres" :key="cierre.pagina"
+                    class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <h3 class="font-semibold text-lg mb-3 text-blue-800">{{ cierre.pagina }}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <CalendarIcon class="h-5 w-5 text-blue-600 mr-2" />
+                            <p class="text-sm text-gray-700">
+                                <span class="font-medium">Próximo cierre:</span>
+                                {{ formatFechaHora(cierre.proximo_cierre) }}
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <ClockIcon class="h-5 w-5 text-blue-600 mr-2" />
+                            <p class="text-sm text-gray-700">
+                                <span class="font-medium">Días restantes:</span>
+                                <span class="text-blue-600 font-bold">{{ cierre.dias_restantes }}</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <CalendarIcon class="h-5 w-5 text-blue-600 mr-2" />
+                            <p class="text-sm text-gray-700">
+                                <span class="font-medium">Inicio del periodo:</span>
+                                {{ formatFecha(cierre.inicio_periodo) }}
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <CalendarIcon class="h-5 w-5 text-blue-600 mr-2" />
+                            <p class="text-sm text-gray-700">
+                                <span class="font-medium">Fin del periodo:</span>
+                                {{ formatFecha(cierre.fin_periodo) }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sección de Establecer Meta -->
-        <div class="mt-8 bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Establecer Meta por Periodo</h2>
-            <form @submit.prevent="establecerMeta" class="flex items-end space-x-4">
-                <div class="flex-grow">
-                    <label for="meta" class="block text-sm font-medium text-gray-700 mb-1">Meta en Tokens</label>
-                    <input type="number" id="meta" v-model="meta" placeholder="Meta"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                </div>
-                <button type="submit"
-                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Establecer Meta
-                </button>
-            </form>
-        </div>
-
-        <!-- Sección de Ganancias Consolidadas -->
-        <div class="mt-8 bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Ganancias Consolidadas</h2>
-            <div class="flex space-x-4 mb-4">
-                <div class="flex-grow">
+        <!-- Sección de filtros mejorada -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Filtros</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
                     <label for="periodo" class="block text-sm font-medium text-gray-700 mb-1">Periodo</label>
                     <select id="periodo" v-model="selectedPeriodo" @change="fetchGananciasConsolidadas"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
@@ -98,7 +114,7 @@
                 </div>
                 <div>
                     <label for="tipoPeriodo" class="block text-sm font-medium text-gray-700 mb-1">Filtrar por</label>
-                    <select id="tipoPeriodo" v-model="tipoPeriodo" @change="fetchGananciasConsolidadas"
+                    <select id="tipoPeriodo" v-model="tipoPeriodo" @change="fetchDiasDisponibles"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="dia">Día</option>
                         <option value="semana">Semana</option>
@@ -107,28 +123,44 @@
                 </div>
                 <div v-if="tipoPeriodo === 'dia'">
                     <label for="fechaFiltro" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                    <input type="date" id="fechaFiltro" v-model="fechaFiltro" @change="fetchGananciasConsolidadas"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                    <select id="fechaFiltro" v-model="fechaFiltro" @change="fetchGananciasConsolidadas"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Seleccione una fecha</option>
+                        <option v-for="fecha in diasDisponibles" :key="fecha" :value="fecha">{{ formatFecha(fecha) }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de ganancias consolidadas mejorada -->
+        <div v-if="gananciasConsolidadas" class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Ganancias Consolidadas</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-blue-100 p-4 rounded-lg">
+                    <p class="text-lg font-semibold">Total Ganancias en Tokens</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ gananciasConsolidadas.total_ganancias }}</p>
+                </div>
+                <div class="bg-green-100 p-4 rounded-lg">
+                    <p class="text-lg font-semibold">Promedio de Tokens</p>
+                    <p class="text-3xl font-bold text-green-600">{{ promedioTokens }}</p>
                 </div>
             </div>
 
-            <div v-if="gananciasConsolidadas" class="mt-4">
-                <p class="text-lg font-semibold">Total Ganancias en Tokens: {{ gananciasConsolidadas.total_ganancias }}
-                </p>
-                <p class="text-lg font-semibold">Promedio de Tokens: {{ promedioTokens }}</p>
-                <div class="mt-4">
-                    <h3 class="text-xl font-semibold">Ganancias por Turno</h3>
-                    <div v-for="turno in ['Tarde', 'Tarde Satélite', 'Noche', 'Noche Satélite']" :key="turno">
-                        <h4 class="text-lg font-semibold mt-4">Turno {{ turno }}</h4>
-                        <div v-for="(ganancia, modelo) in modelosPorTurno(turno)" :key="modelo"
-                            class="bg-gray-100 p-4 rounded-lg mb-2">
-                            <h5 class="font-semibold">{{ modelo }}</h5>
-                            <p>
-                                <span v-for="(tokens, pagina) in ganancia.por_pagina" :key="pagina">{{ pagina }}: {{
-                                    tokens }} tokens</span>
+            <!-- Ganancias detalladas por turno -->
+            <div v-for="turno in ['Tarde', 'Tarde Satélite', 'Noche', 'Noche Satélite']" :key="turno" class="mb-6">
+                <h3 class="text-xl font-semibold mt-4 mb-2">Turno {{ turno }}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="(ganancia, modelo) in modelosPorTurno(turno)" :key="modelo"
+                        class="bg-gray-100 p-4 rounded-lg hover:shadow-lg transition-shadow duration-300">
+                        <h4 class="font-semibold text-lg mb-2">{{ modelo }}</h4>
+                        <div class="space-y-1">
+                            <p v-for="(tokens, pagina) in ganancia.por_pagina" :key="pagina" class="text-sm">
+                                <span class="font-medium">{{ pagina }}:</span> {{ tokens }} tokens
                             </p>
-                            <p>Total: {{ ganancia.total }} tokens</p>
                         </div>
+                        <p class="mt-2 text-lg font-semibold text-indigo-600">Total: {{ ganancia.total }} tokens</p>
                     </div>
                 </div>
             </div>
@@ -137,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useModelosStore } from '~/stores/modelo';
@@ -155,12 +187,23 @@ const selectedModeloNombre = ref("");
 const paginas = ref([]);
 const tokens = ref({});
 const cierres = ref([]);
-const meta = ref(0);
 const selectedPeriodo = ref("");
 const tipoPeriodo = ref("dia");
 const fechaFiltro = ref("");
+const fechaRegistro = ref("");
 const gananciasConsolidadas = ref(null);
 const periodosDisponibles = ref([]);
+const diasDisponibles = ref([]);
+
+const periodoActual = computed(() => {
+    const datosFinancieros = financieroStore.datosFinancieros;
+    return datosFinancieros && datosFinancieros.periodo_actual
+        ? {
+            fecha_inicio: datosFinancieros.periodo_actual[1],
+            fecha_fin: datosFinancieros.periodo_actual[2],
+        }
+        : { fecha_inicio: "", fecha_fin: "" };
+});
 
 const promedioTokens = computed(() => {
     if (!gananciasConsolidadas.value) return 0;
@@ -175,7 +218,21 @@ const formatFechaHora = (fecha) => {
             console.error('Fecha inválida:', fecha);
             return 'Fecha inválida';
         }
-        return format(date, "EEEE, dd 'de' MMMM 'del' yyyy HH:mm", { locale: es });
+        return format(date, "EEEE, dd 'de' MMMM 'del' yyyy HH:mm:ss", { locale: es });
+    } catch (error) {
+        console.error('Error formateando la fecha:', fecha, error);
+        return 'Fecha inválida';
+    }
+};
+
+const formatFecha = (fecha) => {
+    try {
+        const date = new Date(fecha);
+        if (isNaN(date)) {
+            console.error('Fecha inválida:', fecha);
+            return 'Fecha inválida';
+        }
+        return format(date, "dd 'de' MMMM 'del' yyyy", { locale: es });
     } catch (error) {
         console.error('Error formateando la fecha:', fecha, error);
         return 'Fecha inválida';
@@ -210,7 +267,7 @@ const registrarSupuestoGanancia = async () => {
     try {
         const supuestoGananciaData = {
             modelo_id: selectedModelo.value,
-            fecha: new Date().toISOString().split('T')[0],
+            fecha: fechaRegistro.value,
             paginas: paginas.value.map(pagina => ({
                 pagina_id: pagina.id,
                 tokens: tokens.value[pagina.id] || 0,
@@ -232,22 +289,6 @@ const fetchCierresPaginas = async () => {
         cierres.value = modelosStore.cierres;
     } catch (error) {
         $notify.error(`Error al obtener cierres de páginas: ${error.message}`);
-    }
-};
-
-const establecerMeta = async () => {
-    try {
-        const ultimoPeriodo = await modelosStore.fetchUltimoPeriodo();
-        const metaData = {
-            periodo: ultimoPeriodo.periodo,
-            meta: meta.value,
-            fecha_inicio: ultimoPeriodo.fecha_inicio,
-            fecha_fin: ultimoPeriodo.fecha_fin,
-        };
-        await modelosStore.establecerMeta(metaData);
-        $notify.success("Meta establecida correctamente");
-    } catch (error) {
-        $notify.error(`Error al establecer meta: ${error.message}`);
     }
 };
 
@@ -278,8 +319,28 @@ const fetchPeriodosDisponibles = async () => {
     }
 };
 
+const fetchDiasDisponibles = async () => {
+    try {
+        if (selectedPeriodo.value && tipoPeriodo.value === 'dia') {
+            const response = await fetch(`${useRuntimeConfig().public.apiUrl}/periodos/${selectedPeriodo.value}/dias`);
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message);
+            }
+            diasDisponibles.value = await response.json();
+            // Preselect the day before the current day for filtering
+            const today = new Date();
+            const dayBefore = new Date(today);
+            dayBefore.setDate(today.getDate() - 1);
+            fechaFiltro.value = dayBefore.toISOString().split('T')[0];
+        }
+    } catch (error) {
+        $notify.error(`Error al obtener días disponibles: ${error.message}`);
+    }
+};
+
 const modelosPorTurno = (turno) => {
-    return Object.entries(gananciasConsolidadas.value.ganancias_por_modelo || {})
+    return Object.entries(gananciasConsolidadas.value?.ganancias_por_modelo || {})
         .filter(([_, ganancia]) => ganancia.turno === turno)
         .reduce((acc, [modelo, ganancia]) => {
             acc[modelo] = ganancia;
@@ -287,14 +348,31 @@ const modelosPorTurno = (turno) => {
         }, {});
 };
 
-onMounted(() => {
+onMounted(async () => {
+    await financieroStore.fetchDatosFinancieros();
     fetchCierresPaginas();
     fetchPeriodosDisponibles();
+    fetchDiasDisponibles();
+    if (fechaRegistro.value === "") {
+        const today = new Date();
+        const dayBefore = new Date(today);
+        dayBefore.setDate(today.getDate() - 1);
+        fechaRegistro.value = dayBefore.toISOString().split('T')[0];
+    }
 });
+
+watch([selectedPeriodo, tipoPeriodo], () => {
+    if (tipoPeriodo.value === 'dia') {
+        fetchDiasDisponibles();
+    }
+});
+
+watch([selectedPeriodo, tipoPeriodo, fechaFiltro], () => {
+    fetchGananciasConsolidadas();
+});
+
 </script>
 
 <style scoped>
-.error-message {
-    color: red;
-}
+/* Estilos adicionales si son necesarios */
 </style>
