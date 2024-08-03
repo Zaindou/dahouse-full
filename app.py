@@ -751,6 +751,29 @@ def asignar_ganancias_a_periodos(supuesto, pagina_nombre, fecha):
     return supuesto
 
 
+@app.route("/periodos/<int:periodo_id>/semanas", methods=["GET"])
+def obtener_semanas_disponibles(periodo_id):
+    periodo = Periodo.query.get_or_404(periodo_id)
+    semanas_disponibles = []
+
+    fecha_actual = periodo.fecha_inicio
+    while fecha_actual <= periodo.fecha_fin:
+        inicio_semana = fecha_actual
+        fin_semana = inicio_semana + timedelta(days=6)
+        if fin_semana > periodo.fecha_fin:
+            fin_semana = periodo.fecha_fin
+        semanas_disponibles.append(
+            {
+                "inicio_semana": inicio_semana.strftime("%Y-%m-%d"),
+                "fin_semana": fin_semana.strftime("%Y-%m-%d"),
+                "descripcion": f"Semana del {inicio_semana.strftime('%d de %B del %Y')} al {fin_semana.strftime('%d de %B del %Y')}",
+            }
+        )
+        fecha_actual = fin_semana + timedelta(days=1)
+
+    return jsonify(semanas_disponibles)
+
+
 @app.route("/paginas/cierres", methods=["GET"])
 def listar_cierres_paginas():
     try:
@@ -950,11 +973,12 @@ def registrar_supuesto_ganancia(modelo_id):
         print(
             f"Registrando ganancia para {pagina_obj.nombre}: {fecha}, {inicio_periodo}, {fin_periodo}"
         )
+        tokens_to_float = float(pagina["tokens"])
         supuesto_ganancia = SupuestoGanancia(
             modelo_id=modelo.id,
             pagina_id=pagina_obj.id,
             tokens=pagina["tokens"],
-            total_cop=pagina["tokens"] * 0.05 * obtener_trm(),
+            total_cop=tokens_to_float * 0.05 * obtener_trm(),
             fecha=fecha,
             inicio_periodo=inicio_periodo,
             fin_periodo=fin_periodo,
@@ -1016,13 +1040,15 @@ def obtener_ganancias_consolidadas():
             )
         ).all()
     elif tipo_periodo == "semana":
+        inicio_semana = datetime.strptime(request.args.get("inicio_semana"), "%Y-%m-%d")
+        fin_semana = datetime.strptime(request.args.get("fin_semana"), "%Y-%m-%d")
         supuestos = SupuestoGanancia.query.filter(
             (
-                (SupuestoGanancia.fecha >= periodo.fecha_inicio)
-                & (SupuestoGanancia.fecha < periodo.fecha_inicio + timedelta(days=7))
+                (SupuestoGanancia.fecha >= inicio_semana)
+                & (SupuestoGanancia.fecha <= fin_semana)
             )
             | (
-                (SupuestoGanancia.fecha == periodo.fecha_inicio + timedelta(days=7))
+                (SupuestoGanancia.fecha == fin_semana + timedelta(days=1))
                 & (
                     SupuestoGanancia.pagina.has(
                         Pagina.nombre.in_(["Chaturbate", "CherryTV"])
@@ -1031,7 +1057,6 @@ def obtener_ganancias_consolidadas():
             )
         ).all()
     else:  # mes
-        # Obtener todos los periodos que pertenecen al mismo mes y año del periodo especificado
         year = periodo.fecha_inicio.year
         month = periodo.fecha_inicio.month
 

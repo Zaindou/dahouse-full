@@ -26,7 +26,7 @@ class Pagina(db.Model):
 
 class GananciaPorPagina(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tokens = db.Column(db.Integer, nullable=False)
+    tokens = db.Column(db.Float, nullable=False)
     total_cop = db.Column(db.Float, nullable=False)
     ganancia_estudio_cop = db.Column(db.Float, nullable=False, default=0)
     ganancia_id = db.Column(db.Integer, db.ForeignKey("ganancia.id"), nullable=False)

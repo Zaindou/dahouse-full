@@ -37,9 +37,10 @@
                         <div v-for="pagina in paginas" :key="pagina.id" class="flex flex-col">
                             <label :for="`tokens-${pagina.id}`" class="text-sm font-medium text-gray-700 mb-1">{{
                                 pagina.nombre }}</label>
-                            <input type="number" :id="`tokens-${pagina.id}`" v-model="tokens[pagina.id]"
+                            <input type="text" :id="`tokens-${pagina.id}`" v-model="tokens[pagina.id]"
                                 placeholder="Tokens generados"
                                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+
                         </div>
                     </div>
                     <div class="flex flex-col mb-4">
@@ -98,6 +99,7 @@
         </div>
 
         <!-- Sección de filtros mejorada -->
+
         <div class="bg-white shadow-md rounded-lg p-6 mb-8">
             <h2 class="text-xl font-semibold mb-4 text-gray-700">Filtros</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -127,6 +129,16 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">Seleccione una fecha</option>
                         <option v-for="fecha in diasDisponibles" :key="fecha" :value="fecha">{{ formatFecha(fecha) }}
+                        </option>
+                    </select>
+                </div>
+                <div v-if="tipoPeriodo === 'semana'">
+                    <label for="semanaFiltro" class="block text-sm font-medium text-gray-700 mb-1">Semana</label>
+                    <select id="semanaFiltro" v-model="semanaFiltro" @change="fetchGananciasConsolidadas"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Seleccione una semana</option>
+                        <option v-for="semana in semanasDisponibles" :key="semana.inicio_semana" :value="semana">
+                            {{ semana.descripcion }}
                         </option>
                     </select>
                 </div>
@@ -190,10 +202,12 @@ const cierres = ref([]);
 const selectedPeriodo = ref("");
 const tipoPeriodo = ref("dia");
 const fechaFiltro = ref("");
+const semanaFiltro = ref("");
 const fechaRegistro = ref("");
 const gananciasConsolidadas = ref(null);
 const periodosDisponibles = ref([]);
 const diasDisponibles = ref([]);
+const semanasDisponibles = ref([]);
 
 const periodoActual = computed(() => {
     const datosFinancieros = financieroStore.datosFinancieros;
@@ -299,6 +313,9 @@ const fetchGananciasConsolidadas = async () => {
             if (tipoPeriodo.value === 'dia') {
                 url += `&fecha=${fechaFiltro.value}`;
             }
+            if (tipoPeriodo.value === 'semana') {
+                url += `&inicio_semana=${semanaFiltro.value.inicio_semana}&fin_semana=${semanaFiltro.value.fin_semana}`;
+            }
             const response = await fetch(url);
             if (!response.ok) {
                 const message = await response.text();
@@ -334,6 +351,14 @@ const fetchDiasDisponibles = async () => {
             dayBefore.setDate(today.getDate() - 1);
             fechaFiltro.value = dayBefore.toISOString().split('T')[0];
         }
+        if (selectedPeriodo.value && tipoPeriodo.value === 'semana') {
+            const response = await fetch(`${useRuntimeConfig().public.apiUrl}/periodos/${selectedPeriodo.value}/semanas`);
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message);
+            }
+            semanasDisponibles.value = await response.json();
+        }
     } catch (error) {
         $notify.error(`Error al obtener días disponibles: ${error.message}`);
     }
@@ -362,12 +387,12 @@ onMounted(async () => {
 });
 
 watch([selectedPeriodo, tipoPeriodo], () => {
-    if (tipoPeriodo.value === 'dia') {
+    if (tipoPeriodo.value === 'dia' || tipoPeriodo.value === 'semana') {
         fetchDiasDisponibles();
     }
 });
 
-watch([selectedPeriodo, tipoPeriodo, fechaFiltro], () => {
+watch([selectedPeriodo, tipoPeriodo, fechaFiltro, semanaFiltro], () => {
     fetchGananciasConsolidadas();
 });
 
