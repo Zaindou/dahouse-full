@@ -83,6 +83,10 @@ def obtener_periodo_actual():
     fecha_inicio = fecha_inicio.strftime("%Y-%m-%d")
     fecha_fin = fecha_fin.strftime("%Y-%m-%d")
 
+    nombre_periodo = "2024-AUG-2"
+    fecha_inicio = "2024-08-20"
+    fecha_fin = "2024-09-03"
+
     return nombre_periodo, fecha_inicio, fecha_fin
 
 
@@ -416,12 +420,12 @@ def liquidar_ganancias():
     # Determina el porcentaje según la cantidad total de tokens y la exclusividad
     if modelo.exclusividad:
         if total_tokens <= 44998:  # 29999 * 1.5
-            porcentaje = 0.60
-        elif total_tokens <= 60000:  # 40000 * 1.5
-            porcentaje = 0.60
+            porcentaje = 0.70
+        elif total_tokens <= 70000:  # 40000 * 1.5
+            porcentaje = 0.70
         else:
             porcentaje = min(
-                0.60 + (total_tokens - 60000) // 6000 * 0.01, 0.70
+                0.70 + (total_tokens - 60000) // 6000 * 0.01, 0.70
             )  # 4000 * 1.5
     else:
         if total_tokens < 30000:  # 20000 * 1.5
@@ -444,7 +448,7 @@ def liquidar_ganancias():
 
     # Define las comisiones por retiro para cada página
     comisiones_retiro = {
-        "Stripchat": 50 * trm,
+        "Streamate": 40 * trm,
         # Agrega las comisiones de otras páginas aquí
     }
 
