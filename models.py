@@ -85,7 +85,7 @@ class Modelo(db.Model):
     supuestos_ganancias = db.relationship(
         "SupuestoGanancia", back_populates="modelo", lazy=True
     )
-    password = db.Column(db.String(100), nullable=True)
+    password = db.Column(db.String(255), nullable=True)
 
 
 class SupuestoGanancia(db.Model):

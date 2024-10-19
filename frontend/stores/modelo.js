@@ -18,6 +18,7 @@ export const useModelosStore = defineStore("modelos", {
         const response = await fetch(
           `${useRuntimeConfig().public.apiUrl}/modelos`
         );
+        console.log(response);
         if (!response.ok) {
           const message = await response.text();
           throw new Error(message);

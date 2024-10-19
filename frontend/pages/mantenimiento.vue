@@ -1,7 +1,7 @@
 <template>
     <NuxtLayout>
         <div class="container mx-auto">
-            <Modelo />
+            <mantenmiento />
         </div>
     </NuxtLayout>
 
@@ -12,5 +12,5 @@
 useHead({
     titleTemplate: '%s - Administración de usuarios',
 })
-import Modelo from '~/components/Modelo.vue'
+import Ganancia from '~/components/Mantenmiento.vue'
 </script>

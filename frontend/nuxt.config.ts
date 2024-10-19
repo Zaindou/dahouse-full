@@ -8,7 +8,8 @@ export default defineNuxtConfig({
   },
 
   plugins: [
-    '~/plugins/notyf.client.js'
+    '~/plugins/notyf.client.js',
+    '~/plugins/auth.js',
   ],
 
   runtimeConfig: {

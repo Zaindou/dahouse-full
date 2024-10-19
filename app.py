@@ -1,4 +1,13 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
+
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from sqlalchemy import func, extract, or_
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -32,6 +41,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 app.config.from_object(Config)
 db.init_app(app)
 migrate = Migrate(app, db)
+jwt = JWTManager(app)
 
 
 def inicializar_paginas():
@@ -83,9 +93,9 @@ def obtener_periodo_actual():
     fecha_inicio = fecha_inicio.strftime("%Y-%m-%d")
     fecha_fin = fecha_fin.strftime("%Y-%m-%d")
 
-    nombre_periodo = "2024-AUG-2"
-    fecha_inicio = "2024-08-20"
-    fecha_fin = "2024-09-03"
+    nombre_periodo = "2024-OCT-1"
+    fecha_inicio = "2024-10-01"
+    fecha_fin = "2024-10-15"
 
     return nombre_periodo, fecha_inicio, fecha_fin
 
@@ -120,6 +130,62 @@ def index():
     return "DAHOUSE API 0.1 BETA DEPLOYED by @dahouse 2024"
 
 
+@app.route("/login", methods=["POST"])
+def login():
+    datos = request.json
+    modelo = Modelo.query.filter_by(nombre_usuario=datos["nombre_usuario"]).first()
+    rol = Rol.query.filter_by(id=modelo.rol_id).first()
+
+    if modelo not in Modelo.query.all():
+        return jsonify({"mensaje": "Usario no encontrado."}), 404
+
+    if not modelo or not check_password_hash(modelo.password, datos["password"]):
+        return jsonify({"mensaje": "Credenciales incorrectas"}), 401
+
+    # Si la contraseña es correcta, generar y devolver el token
+    access_token = create_access_token(identity={"id": modelo.id, "rol": rol.nombre})
+    return jsonify(access_token=access_token, port="5900"), 200
+
+
+@app.route("/user", methods=["GET"])
+@jwt_required()
+def get_user():
+    current_user = get_jwt_identity()  # Obtiene el ID y el rol del usuario del token
+    modelo = Modelo.query.get(current_user["id"])
+
+    if modelo:
+        return (
+            jsonify(
+                {
+                    "id": modelo.id,
+                    "tipo_documento": modelo.tipo_documento,
+                    "numero_documento": modelo.numero_documento,
+                    "nombres": modelo.nombres,
+                    "apellidos": modelo.apellidos,
+                    "correo_electronico": modelo.correo_electronico,
+                    "nombre_usuario": modelo.nombre_usuario,
+                    "rol": modelo.rol.nombre,  # Asume que tienes una relación con la tabla de roles
+                    "banco": modelo.banco,
+                    "numero_cuenta": modelo.numero_cuenta,
+                    "habilitado": modelo.habilitado,
+                    "exclusividad": modelo.exclusividad,
+                    "jornada": modelo.jornada,
+                    "fecha_registro": modelo.fecha_registro,
+                }
+            ),
+            200,
+        )
+    return jsonify({"mensaje": "Usuario no encontrado"}), 404
+
+
+@app.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+    access_token = create_access_token(identity=current_user)
+    return jsonify(access_token=access_token)
+
+
 @app.route("/financiero", methods=["GET"])
 def financiero():
     trm_actual = obtener_trm() + float(os.environ.get("TRM_ADICIONAL"))
@@ -144,6 +210,8 @@ def financiero():
 @app.route("/modelos", methods=["POST"])
 def crear_modelo():
     datos = request.json
+    hashed_password = generate_password_hash(datos["password"], method="pbkdf2:sha256")
+
     nuevo_modelo = Modelo(
         tipo_documento=datos["tipo_documento"],
         numero_documento=datos["numero_documento"],
@@ -155,6 +223,7 @@ def crear_modelo():
         rol_id=datos["rol_id"],
         banco=datos["banco"],
         numero_cuenta=datos["numero_cuenta"],
+        password=hashed_password,
         habilitado=True,
         fecha_registro=datetime.now(),
         exclusividad=False,
@@ -266,6 +335,9 @@ def obtener_modelos():
 def actualizar_modelo(modelo_id):
     datos = request.json
     modelo = Modelo.query.get_or_404(modelo_id)
+    hashed_password = generate_password_hash(
+        datos.get("password", modelo.password), method="pbkdf2:sha256"
+    )
 
     modelo.nombres = datos.get("nombres", modelo.nombres)
     modelo.apellidos = datos.get("apellidos", modelo.apellidos)
@@ -281,6 +353,8 @@ def actualizar_modelo(modelo_id):
     modelo.fecha_nacimiento = datetime.strptime(
         datos.get("fecha_nacimiento", modelo.fecha_nacimiento), "%Y-%m-%d"
     )
+    modelo.password = hashed_password
+    modelo.exclusividad = datos.get("exclusividad", modelo.exclusividad)
 
     rol_id = datos.get("rol_id")
     if rol_id:
@@ -428,13 +502,13 @@ def liquidar_ganancias():
                 0.70 + (total_tokens - 60000) // 6000 * 0.01, 0.70
             )  # 4000 * 1.5
     else:
-        if total_tokens < 30000:  # 20000 * 1.5
+        if total_tokens < 34000:  # 20000 * 1.7
             porcentaje = 0.55
-        elif total_tokens < 39000:  # 26000 * 1.5
+        elif total_tokens < 44200:  # 26000 * 1.7
             porcentaje = 0.55
-        elif total_tokens < 46500:  # 31000 * 1.5
+        elif total_tokens < 52700:  # 31000 * 1.7
             porcentaje = 0.55
-        elif total_tokens < 54000:  # 36000 * 1.5
+        elif total_tokens < 61200:  # 36000 * 1.7
             porcentaje = 0.55
         else:
             porcentaje = min(
@@ -448,7 +522,7 @@ def liquidar_ganancias():
 
     # Define las comisiones por retiro para cada página
     comisiones_retiro = {
-        "Streamate": 40 * trm,
+        "Stripchat": 60 * trm,
         # Agrega las comisiones de otras páginas aquí
     }
 

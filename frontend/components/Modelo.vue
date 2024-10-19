@@ -93,7 +93,15 @@
                             <input id="numero_cuenta" type="text" v-model="modeloForm.numero_cuenta" required
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:border-blue-300">
                         </div>
+                        <div class="form-group">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Contrasena</label>
+                            <input type="password" v-model="modeloForm.password"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:border-blue-300">
+                            <p class="text-sm text-gray-600 mt-2">Deje este campo en blanco si no desea cambiar la
+                                contraseña.</p>
+                        </div>
                     </div>
+
 
                     <div class="mb-6">
                         <label class="block mb-2 text-sm font-medium text-gray-700">Páginas habilitadas</label>
@@ -109,6 +117,8 @@
                             </div>
                         </div>
                     </div>
+
+
 
                     <div class="flex flex-col md:flex-row items-center justify-between">
                         <button type="submit"
