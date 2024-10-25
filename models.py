@@ -86,6 +86,10 @@ class Modelo(db.Model):
         "SupuestoGanancia", back_populates="modelo", lazy=True
     )
     password = db.Column(db.String(255), nullable=True)
+    vpn_username = db.Column(db.String(50), nullable=True)
+    vpn_password = db.Column(db.String(50), nullable=True)
+    vpn_ip = db.Column(db.String(50), nullable=True)
+    vpn_preshared_key = db.Column(db.String(50), nullable=True)
 
 
 class SupuestoGanancia(db.Model):

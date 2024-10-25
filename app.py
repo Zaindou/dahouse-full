@@ -171,6 +171,11 @@ def get_user():
                     "exclusividad": modelo.exclusividad,
                     "jornada": modelo.jornada,
                     "fecha_registro": modelo.fecha_registro,
+                    "vpn_data": {
+                        "username": modelo.vpn_username,
+                        "password": modelo.vpn_password,
+                        "preshared_key": modelo.vpn_preshared_key,
+                    },
                 }
             ),
             200,
