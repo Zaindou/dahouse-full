@@ -813,7 +813,7 @@ def pagar_ganancia(ganancia_id):
     # Realiza una solicitud interna a la ruta `obtener_ganancias_por_usuario_y_periodo`
     nombre_usuario = modelo.nombre_usuario
     nombre_periodo = ganancia.periodo.nombre
-    url = f"http://127.0.0.1:5000/ganancias/usuario/{nombre_usuario}/periodo/{nombre_periodo}"
+    url = f"https://api.dahouse.co/ganancias/usuario/{nombre_usuario}/periodo/{nombre_periodo}"
 
     response = requests.get(url)
 
