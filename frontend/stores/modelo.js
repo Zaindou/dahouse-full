@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useRuntimeConfig } from "#imports";
 
-export const useModelosStore = defineStore("modelos", {
+export const useModelosStore = defineStore("modelo", {
   state: () => ({
     modelos: [],
     error: null,
@@ -66,6 +66,43 @@ export const useModelosStore = defineStore("modelos", {
       } catch (error) {
         this.error = error.message;
         this.gananciaInfo = null;
+      }
+    },
+    async fetchPagarGanancia(idGanancia) {
+      try {
+        const config = useRuntimeConfig();
+        const response = await fetch(
+          `${config.public.apiUrl}/ganancias/${idGanancia}/pagar`
+        );
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(error.message);
+        throw error; // Lanza el error para que se maneje en `pagarGanancia`
+      }
+    },
+    async eliminarLiquidacion(idGanancia) {
+      try {
+        const config = useRuntimeConfig();
+        const response = await fetch(
+          `${config.public.apiUrl}/ganancias/eliminar`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ganancia_id: idGanancia }),
+          }
+        );
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(error.message);
+        throw error; // Lanza el error para que se maneje en `eliminarLiquidacion`
       }
     },
     async fetchModelosPorJornada(jornada) {

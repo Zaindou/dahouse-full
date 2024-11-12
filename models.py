@@ -68,6 +68,7 @@ class Modelo(db.Model):
     apellidos = db.Column(db.String(100), nullable=False)
     fecha_nacimiento = db.Column(db.Date, nullable=False)
     correo_electronico = db.Column(db.String(100), unique=True, nullable=False)
+    numero_celular = db.Column(db.String(50), nullable=True)
     nombre_usuario = db.Column(db.String(50), unique=True, nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey("rol.id"), nullable=False)
     banco = db.Column(db.String(50))
@@ -90,6 +91,7 @@ class Modelo(db.Model):
     vpn_password = db.Column(db.String(50), nullable=True)
     vpn_ip = db.Column(db.String(50), nullable=True)
     vpn_preshared_key = db.Column(db.String(50), nullable=True)
+    porcentaje_base = db.Column(db.Float, nullable=True)
 
 
 class SupuestoGanancia(db.Model):

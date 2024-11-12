@@ -29,6 +29,18 @@ import pytz
 from config import Config
 from dotenv import load_dotenv
 
+from flask import render_template
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+from datetime import datetime
+from flask_mail import Mail, Message
+
+from pdf_nomina import generar_pdf_desprendible
+from sms_send import send_sms
+
 import requests
 import environ
 import os
@@ -42,6 +54,63 @@ app.config.from_object(Config)
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
+mail = Mail(app)
+
+
+@app.template_filter("currency")
+def currency_format(value, currency_symbol="$", decimals=0):
+    """
+    Formato de moneda con manejo de múltiples casos.
+
+    Args:
+        value: Valor a formatear (str, int, float o None)
+        currency_symbol: Símbolo de moneda (default: "$")
+        decimals: Número de decimales a mostrar (default: 0)
+
+    Returns:
+        str: Valor formateado como moneda
+    """
+    try:
+        # Manejar casos de valor None o vacío
+        if value is None or value == "":
+            return "-"
+
+        # Convertir a float y manejar strings que puedan contener comas
+        if isinstance(value, str):
+            value = float(value.replace(",", ""))
+        else:
+            value = float(value)
+
+        # Manejar valores negativos
+        is_negative = value < 0
+        value = abs(value)
+
+        # Formatear el número con los decimales especificados
+        if decimals > 0:
+            formatted = f"{value:,.{decimals}f}"
+        else:
+            formatted = f"{value:,.0f}"
+
+        # Reemplazar punto por coma para separador decimal
+        # y coma por punto para separador de miles
+        formatted = formatted.replace(",", "temp")
+        formatted = formatted.replace(".", ",")
+        formatted = formatted.replace("temp", ".")
+
+        # Agregar símbolo de moneda y signo negativo si corresponde
+        result = f"{currency_symbol}{formatted}"
+        if is_negative:
+            result = f"-{result}"
+
+        return result
+
+    except (ValueError, TypeError) as e:
+        # Log del error para debugging
+        print(f"Error formateando valor {value}: {str(e)}")
+        return str(value)
+
+
+app.jinja_env.filters["currency"] = currency_format
 
 
 def inicializar_paginas():
@@ -93,9 +162,9 @@ def obtener_periodo_actual():
     fecha_inicio = fecha_inicio.strftime("%Y-%m-%d")
     fecha_fin = fecha_fin.strftime("%Y-%m-%d")
 
-    nombre_periodo = "2024-OCT-1"
-    fecha_inicio = "2024-10-01"
-    fecha_fin = "2024-10-15"
+    nombre_periodo = "2024-NOV-1"
+    fecha_inicio = "2024-10-29"
+    fecha_fin = "2024-11-12"
 
     return nombre_periodo, fecha_inicio, fecha_fin
 
@@ -464,11 +533,13 @@ def liquidar_ganancias():
 
         else:
             deducible.estado = "Pagado"
+            deducible.valor_restante = 0
 
     db.session.commit()
 
     total_tokens = 0  # Total de tokens generados por la modelo
     ganancias_por_pagina = []  # Lista para almacenar las ganancias por página
+
     for pagina in datos["paginas"]:
         pagina_nombre = pagina["nombre"]
         valor = pagina["valor"]
@@ -498,27 +569,33 @@ def liquidar_ganancias():
 
     # Determina el porcentaje según la cantidad total de tokens y la exclusividad
     if modelo.exclusividad:
-        if total_tokens <= 44998:  # 29999 * 1.5
+        if modelo.porcentaje_base == 0.7:
             porcentaje = 0.70
-        elif total_tokens <= 70000:  # 40000 * 1.5
-            porcentaje = 0.70
-        else:
-            porcentaje = min(
-                0.70 + (total_tokens - 60000) // 6000 * 0.01, 0.70
-            )  # 4000 * 1.5
+        elif modelo.porcentaje_base == 0.55:
+            if total_tokens <= 44200:
+                porcentaje = 0.55
+            elif total_tokens <= 72000:
+                porcentaje = max(
+                    0.60, modelo.porcentaje_base
+                )  # No puede bajar del porcentaje base
+            else:
+                porcentaje = min(0.70 + (total_tokens - 72000) // 5000 * 0.01, 0.75)
+        else:  # Para los que parten de 60%
+            if total_tokens <= 72000:
+                porcentaje = 0.60
+            else:
+                porcentaje = min(0.70 + (total_tokens - 72000) // 5000 * 0.01, 0.75)
     else:
-        if total_tokens < 34000:  # 20000 * 1.7
+        if total_tokens >= 61200:  # Mayor o igual a 61200
+            porcentaje = min(0.70 + (total_tokens - 61200) // 6000 * 0.01, 0.75)
+        elif total_tokens >= 57000:  # 31.000 x 1.85
+            porcentaje = 0.70
+        elif total_tokens >= 51000:  # Mayor o igual a 44200
+            porcentaje = 0.60
+        elif total_tokens >= 26000:  # Mayor o igual a 34000
             porcentaje = 0.55
-        elif total_tokens < 44200:  # 26000 * 1.7
-            porcentaje = 0.55
-        elif total_tokens < 52700:  # 31000 * 1.7
-            porcentaje = 0.55
-        elif total_tokens < 61200:  # 36000 * 1.7
-            porcentaje = 0.55
-        else:
-            porcentaje = min(
-                0.65 + (total_tokens - 54000) // 6000 * 0.01, 0.70
-            )  # 4000 * 1.5
+        else:  # Menor a 34000
+            porcentaje = 0.50
 
     porcentaje_estudio = 1 - porcentaje  # Porcentaje de ganancia del estudio
 
@@ -527,7 +604,7 @@ def liquidar_ganancias():
 
     # Define las comisiones por retiro para cada página
     comisiones_retiro = {
-        "Stripchat": 60 * trm,
+        "Chaturbate": 60 * trm,
         # Agrega las comisiones de otras páginas aquí
     }
 
@@ -671,6 +748,7 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
             "porcentaje": ganancia.porcentaje,
             "restante_deducibles": restante_deducibles,
             "total_deducibles": total_deducible,
+            "total_cop": sum(d["total_cop"] for d in detalles_paginas),
         }
     )
 
@@ -721,12 +799,113 @@ def obtener_paginas():
     return jsonify(lista_paginas)
 
 
-@app.route("/ganancias/<int:ganancia_id>/pagar", methods=["POST"])
+@app.route("/ganancias/<int:ganancia_id>/pagar", methods=["GET"])
 def pagar_ganancia(ganancia_id):
-    ganancia = Ganancia.query.get_or_404(ganancia_id)
+    ganancia = Ganancia.query.get_or_404(ganancia_id, "Ganancia no encontrada.")
+    modelo = ganancia.modelo
+    email_modelo = modelo.correo_electronico
+    fecha_pago = datetime.now().strftime("%d/%m/%Y")
+
+    # Actualiza el estado de ganancia
     ganancia.estado = "Pagado"
     db.session.commit()
-    return jsonify({"mensaje": "Ganancia pagada con éxito"})
+
+    # Realiza una solicitud interna a la ruta `obtener_ganancias_por_usuario_y_periodo`
+    nombre_usuario = modelo.nombre_usuario
+    nombre_periodo = ganancia.periodo.nombre
+    url = f"http://127.0.0.1:5000/ganancias/usuario/{nombre_usuario}/periodo/{nombre_periodo}"
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return jsonify({"mensaje": "Error al obtener información de ganancias"}), 500
+
+    datos = response.json()
+
+    # Genera el contenido para el correo y el PDF usando los datos obtenidos
+    trm_liquidacion = datos.get("trm")
+    porcentaje_ganancia = datos.get("porcentaje") * 100
+    detalles_ganancias = [
+        {
+            "nombre": detalle["nombre_pagina"],
+            "tokens": f"{detalle['tokens']}",
+            # "valor_usd": f"${float(detalle['tokens']) * 0.05:.2f}",
+            "valor_cop": f"${round(float(detalle['total_cop']))}",
+        }
+        for detalle in datos.get("detalles_paginas", [])
+    ]
+
+    # Calcula los totales
+    total_tokens = sum(
+        float(detalle["tokens"]) for detalle in datos["detalles_paginas"]
+    )
+    total_usd = total_tokens * 0.05
+    total_cop = datos.get("total_cop")
+    gran_total_cop = datos.get("gran_total_cop")
+    deducibles_activos = [
+        d for d in datos.get("detalles_deducibles", []) if d["estado"] == "Activo"
+    ]
+    total_deducibles = datos.get("total_deducibles")
+
+    # Renderiza el HTML del correo
+    correo_html = render_template(
+        "desprendible_email.html",
+        modelo=modelo,
+        trm_liquidacion=trm_liquidacion,
+        porcentaje_ganancia=porcentaje_ganancia,
+        detalles_ganancias=detalles_ganancias,
+        total_tokens=total_tokens,
+        total_usd=total_usd,
+        total_cop=total_cop,
+        gran_total_cop=gran_total_cop,
+        total_deducibles=total_deducibles,
+        detalles_deducibles=deducibles_activos,
+        id_pago=ganancia.id,
+    )
+
+    # Genera el PDF usando la función auxiliar `generar_pdf_desprendible`
+    pdf_attachment = generar_pdf_desprendible(
+        modelo, ganancia, gran_total_cop, fecha_pago
+    )
+
+    # Enviar el correo con el PDF adjunto
+    msg = Message(
+        f"Resumen de mis ganancias - {nombre_periodo}",
+        sender="Nomina Dahouse<notificaciones@dahouse.co>",
+        recipients=[email_modelo, "comprobantesnomina@dahouse.co"],
+        html=correo_html,
+    )
+
+    msg.attach(f"desprendible_{nombre_periodo}.pdf", "application/pdf", pdf_attachment)
+
+    send_sms(
+        modelo.numero_celular,
+        f"¡Tu pago llegará pronto, {modelo.nombres}!\n\nRevisa tu desprendible de pago para el periodo {nombre_periodo} en tu correo: {email_modelo}.\n\nSi tienes dudas, contáctanos al +573182879509.\n\nDahouse Studio.",
+    )
+
+    mail.send(msg)
+
+    return jsonify({"mensaje": "Ganancia pagada y correo enviado con éxito"})
+
+
+@app.route("/ganancias/eliminar", methods=["DELETE"])
+def eliminar_ganancia():
+    datos = request.json
+    ganancia_id = datos["ganancia_id"]
+    ganancia = Ganancia.query.get(ganancia_id)
+    ganancia_por_pagina = GananciaPorPagina.query.filter_by(
+        ganancia_id=ganancia_id
+    ).all()
+    if not ganancia:
+        return jsonify({"mensaje": "Ganancia no encontrada"}), 404
+
+    for gpp in ganancia_por_pagina:
+        db.session.delete(gpp)
+
+    db.session.delete(ganancia)
+    db.session.commit()
+
+    return jsonify({"mensaje": "Ganancia eliminada con éxito"})
 
 
 ##NUEVO MODULO GANANCIAS

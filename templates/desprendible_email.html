@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    "
+  >
+    <table
+      role="presentation"
+      style="
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      "
+    >
+      <tr>
+        <td align="center" style="padding: 20px">
+          <!-- Container -->
+          <table
+            role="presentation"
+            style="
+              width: 100%;
+              max-width: 600px;
+              border-collapse: collapse;
+              background-color: #ffffff;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <!-- Header with dark background -->
+            <tr>
+              <td
+                align="center"
+                style="
+                  padding: 30px 20px;
+                  background-color: #1a1a1a;
+                  border-radius: 8px 8px 0 0;
+                "
+              >
+                <img
+                  src="https://i.ibb.co/pyBdg1N/Dahouse-PNG-V9.png"
+                  alt="Logo"
+                  style="max-width: 200px; height: auto"
+                />
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 0 30px">
+                <h2 style="color: #333333; margin-bottom: 20px">
+                  Saludos {{ modelo.nombres }},
+                </h2>
+                <p
+                  style="color: #666666; line-height: 1.6; margin-bottom: 20px"
+                >
+                  Esperamos que te encuentres excelente. Nos complace informarte
+                  que tu desprendible de nómina ya está disponible y contiene el
+                  detalle de tus ingresos por página de transmisión.
+                </p>
+
+                <!-- Info Box -->
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    background-color: #f8f9fa;
+                    border-radius: 4px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 15px">
+                      <p style="margin: 5px 0; color: #666666">
+                        <strong>ID de pago:</strong>
+                        <span style="float: right">DH-{{ id_pago}}</span>
+                      </p>
+                      <p style="margin: 5px 0; color: #666666">
+                        <strong>TRM utilizada:</strong>
+                        <span style="float: right"
+                          >{{ trm_liquidacion | int | currency }}</span
+                        >
+                      </p>
+                      <p style="margin: 5px 0; color: #666666">
+                        <strong>Porcentaje de ganancia:</strong>
+                        <span style="float: right"
+                          >{{ porcentaje_ganancia }}%</span
+                        >
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Earnings Table -->
+                <h3 style="color: #333333; margin: 25px 0 15px">
+                  Ingresos por Página
+                </h3>
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <tr style="background-color: #f8f9fa">
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Nombre de página
+                    </th>
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Tokens
+                    </th>
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Valor COP ({{ porcentaje_ganancia }}%)
+                    </th>
+                  </tr>
+                  {% for detalle in detalles_ganancias %}
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ detalle.nombre }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ detalle.tokens | int }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ detalle.valor_cop }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  <tr style="background-color: #f8f9fa">
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        font-weight: bold;
+                        color: #333333;
+                      "
+                    >
+                      Total
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        font-weight: bold;
+                        color: #333333;
+                      "
+                    >
+                      {{ total_tokens | int }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        font-weight: bold;
+                        color: #333333;
+                      "
+                    >
+                      ${{ total_cop | int }}
+                    </td>
+                  </tr>
+                </table>
+
+                {% if detalles_deducibles %}
+                <!-- Deductions Table -->
+                <h3 style="color: #333333; margin: 25px 0 15px">Deducciones</h3>
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <tr style="background-color: #f8f9fa">
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Concepto
+                    </th>
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Valor Total
+                    </th>
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Valor Quincenal
+                    </th>
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Valor Pagado
+                    </th>
+                    <th
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        text-align: left;
+                        color: #333333;
+                      "
+                    >
+                      Valor Restante
+                    </th>
+                  </tr>
+                  {% for deducible in detalles_deducibles %}
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ deducible.concepto }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ deducible.valor_total | int | currency }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ deducible.valor_quincenal | int | currency }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ deducible.valor_pagado | int | currency }}
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        color: #666666;
+                      "
+                    >
+                      {{ deducible.valor_restante | int | currency }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  <tr style="background-color: #f8f9fa">
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        font-weight: bold;
+                        color: #333333;
+                      "
+                    >
+                      Total pagado
+                    </td>
+                    <td
+                      style="
+                        padding: 12px;
+                        border: 1px solid #dee2e6;
+                        font-weight: bold;
+                        color: #333333;
+                      "
+                    >
+                      {{ total_deducibles | int | currency }}
+                    </td>
+                  </tr>
+                </table>
+                {% endif %}
+
+                <!-- Total Amount -->
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    background-color: #2563eb;
+                    border-radius: 4px;
+                    margin: 30px 0;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 20px; text-align: center; color: white">
+                      <p style="margin: 0; font-size: 18px; font-weight: bold">
+                        Tu pago total{{ " después de deducciones" if
+                        detalles_deducibles else "" }} es de: {{ gran_total_cop
+                        | int | currency }} COP.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="color: #666666; line-height: 1.6; margin-bottom: 20px"
+                >
+                  Por favor revisa tu desprendible para asegurarte de que todos
+                  los detalles son correctos y completos.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                style="
+                  padding: 30px;
+                  text-align: center;
+                  border-top: 1px solid #dee2e6;
+                "
+              >
+                <p style="color: #666666; margin-bottom: 10px">
+                  Gracias por tu gran trabajo y dedicación.❤️
+                </p>
+                <p style="color: #333333; font-weight: bold; margin: 0">
+                  Dahouse Studio
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

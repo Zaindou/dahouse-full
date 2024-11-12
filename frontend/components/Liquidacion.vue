@@ -182,8 +182,20 @@
 
                 <div class="mt-6 flex justify-end">
                     <button @click="cerrarGananciaSeleccionada"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-1 rounded">
                         Cerrar
+                    </button>
+                    <button v-if="gananciaSeleccionada.estado === 'Pagado'" @click="pagarGanancia"
+                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                        Re-enviar pago
+                    </button>
+                    <button v-else @click="pagarGanancia"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                        Realizar pago
+                    </button>
+                    <button @click="eliminarLiquidacion"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Deshacer pago
                     </button>
                 </div>
             </div>
@@ -225,6 +237,7 @@
 
 
 <script setup>
+import { is } from 'date-fns/locale';
 import { ref, computed } from 'vue';
 import { useModelosStore } from '~/stores/modelo';
 
@@ -268,6 +281,8 @@ const nextPage = () => {
 const cerrarGananciaSeleccionada = () => {
     gananciaSeleccionada.value = null;
 };
+
+
 
 const cerrarLiquidacion = () => {
     modeloSeleccionado.value = null;
@@ -344,14 +359,45 @@ const liquidarGanancias = async () => {
 
         const response = await modelosStore.liquidarGanancias(datosParaEnviar);
         cerrarLiquidacion();
-        isLoading.value = false;
         modelos.value = await modelosStore.fetchModelos();
+        isLoading.value = false;
         Swal.fire('Éxito', response.mensaje, 'success');
     } catch (error) {
         Swal.fire('Error', error.response.data.error, 'error');
         console.error(error);
     }
 };
+
+const pagarGanancia = async () => {
+    try {
+        isLoading.value = true;
+        const response = await modelosStore.fetchPagarGanancia(gananciaSeleccionada.value.id);
+        console.log(response);
+        Swal.fire('Éxito', 'Ganancia pagada correctamente', 'success');
+        cerrarGananciaSeleccionada();
+        isLoading.value = false;
+        modelos.value = await modelosStore.fetchModelos();
+    } catch (error) {
+        console.error("Error al pagar ganancia:", error);
+        Swal.fire('Error', 'Hubo un problema al pagar la ganancia', 'error');
+    }
+};
+
+const eliminarLiquidacion = async () => {
+    try {
+        isLoading.value = true;
+        const response = await modelosStore.eliminarLiquidacion(gananciaSeleccionada.value.id);
+        console.log(response);
+        Swal.fire('Éxito', 'Liquidación eliminada correctamente', 'success');
+        isLoading.value = false;
+        cerrarGananciaSeleccionada();
+        modelos.value = await modelosStore.fetchModelos();
+    } catch (error) {
+        console.error("Error al eliminar liquidación:", error);
+        Swal.fire('Error', 'Hubo un problema al eliminar la liquidación', 'error');
+    }
+};
+
 
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
