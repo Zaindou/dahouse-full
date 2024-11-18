@@ -125,6 +125,7 @@ class Deducible(db.Model):
     estado = db.Column(db.String(60), nullable=True, default="Pendiente")
     valor_sin_interes = db.Column(db.Float, nullable=True)
     modelo = db.relationship("Modelo", back_populates="deducibles")
+    concepto = db.Column(db.String(100), nullable=False)
 
 
 class Periodo(db.Model):

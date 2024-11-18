@@ -52,5 +52,8 @@ export const useAuthStore = defineStore("auth", {
   },
   getters: {
     isAuthenticated: (state) => !!state.token,
+    userName: (state) =>
+      state.user ? `${state.user.nombre_usuario}` : "No identificado",
+    mail: (state) => (state.user ? `${state.user.correo_electronico}` : ""),
   },
 });
