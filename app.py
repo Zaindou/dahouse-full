@@ -649,7 +649,9 @@ def liquidar_ganancias():
 
     # Define las comisiones por retiro para cada página
     comisiones_retiro = {
-        "Chaturbate": 60 * trm,
+        "Streamate": 0 * trm,
+        "Camsoda": 0 * trm,
+        "Chaturbate": 0 * trm,
         # Agrega las comisiones de otras páginas aquí
     }
 
