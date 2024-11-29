@@ -40,7 +40,12 @@ from flask_mail import Mail, Message
 
 from pdf_nomina import generar_pdf_desprendible
 from sms_send import send_sms
-from tool_db import inicializar_paginas, inicializar_roles, obtener_periodo_actual
+from tool_db import (
+    inicializar_paginas,
+    inicializar_roles,
+    obtener_periodo_actual,
+    calcular_nuevo_periodo,
+)
 
 import requests
 import environ
@@ -114,51 +119,6 @@ def currency_format(value, currency_symbol="$", decimals=0):
 app.jinja_env.filters["currency"] = currency_format
 
 
-def obtener_martes_del_mes(año, mes, n):
-    """Devuelve el n-ésimo martes del mes especificado."""
-    primer_dia_del_mes = datetime(año, mes, 1)
-    dias_hasta_martes = (1 - primer_dia_del_mes.weekday() + 7) % 7
-    primer_martes = primer_dia_del_mes + timedelta(days=dias_hasta_martes)
-    return primer_martes + timedelta(weeks=n - 1)
-
-
-def calcular_nuevo_periodo():
-    """
-    Calcula el próximo período basado en la última fecha de la tabla Periodo.
-
-    Returns:
-        dict: Información del nuevo período con las claves 'nombre', 'fecha_inicio', y 'fecha_fin'.
-    """
-    try:
-        # Obtener el último período registrado
-        ultimo_periodo = Periodo.query.order_by(Periodo.fecha_fin.desc()).first()
-
-        if not ultimo_periodo:
-            raise ValueError("No hay períodos registrados en la base de datos.")
-
-        # Usar la fecha fin del último período como el inicio del nuevo
-        fecha_inicio = ultimo_periodo.fecha_fin
-
-        # Calcular la nueva fecha de fin (14 días desde la fecha de inicio)
-        fecha_fin = fecha_inicio + timedelta(days=14)
-
-        # Generar el nombre del período usando el mes de la fecha de fin
-        año = fecha_fin.year
-        mes = fecha_fin.strftime("%b").upper()
-        semana = 1 if fecha_fin.day <= 14 else 2  # Asignar 1 o 2 según el rango de días
-        nombre_periodo = f"{año}-{mes}-{semana}"
-
-        return {
-            "nombre": nombre_periodo,
-            "fecha_inicio": fecha_inicio.strftime("%Y-%m-%d"),
-            "fecha_fin": fecha_fin.strftime("%Y-%m-%d"),
-        }
-
-    except Exception as e:
-        print(f"Error al calcular el nuevo período: {e}")
-        return None
-
-
 def obtener_trm():
     url = os.environ.get("TRM_URL")
     response = requests.get(url)
@@ -166,22 +126,6 @@ def obtener_trm():
     valor = float(data[0]["valor"])
     valor = valor - float(os.environ.get("TRM_ADICIONAL"))
     return valor
-
-
-def ganancias_totales_periodo(nombre_periodo):
-    periodo = Periodo.query.filter_by(nombre=nombre_periodo).first()
-    if not periodo:
-        return {"mensaje": "Período no encontrado", "codigo": 404}
-
-    ganancias = Ganancia.query.filter_by(periodo_id=periodo.id).all()
-    if not ganancias:
-        return {
-            "mensaje": "No se encontraron ganancias para el período especificado",
-            "codigo": 404,
-        }
-
-    total_cop = sum(ganancia.total_cop for ganancia in ganancias)
-    return {"total_cop": total_cop, "codigo": 200}
 
 
 @app.route("/", methods=["GET"])
@@ -306,19 +250,11 @@ def refresh():
 def financiero():
     trm_actual = obtener_trm() + float(os.environ.get("TRM_ADICIONAL"))
     periodo_actual = obtener_periodo_actual()
-    # periodo_ganancias = ganancias_totales_periodo(periodo_actual[0])
-
-    # if periodo_ganancias["codigo"] != 200:
-    #     return (
-    #         jsonify({"mensaje": periodo_ganancias["mensaje"]}),
-    #         periodo_ganancias["codigo"],
-    #     )
 
     datos_financieros = {
         "trm_liquidacion": obtener_trm(),
         "trm_actual": trm_actual,
         "periodo_actual": periodo_actual,
-        # "ganancias_totales_periodo": periodo_ganancias["total_cop"],
     }
     return jsonify(datos_financieros)
 
@@ -1442,20 +1378,6 @@ def calcular_ganancias_consolidadas(fecha_inicio, fecha_fin):
         "total_ganancias": total_ganancias,
         "ganancias_por_modelo": ganancias_por_modelo,
     }
-
-
-def obtener_periodo_semanal():
-    fecha_actual = datetime.now()
-    fecha_inicio = fecha_actual - timedelta(days=fecha_actual.weekday())
-    fecha_fin = fecha_inicio + timedelta(days=6)
-    return fecha_inicio, fecha_fin
-
-
-def obtener_periodo_dos_semanas():
-    fecha_actual = datetime.now()
-    fecha_inicio = fecha_actual - timedelta(days=fecha_actual.weekday() + 7)
-    fecha_fin = fecha_inicio + timedelta(days=13)
-    return fecha_inicio, fecha_fin
 
 
 @app.route("/metas", methods=["POST"])
