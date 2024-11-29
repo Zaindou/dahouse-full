@@ -1,249 +1,252 @@
 <template>
-    <div class="container mx-auto p-4">
-        <loading :is-loading="isLoading"></loading>
+    <loading :is-loading="isLoading" />
 
-        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center">
-            <h2 class="text-2xl font-bold mb-4 sm:mb-0">Liquidar Ganancias</h2>
-            <div class="relative w-full sm:w-64">
-                <input v-model="filtro" type="text" placeholder="Buscar usuarios..."
-                    class="w-full pl-10 pr-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out">
-                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+    <SkeletonLoader v-if="initialSkeleton" />
+    <template v-else>
+        <div class="container mx-auto p-4">
+
+            <div class="mb-4 flex flex-col sm:flex-row justify-between items-center">
+                <h2 class="text-2xl font-bold mb-4 sm:mb-0">Liquidar Ganancias</h2>
+                <div class="relative w-full sm:w-64">
+                    <input v-model="filtro" type="text" placeholder="Buscar usuarios..."
+                        class="w-full pl-10 pr-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
             </div>
-        </div>
 
-        <!-- Vista de tabla para pantallas medianas y grandes -->
-        <div class="hidden md:block overflow-x-auto bg-white shadow-md rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Usuario</th>
-                        <th scope="col"
-                            class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Estado</th>
-                        <th scope="col"
-                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="modelo in paginatedModelos" :key="modelo.id" class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full"
-                                        :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
-                                        alt="">
+            <!-- Vista de tabla para pantallas medianas y grandes -->
+            <div class="hidden md:block overflow-x-auto bg-white shadow-md rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Usuario</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="modelo in paginatedModelos" :key="modelo.id" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full"
+                                            :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
+                                            alt="">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ modelo.nombres }} {{
+                                            modelo.apellidos }}</div>
+                                        <div class="text-sm text-gray-500">{{ modelo.nombre_usuario }}</div>
+                                    </div>
                                 </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ modelo.nombres }} {{
-                                        modelo.apellidos }}</div>
-                                    <div class="text-sm text-gray-500">{{ modelo.nombre_usuario }}</div>
-                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span :class="estadoGanancia(modelo).color"
+                                    class="flex items-center justify-center text-xs">
+                                    <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
+                                    {{ estadoGanancia(modelo).texto }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button @click="seleccionarModelo(modelo)"
+                                    :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
+                                    :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
+                                    class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                    Liquidar
+                                </button>
+                                <button @click="verGanancia(modelo)"
+                                    :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
+                                    :class="{ 'opacity-50 cursor-not-allowed': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
+                                    class="text-green-600 hover:text-green-900">
+                                    Ver ganancia
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vista de tarjetas para móviles -->
+            <div class="md:hidden space-y-4">
+                <div v-for="modelo in paginatedModelos" :key="modelo.id"
+                    class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="h-10 w-10 rounded-full"
+                                    :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
+                                    alt="">
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span :class="estadoGanancia(modelo).color"
-                                class="flex items-center justify-center text-xs">
-                                <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
-                                {{ estadoGanancia(modelo).texto }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="ml-4">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    {{ modelo.nombres }} {{ modelo.apellidos }}
+                                </h3>
+                                <p class="text-sm text-gray-500">
+                                    {{ modelo.nombre_usuario }}
+                                </p>
+                            </div>
+                        </div>
+                        <span :class="estadoGanancia(modelo).color" class="flex items-center text-xs">
+                            <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
+                            {{ estadoGanancia(modelo).texto }}
+                        </span>
+                    </div>
+                    <div class="border-t border-gray-200 px-4 py-4">
+                        <div class="flex justify-between">
                             <button @click="seleccionarModelo(modelo)"
                                 :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
                                 :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
-                                class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                 Liquidar
                             </button>
                             <button @click="verGanancia(modelo)"
                                 :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
                                 :class="{ 'opacity-50 cursor-not-allowed': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
-                                class="text-green-600 hover:text-green-900">
+                                class="text-green-600 hover:text-green-900 text-sm font-medium">
                                 Ver ganancia
                             </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Vista de tarjetas para móviles -->
-        <div class="md:hidden space-y-4">
-            <div v-for="modelo in paginatedModelos" :key="modelo.id"
-                class="bg-white shadow overflow-hidden sm:rounded-lg">
-                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                            <img class="h-10 w-10 rounded-full"
-                                :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
-                                alt="">
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                                {{ modelo.nombres }} {{ modelo.apellidos }}
-                            </h3>
-                            <p class="text-sm text-gray-500">
-                                {{ modelo.nombre_usuario }}
-                            </p>
                         </div>
                     </div>
-                    <span :class="estadoGanancia(modelo).color" class="flex items-center text-xs">
-                        <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
-                        {{ estadoGanancia(modelo).texto }}
-                    </span>
                 </div>
-                <div class="border-t border-gray-200 px-4 py-4">
-                    <div class="flex justify-between">
-                        <button @click="seleccionarModelo(modelo)"
-                            :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
-                            :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
-                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                            Liquidar
+            </div>
+
+            <!-- Paginación -->
+            <div class="mt-4 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Mostrando <span class="font-medium">{{ paginationStart + 1 }}</span> a <span
+                            class="font-medium">{{
+                                paginationEnd }}</span> de <span class="font-medium">{{ modelosFiltrados.length }}</span>
+                        resultados
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button @click="prevPage" :disabled="currentPage === 1"
+                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Anterior
                         </button>
-                        <button @click="verGanancia(modelo)"
-                            :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
-                            :class="{ 'opacity-50 cursor-not-allowed': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
-                            class="text-green-600 hover:text-green-900 text-sm font-medium">
-                            Ver ganancia
+                        <button @click="nextPage" :disabled="currentPage === totalPages"
+                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Siguiente
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Modal para ver ganancias -->
+            <div v-if="gananciaSeleccionada"
+                class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+                @click="cerrarGananciaSeleccionada">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                    @click.stop>
+                    <h3 class="text-xl font-semibold mb-4">Detalles de Ganancia</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-100 p-3 rounded">
+                            <p class="font-semibold">Id liquidación:</p>
+                            <p>{{ gananciaSeleccionada.id }}</p>
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded">
+                            <p class="font-semibold">Periodo:</p>
+                            <p>{{ gananciaSeleccionada.nombre_periodo }}</p>
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded">
+                            <p class="font-semibold">Deducción:</p>
+                            <p>{{ formatCurrency(gananciaSeleccionada.total_deducibles) }}</p>
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded">
+                            <p class="font-semibold">Total COP:</p>
+                            <p>{{ formatCurrency(gananciaSeleccionada.gran_total_cop) }}</p>
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded">
+                            <p class="font-semibold">Porcentaje de ganancia:</p>
+                            <p>{{ (gananciaSeleccionada.porcentaje * 100).toFixed(2) }}%</p>
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded">
+                            <p class="font-semibold">TRM:</p>
+                            <p>{{ formatCurrency(gananciaSeleccionada.trm) }}</p>
+                        </div>
+                    </div>
+
+                    <h4 class="text-lg font-semibold mt-6 mb-3">Detallado por página</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="(detalle, index) in gananciaSeleccionada.detalles_paginas" :key="index"
+                            class="bg-gray-100 p-3 rounded flex flex-col items-center justify-center">
+                            <p class="font-semibold">{{ detalle.nombre_pagina }}</p>
+                            <p>Tokens: {{ detalle.tokens }}</p>
+                            <p>Total COP: {{ formatCurrency(detalle.total_cop) }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button @click="cerrarGananciaSeleccionada"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                            Cerrar
+                        </button>
+                        <button v-if="gananciaSeleccionada.estado === 'Pagado'" @click="pagarGanancia"
+                            class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                            Re-enviar pago
+                        </button>
+                        <button v-else @click="pagarGanancia"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                            Realizar pago
+                        </button>
+                        <button @click="eliminarLiquidacion"
+                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            Deshacer pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal para liquidar ganancias -->
+            <div v-if="modeloSeleccionado"
+                class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+                @click="cerrarLiquidacion">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                    @click.stop>
+                    <h3 class="text-xl font-semibold mb-6">Liquidar a {{ modeloSeleccionado.nombre_usuario }}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div v-for="pagina in modeloSeleccionado.paginas_habilitadas" :key="pagina"
+                            class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <label :for="`pagina-${pagina}`" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ pagina }}:
+                                <span v-if="pagina === 'Streamate'" class="text-xs text-blue-500">(en dólares)</span>
+                            </label>
+                            <input type="number" v-model="gananciaForm.paginas[pagina]" :id="`pagina-${pagina}`"
+                                class="w-full bg-white border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :placeholder="pagina === 'Streamate' ? 'Ingresar valor en dólares' : 'Ingresar tokens'">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-4">
+                        <button @click="liquidarGanancias"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
+                            Confirmar
+                        </button>
+                        <button @click="cerrarLiquidacion"
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg">
+                            Cancelar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Paginación -->
-        <div class="mt-4 flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-700">
-                    Mostrando <span class="font-medium">{{ paginationStart + 1 }}</span> a <span class="font-medium">{{
-                        paginationEnd }}</span> de <span class="font-medium">{{ modelosFiltrados.length }}</span>
-                    resultados
-                </p>
-            </div>
-            <div>
-                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button @click="prevPage" :disabled="currentPage === 1"
-                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        Anterior
-                    </button>
-                    <button @click="nextPage" :disabled="currentPage === totalPages"
-                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        Siguiente
-                    </button>
-                </nav>
-            </div>
-        </div>
-
-        <!-- Modal para ver ganancias -->
-        <div v-if="gananciaSeleccionada"
-            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-            @click="cerrarGananciaSeleccionada">
-            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
-                @click.stop>
-                <h3 class="text-xl font-semibold mb-4">Detalles de Ganancia</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-gray-100 p-3 rounded">
-                        <p class="font-semibold">Id liquidación:</p>
-                        <p>{{ gananciaSeleccionada.id }}</p>
-                    </div>
-                    <div class="bg-gray-100 p-3 rounded">
-                        <p class="font-semibold">Periodo:</p>
-                        <p>{{ gananciaSeleccionada.nombre_periodo }}</p>
-                    </div>
-                    <div class="bg-gray-100 p-3 rounded">
-                        <p class="font-semibold">Deducción:</p>
-                        <p>{{ formatCurrency(gananciaSeleccionada.total_deducibles) }}</p>
-                    </div>
-                    <div class="bg-gray-100 p-3 rounded">
-                        <p class="font-semibold">Total COP:</p>
-                        <p>{{ formatCurrency(gananciaSeleccionada.gran_total_cop) }}</p>
-                    </div>
-                    <div class="bg-gray-100 p-3 rounded">
-                        <p class="font-semibold">Porcentaje de ganancia:</p>
-                        <p>{{ (gananciaSeleccionada.porcentaje * 100).toFixed(2) }}%</p>
-                    </div>
-                    <div class="bg-gray-100 p-3 rounded">
-                        <p class="font-semibold">TRM:</p>
-                        <p>{{ formatCurrency(gananciaSeleccionada.trm) }}</p>
-                    </div>
-                </div>
-
-                <h4 class="text-lg font-semibold mt-6 mb-3">Detallado por página</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div v-for="(detalle, index) in gananciaSeleccionada.detalles_paginas" :key="index"
-                        class="bg-gray-100 p-3 rounded flex flex-col items-center justify-center">
-                        <p class="font-semibold">{{ detalle.nombre_pagina }}</p>
-                        <p>Tokens: {{ detalle.tokens }}</p>
-                        <p>Total COP: {{ formatCurrency(detalle.total_cop) }}</p>
-                    </div>
-                </div>
-
-                <div class="mt-6 flex justify-end">
-                    <button @click="cerrarGananciaSeleccionada"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-1 rounded">
-                        Cerrar
-                    </button>
-                    <button v-if="gananciaSeleccionada.estado === 'Pagado'" @click="pagarGanancia"
-                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 mr-1 rounded">
-                        Re-enviar pago
-                    </button>
-                    <button v-else @click="pagarGanancia"
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mr-1 rounded">
-                        Realizar pago
-                    </button>
-                    <button @click="eliminarLiquidacion"
-                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                        Deshacer pago
-                    </button>
-                </div>
-            </div>
-        </div>
-        <!-- Modal para liquidar ganancias -->
-        <div v-if="modeloSeleccionado"
-            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-            @click="cerrarLiquidacion">
-            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
-                @click.stop>
-                <h3 class="text-xl font-semibold mb-6">Liquidar a {{ modeloSeleccionado.nombre_usuario }}</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div v-for="pagina in modeloSeleccionado.paginas_habilitadas" :key="pagina"
-                        class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <label :for="`pagina-${pagina}`" class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ pagina }}:
-                            <span v-if="pagina === 'Streamate'" class="text-xs text-blue-500">(en dólares)</span>
-                        </label>
-                        <input type="number" v-model="gananciaForm.paginas[pagina]" :id="`pagina-${pagina}`"
-                            class="w-full bg-white border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :placeholder="pagina === 'Streamate' ? 'Ingresar valor en dólares' : 'Ingresar tokens'">
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end space-x-4">
-                    <button @click="liquidarGanancias"
-                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
-                        Confirmar
-                    </button>
-                    <button @click="cerrarLiquidacion"
-                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    </div>
+    </template>
 </template>
 
 
 <script setup>
-import { is } from 'date-fns/locale';
 import { ref, computed } from 'vue';
 import { useModelosStore } from '~/stores/modelo';
 
 const modelosStore = useModelosStore();
 const isLoading = ref(false);
-const openModal = ref(false);
+const initialSkeleton = ref(true);
 const modelos = ref([]);
 const filtro = ref('');
 const modeloSeleccionado = ref(null);
@@ -252,6 +255,20 @@ const gananciaForm = ref({
     nombre_usuario: '',
     paginas: {}
 });
+
+const fetchInitialData = async () => {
+    initialSkeleton.value = true;
+    try {
+        modelos.value = await modelosStore.fetchModelos();
+    } catch (error) {
+        Swal.fire('Error', 'No se pudo cargar la lista de usuarios', 'error');
+    } finally {
+        initialSkeleton.value = false;
+    }
+};
+
+fetchInitialData();
+
 
 useHead({
     titleTemplate: '%s - Liquidación de ganancias',
@@ -407,15 +424,7 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-const formatDate = (date) => {
-    // Formato de fecha en español, nombre del mes y día de la semana
-    return new Intl.DateTimeFormat('es-CO', {
-        dateStyle: 'full',
-    }).format(new Date(date));
 
-};
-
-modelos.value = await modelosStore.fetchModelos();
 </script>
 
 <style scoped>

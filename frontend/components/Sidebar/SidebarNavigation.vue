@@ -38,8 +38,9 @@ const links = [
         hasSubmenu: true,
         submenu: [
             { to: '/finance/prestamos', iconSubmenu: 'iconoir:piggy-bank', text: 'Préstamos' },
-            { to: '/finance/liquidacion', iconSubmenu: 'ic:sharp-attach-money', text: 'Pagos' },
+            { to: '/finance/liquidacion', iconSubmenu: 'streamline:money-atm-card-3-deposit-money-payment-finance-atm-withdraw', text: 'Pagos' },
             { to: '/finance/historial-pago', iconSubmenu: 'mingcute:bill-line', text: 'Colillas de pago' },
+            { to: '/finance/simulador', iconSubmenu: 'heroicons:banknotes', text: 'Simulador' },
             // { to: '/ganancias', iconSubmenu: 'carbon:align-vertical-bottom', text: 'Ganancias' },
         ]
     },

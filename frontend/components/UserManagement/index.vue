@@ -1,6 +1,7 @@
 <template>
-    <div class="p-4">
-        <loading :is-loading="isLoading" />
+    <loading :is-loading="isLoading" />
+    <SkeletonLoader v-if="initialSkeleton" />
+    <div v-else class="p-4">
 
         <user-actions @nuevo-modelo="nuevoModelo" v-model:search-query="searchQuery" />
 
@@ -36,6 +37,7 @@ const modelos = ref([])
 const rolesDisponibles = ref([])
 const paginasDisponibles = ref([])
 const isLoading = ref(false)
+const initialSkeleton = ref(false)
 const bancosDisponibles = ref([
     'Banco de Bogotá', 'Banco Popular', 'Banco Itaú', 'Bancolombia', 'Citibank',
     'BBVA Colombia', 'Banco GNB Sudameris', 'Banco GNB Colombia', 'Banco de Occidente',
@@ -105,11 +107,12 @@ watch(searchQuery, () => {
 })
 
 onMounted(async () => {
+    initialSkeleton.value = true
     await fetchInitialData()
+    initialSkeleton.value = false
 })
 
 const fetchInitialData = async () => {
-    isLoading.value = true
     try {
         const [paginas, modelosData, roles] = await Promise.all([
             modelosStore.fetchPaginasDisponibles(),
@@ -122,8 +125,6 @@ const fetchInitialData = async () => {
     } catch (error) {
         console.error('Error al cargar datos:', error)
         Swal.fire('Error', 'No se pudieron cargar los datos. Por favor, intente de nuevo.', 'error')
-    } finally {
-        isLoading.value = false
     }
 }
 

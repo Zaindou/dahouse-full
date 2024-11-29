@@ -131,7 +131,7 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "DAHOUSE API 0.8.9 ALPHA"
+    return "API: V1.0.0 - FRONTEND: V1.0.0 -- DAHOUSE"
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
@@ -790,28 +790,75 @@ def agregar_deducible(nombre_usuario):
 
     datos = request.json
 
-    tasa_quincenal = datos["tasa"] / 2
-    valor_quincenal = datos["valor_total"] / datos["plazo"] * (1 + tasa_quincenal)
+    # Validación de datos de entrada
+    campos_requeridos = ["concepto", "valor_total", "plazo", "tasa"]
+    for campo in campos_requeridos:
+        if campo not in datos:
+            return jsonify({"mensaje": f"Falta el campo requerido: {campo}"}), 400
 
+    if datos["valor_total"] <= 0 or datos["plazo"] <= 0 or datos["tasa"] < 0:
+        return jsonify({"mensaje": "Los valores deben ser mayores que cero"}), 400
+
+    # Conversión de la tasa a decimal si está en porcentaje
+    tasa = datos["tasa"]
+    if tasa > 1:  # Si está en porcentaje, convertir a decimal
+        tasa = tasa / 100
+
+    plazo = datos["plazo"]
+    valor_total = datos["valor_total"]
+
+    if tasa == 0:
+        # Sin intereses, cuota simple
+        cuota_quincenal = valor_total / plazo
+        valor_total_con_interes = valor_total  # Sin incremento
+    else:
+        # Con intereses, usar la fórmula del sistema francés
+        tasa_quincenal = tasa / 2
+        cuota_quincenal = (
+            valor_total
+            * tasa_quincenal
+            * (1 + tasa_quincenal) ** plazo
+            / ((1 + tasa_quincenal) ** plazo - 1)
+        )
+        valor_total_con_interes = cuota_quincenal * plazo
+
+    # Verificar si ya existe un deducible con el mismo concepto y estado activo
+    deducible_existente = Deducible.query.filter_by(
+        modelo_id=modelo.id, concepto=datos["concepto"], estado="Activo"
+    ).first()
+    if deducible_existente:
+        return (
+            jsonify({"mensaje": "Ya existe un deducible activo con este concepto"}),
+            400,
+        )
+
+    # Crear el nuevo deducible
     nuevo_deducible = Deducible(
         concepto=datos["concepto"],
-        valor_sin_interes=datos["valor_total"],
-        valor_total=datos["valor_total"] * (1 + tasa_quincenal),
-        plazo=datos["plazo"],
-        tasa=tasa_quincenal,
-        valor_quincenal=valor_quincenal,
-        quincenas_restantes=datos["plazo"],
+        valor_sin_interes=valor_total,
+        valor_total=valor_total_con_interes,
+        plazo=plazo,
+        tasa=tasa / 2 if tasa > 0 else 0,  # Tasa quincenal o 0 si no hay intereses
+        valor_quincenal=cuota_quincenal,
+        quincenas_restantes=plazo,
         fecha_inicio=datetime.now(),
-        fecha_fin=datetime.now() + timedelta(days=datos["plazo"] * 15),
+        fecha_fin=datetime.now() + timedelta(days=plazo * 15),
         valor_pagado=0,
-        valor_restante=datos["valor_total"] * (1 + tasa_quincenal),
+        valor_restante=valor_total_con_interes,
         modelo_id=modelo.id,
         estado="Activo",
     )
-    db.session.add(nuevo_deducible)
-    db.session.commit()
 
-    return jsonify({"mensaje": "Deducible agregado con éxito"})
+    try:
+        db.session.add(nuevo_deducible)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"mensaje": "Error al agregar deducible", "error": str(e)}), 500
+
+    return jsonify(
+        {"mensaje": "Deducible agregado con éxito", "deducible_id": nuevo_deducible.id}
+    )
 
 
 @app.route("/roles", methods=["GET"])

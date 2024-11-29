@@ -12,6 +12,16 @@ export default defineNuxtConfig({
     '~/plugins/auth.js',
   ],
 
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: process.env.API_URL , // Ajusta esto a la URL de tu backend
+        changeOrigin: true,
+        prependPath: true,
+      }
+    }
+  },
+
   runtimeConfig: {
     public: {
       apiUrl: process.env.API_URL 
