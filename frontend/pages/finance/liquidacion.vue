@@ -2,7 +2,6 @@
     <NuxtLayout>
         <Liquidacion />
     </NuxtLayout>
-
 </template>
 
 <script>

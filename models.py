@@ -51,6 +51,9 @@ class Ganancia(db.Model):
     ganancias_por_pagina = db.relationship(
         "GananciaPorPagina", back_populates="ganancia", lazy="dynamic"
     )
+    deducciones_asociadas = db.relationship(
+        "PagoDeduccion", back_populates="pago", lazy="dynamic"
+    )
 
 
 modelos_paginas = db.Table(
@@ -126,6 +129,9 @@ class Deducible(db.Model):
     valor_sin_interes = db.Column(db.Float, nullable=True)
     modelo = db.relationship("Modelo", back_populates="deducibles")
     concepto = db.Column(db.String(100), nullable=False)
+    pagos_asociados = db.relationship(
+        "PagoDeduccion", back_populates="deduccion", lazy="dynamic"
+    )
 
 
 class Periodo(db.Model):
@@ -142,6 +148,23 @@ class MetaPeriodo(db.Model):
     meta = db.Column(db.Integer, nullable=False)
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
+
+
+class PagoDeduccion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    pago_id = db.Column(db.Integer, db.ForeignKey("ganancia.id"), nullable=False)
+    deduccion_id = db.Column(db.Integer, db.ForeignKey("deducible.id"), nullable=False)
+    monto_pagado = db.Column(
+        db.Float, nullable=False
+    )  # Cantidad descontada de la deducción
+    cuotas_restantes = db.Column(
+        db.Integer, nullable=False
+    )  # Cuotas restantes después del pago
+    fecha_pago = db.Column(db.DateTime, default=datetime.now)  # Fecha del pago
+
+    # Relaciones
+    pago = db.relationship("Ganancia", back_populates="deducciones_asociadas")
+    deduccion = db.relationship("Deducible", back_populates="pagos_asociados")
 
 
 # Establecer las relaciones back_populates en la otra dirección

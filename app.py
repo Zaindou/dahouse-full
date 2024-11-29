@@ -22,6 +22,7 @@ from models import (
     Rol,
     SupuestoGanancia,
     MetaPeriodo,
+    PagoDeduccion,
 )
 from datetime import datetime, timedelta, date
 import pytz
@@ -130,7 +131,7 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "DAHOUSE API 0.0.7 ALPHA DEPLOYED by @dahouse 2024"
+    return "DAHOUSE API 0.8.9 ALPHA"
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
@@ -151,7 +152,7 @@ def crear_nuevo_periodo_endpoint():
 
         # Calcular la fecha actual y el próximo día tras el último período
         # fecha_actual = datetime.now().date()
-        fecha_actual = datetime(2024, 12, 25).date()
+        fecha_actual = datetime(2024, 12, 26).date()
         fecha_fin_ultimo_periodo = (
             ultimo_periodo.fecha_fin
         )  # Asumimos que fecha_fin ya es datetime.date
@@ -244,6 +245,79 @@ def refresh():
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
     return jsonify(access_token=access_token)
+
+
+# PENDIENTE REALIZAR LA VISTA DE ESTE ENDPOINT
+@app.route("/historial-pagos/<int:modelo_id>", methods=["GET"])
+def obtener_historial_pagos(modelo_id):
+    modelo = Modelo.query.get_or_404(modelo_id)
+    ganancias = (
+        Ganancia.query.filter_by(modelo_id=modelo.id).order_by(Ganancia.id.desc()).all()
+    )
+
+    historial = []
+    historial.append(
+        {
+            "id": modelo.id,
+            "nombres": modelo.nombres,
+            "apellidos": modelo.apellidos,
+            "tipo_documento": modelo.tipo_documento,
+            "numero_documento": modelo.numero_documento,
+            "nombre_usuario": modelo.nombre_usuario,
+            "correo_electronico": modelo.correo_electronico,
+            "numero_celular": modelo.numero_celular,
+            "numero_cuenta": modelo.numero_cuenta,
+            "banco": modelo.banco,
+            "rol": modelo.rol.nombre,
+            "habilitado": modelo.habilitado,
+        }
+    )
+    for ganancia in ganancias:
+        # Detalles de las ganancias por página
+        detalles_paginas = [
+            {
+                "nombre_pagina": ganancia_pagina.pagina.nombre,
+                "tokens": ganancia_pagina.tokens,
+                "total_cop": ganancia_pagina.total_cop,
+                "ganancia_estudio_cop": ganancia_pagina.ganancia_estudio_cop,
+            }
+            for ganancia_pagina in ganancia.ganancias_por_pagina
+        ]
+
+        # Deducciones asociadas al pago
+        deducciones_asociadas = [
+            {
+                "deduccion_id": pago_deduccion.deduccion.id,
+                "concepto": pago_deduccion.deduccion.concepto,
+                "plazo": pago_deduccion.deduccion.plazo,
+                "cuotas_restantes": pago_deduccion.cuotas_restantes,
+                "valor_total": pago_deduccion.deduccion.valor_total,
+                "valor_quincenal": pago_deduccion.deduccion.valor_quincenal,
+                "monto_pagado": pago_deduccion.monto_pagado,
+                "estado": pago_deduccion.deduccion.estado,
+            }
+            for pago_deduccion in ganancia.deducciones_asociadas
+        ]
+
+        # Construir la entrada del historial
+        historial.append(
+            {
+                "ganancia_id": ganancia.id,
+                "periodo": {
+                    "nombre": ganancia.periodo.nombre,
+                    "fecha_inicio": ganancia.periodo.fecha_inicio.strftime("%Y-%m-%d"),
+                    "fecha_fin": ganancia.periodo.fecha_fin.strftime("%Y-%m-%d"),
+                },
+                "trm": ganancia.trm,
+                "total_cop": ganancia.total_cop,
+                "porcentaje": ganancia.porcentaje,
+                "ganancia_estudio_general_cop": ganancia.ganancia_general_cop,
+                "detalles_paginas": detalles_paginas,
+                "deducciones_asociadas": deducciones_asociadas,
+            }
+        )
+
+    return jsonify(historial)
 
 
 @app.route("/financiero", methods=["GET"])
@@ -444,7 +518,9 @@ def liquidar_ganancias():
     trm = obtener_trm()
     gran_total_cop = 0  # Gran total en COP
     detalles_paginas = []  # Lista para almacenar los detalles de cada página
-    deducciones = 0
+    deducciones_activas = (
+        0  # Inicializa una variable para sumar solo las deducciones activas
+    )
     detalles_deducibles = []
 
     # Determina el período actual y busca o crea el período correspondiente
@@ -478,49 +554,48 @@ def liquidar_ganancias():
         modelo_id=modelo.id,
         periodo_id=periodo.id,
         estado="Liquidado",
-        porcentaje=0,  # Inicializa el porcentaje con 0, se actualizará más adelante
-        ganancia_general_cop=0,  # Inicializa la ganancia del estudio con 0
+        porcentaje=0,
+        ganancia_general_cop=0,
     )
     db.session.add(nueva_ganancia)  # Agrega la nueva ganancia a la sesión
-    db.session.flush()  # Asegúrate de que la nueva ganancia tenga un ID
+    db.session.flush()
 
-    deducciones_activas = (
-        0  # Inicializa una variable para sumar solo las deducciones activas
-    )
-
+    # Procesar deducciones
     for deducible in modelo.deducibles:
         if deducible.quincenas_restantes > 0:
             deducible.quincenas_restantes -= 1  # Disminuye las quincenas restantes
-            deducible.estado = (
-                "Activo"  # El deducible está activo y aún se están realizando pagos
-            )
             deducible.valor_pagado = (
                 deducible.plazo - deducible.quincenas_restantes
             ) * deducible.valor_quincenal
             deducible.valor_restante = deducible.valor_total - deducible.valor_pagado
+            # deducible.estado = (
+            #     "Activo" if deducible.quincenas_restantes > 0 else "Pagado"
+            # )
 
-            deducciones_activas += (
-                deducible.valor_quincenal
-            )  # Suma solo las deducciones activas
+            # Añadir al total de deducciones activas
+            deducciones_activas += deducible.valor_quincenal
 
             detalles_deducibles.append(
                 {
                     "concepto": deducible.concepto,
                     "valor_quincenal": deducible.valor_quincenal,
                     "quincenas_restantes": deducible.quincenas_restantes,
-                    "estado": deducible.estado,  # Incluye el estado del deducible en los detalles
+                    # "estado": deducible.estado,
                 }
             )
 
-        else:
-            deducible.estado = "Pagado"
-            deducible.valor_restante = 0
+            # Registrar en la tabla intermedia PagoDeduccion
+            pago_deduccion = PagoDeduccion(
+                pago_id=nueva_ganancia.id,
+                deduccion_id=deducible.id,
+                monto_pagado=deducible.valor_quincenal,
+                cuotas_restantes=deducible.quincenas_restantes,
+            )
+            db.session.add(pago_deduccion)
 
-    db.session.commit()
-
-    total_tokens = 0  # Total de tokens generados por la modelo
-    ganancias_por_pagina = []  # Lista para almacenar las ganancias por página
-
+    # Procesar ganancias por página
+    total_tokens = 0
+    ganancias_por_pagina = []
     for pagina in datos["paginas"]:
         pagina_nombre = pagina["nombre"]
         valor = pagina["valor"]
@@ -540,8 +615,8 @@ def liquidar_ganancias():
 
         nueva_ganancia_por_pagina = GananciaPorPagina(
             tokens=tokens,
-            total_cop=0,  # Se actualizará después de calcular el porcentaje
-            ganancia_estudio_cop=0,  # Inicializa la ganancia del estudio por página con 0
+            total_cop=0,
+            ganancia_estudio_cop=0,
             ganancia_id=nueva_ganancia.id,
             pagina_id=pagina_obj.id,
         )
@@ -556,9 +631,7 @@ def liquidar_ganancias():
             if total_tokens <= 44200:
                 porcentaje = 0.55
             elif total_tokens <= 72000:
-                porcentaje = max(
-                    0.60, modelo.porcentaje_base
-                )  # No puede bajar del porcentaje base
+                porcentaje = max(0.60, modelo.porcentaje_base)
             else:
                 porcentaje = min(0.70 + (total_tokens - 72000) // 5000 * 0.01, 0.75)
         else:  # Para los que parten de 60%
@@ -567,79 +640,52 @@ def liquidar_ganancias():
             else:
                 porcentaje = min(0.70 + (total_tokens - 72000) // 5000 * 0.01, 0.75)
     else:
-        if total_tokens >= 61200:  # Mayor o igual a 61200
+        if total_tokens >= 61200:
             porcentaje = min(0.70 + (total_tokens - 61200) // 6000 * 0.01, 0.75)
-        elif total_tokens >= 57000:  # 31.000 x 1.85
+        elif total_tokens >= 57000:
             porcentaje = 0.70
-        elif total_tokens >= 51000:  # Mayor o igual a 44200
+        elif total_tokens >= 51000:
             porcentaje = 0.60
-        elif total_tokens >= 26000:  # Mayor o igual a 34000
+        elif total_tokens >= 26000:
             porcentaje = 0.55
-        else:  # Menor a 34000
+        else:
             porcentaje = 0.50
 
-    porcentaje_estudio = 1 - porcentaje  # Porcentaje de ganancia del estudio
-
-    # Actualiza el porcentaje en la nueva ganancia
+    porcentaje_estudio = 1 - porcentaje
     nueva_ganancia.porcentaje = porcentaje
 
-    # Define las comisiones por retiro para cada página
-    comisiones_retiro = {
-        "Streamate": 0 * trm,
-        "Camsoda": 0 * trm,
-        "Chaturbate": 0 * trm,
-        # Agrega las comisiones de otras páginas aquí
-    }
-
-    # Actualiza el total en COP, la ganancia del estudio por página y los detalles de cada página con el porcentaje correcto
+    # Procesar detalles de las ganancias por página
     for ganancia_pagina in ganancias_por_pagina:
         tokens = ganancia_pagina.tokens
-        total_usd = tokens * 0.05  # Total en USD de los tokens generados
-        total_cop_modelo = round(
-            total_usd * porcentaje * trm
-        )  # Total en COP pagado a la modelo
-        total_cop_estudio = round(
-            total_usd * porcentaje_estudio * trm
-        )  # Total en COP de la ganancia del estudio
+        total_usd = tokens * 0.05
+        total_cop_modelo = round(total_usd * porcentaje * trm)
+        total_cop_estudio = round(total_usd * porcentaje_estudio * trm)
 
-        # Aplica la comisión de retiro si la página tiene una comisión definida
-        comision_retiro = comisiones_retiro.get(ganancia_pagina.pagina.nombre, 0)
-        print(comision_retiro)
-        total_cop_modelo -= comision_retiro
-        print(total_cop_modelo)
         gran_total_cop += total_cop_modelo
         ganancia_pagina.total_cop = total_cop_modelo
-        ganancia_pagina.ganancia_estudio_cop = (
-            total_cop_estudio  # Actualiza la ganancia del estudio por página
-        )
+        ganancia_pagina.ganancia_estudio_cop = total_cop_estudio
 
-        # Añade los detalles de la página a la lista
         detalles_paginas.append(
             {
                 "nombre_pagina": ganancia_pagina.pagina.nombre,
                 "tokens": tokens,
                 "total_cop_modelo": total_cop_modelo,
-                "ganancia_estudio_cop": total_cop_estudio,  # Incluye la ganancia del estudio por página en los detalles
-                "comision_retiro": comision_retiro,  # Incluye la comisión de retiro en los detalles
+                "ganancia_estudio_cop": total_cop_estudio,
             }
         )
 
-    # Calcula la ganancia general del estudio
-    ganancia_general_cop = sum([gp.ganancia_estudio_cop for gp in ganancias_por_pagina])
-    nueva_ganancia.ganancia_general_cop = (
-        ganancia_general_cop  # Actualiza la ganancia general del estudio
-    )
-
+    # Resta deducciones e impuestos
     gran_total_cop -= deducciones_activas
+    impuesto = round(gran_total_cop * 4 / 1000)
+    gran_total_cop -= impuesto
 
-    impuesto = round(gran_total_cop * 4 / 1000)  # Calcula el 4% del total
-    gran_total_cop -= impuesto  # Resta el descuento del total
-
-    nueva_ganancia.total_cop = round(gran_total_cop)  # Redondea el gran total
+    nueva_ganancia.total_cop = round(gran_total_cop)
+    nueva_ganancia.ganancia_general_cop = sum(
+        gp.ganancia_estudio_cop for gp in ganancias_por_pagina
+    )
     nueva_ganancia.estado = "Liquidado"
     db.session.commit()
 
-    # Incluye los detalles de las páginas y la ganancia del estudio en la respuesta
     return jsonify(
         {
             "mensaje": "Ganancias liquidadas",
@@ -652,7 +698,7 @@ def liquidar_ganancias():
             "detalles_deducibles": detalles_deducibles,
             "detalles_paginas": detalles_paginas,
             "porcentaje": porcentaje,
-            "ganancia_estudio_general_cop": ganancia_general_cop,  # Incluye la ganancia general del estudio en la respuesta
+            "ganancia_estudio_general_cop": nueva_ganancia.ganancia_general_cop,
         }
     )
 
@@ -785,13 +831,10 @@ def obtener_paginas():
 @app.route("/ganancias/<int:ganancia_id>/pagar", methods=["GET"])
 def pagar_ganancia(ganancia_id):
     ganancia = Ganancia.query.get_or_404(ganancia_id, "Ganancia no encontrada.")
+    prestamos_activos = ganancia.modelo.deducibles
     modelo = ganancia.modelo
     email_modelo = modelo.correo_electronico
     fecha_pago = datetime.now().strftime("%d/%m/%Y")
-
-    # Actualiza el estado de ganancia
-    ganancia.estado = "Pagado"
-    db.session.commit()
 
     # Realiza una solicitud interna a la ruta `obtener_ganancias_por_usuario_y_periodo`
     nombre_usuario = modelo.nombre_usuario
@@ -828,6 +871,7 @@ def pagar_ganancia(ganancia_id):
     deducibles_activos = [
         d for d in datos.get("detalles_deducibles", []) if d["estado"] == "Activo"
     ]
+
     total_deducibles = datos.get("total_deducibles")
 
     # Renderiza el HTML del correo
@@ -861,12 +905,21 @@ def pagar_ganancia(ganancia_id):
 
     msg.attach(f"desprendible_{nombre_periodo}.pdf", "application/pdf", pdf_attachment)
 
-    send_sms(
-        modelo.numero_celular,
-        f"¡Tu pago llegará pronto, {modelo.nombres}!\n\nRevisa tu desprendible de pago para el periodo {nombre_periodo} en tu correo: {email_modelo}.\n\nSi tienes dudas, contáctanos al +573182879509.\n\nDahouse Studio.",
-    )
+    # send_sms(
+    #     modelo.numero_celular,
+    #     f"¡Tu pago llegará pronto, {modelo.nombres}!\n\nRevisa tu desprendible de pago para el periodo {nombre_periodo} en tu correo: {email_modelo}.\n\nSi tienes dudas, contáctanos al +573182879509.\n\nDahouse Studio.",
+    # )
+
+    for deducible in prestamos_activos:
+        if deducible.valor_restante == 0:
+            deducible.estado = "Pagado"
+            db.session.commit()
 
     mail.send(msg)
+
+    # Actualiza el estado de ganancia
+    ganancia.estado = "Pagado"
+    db.session.commit()
 
     return jsonify({"mensaje": "Ganancia pagada y correo enviado con éxito"})
 

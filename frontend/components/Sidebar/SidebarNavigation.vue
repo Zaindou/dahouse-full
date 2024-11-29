@@ -37,8 +37,9 @@ const links = [
         icon: 'material-symbols:account-balance',
         hasSubmenu: true,
         submenu: [
-            { to: '/prestamos', iconSubmenu: 'iconoir:piggy-bank', text: 'Préstamos' },
-            { to: '/liquidacion', iconSubmenu: 'ic:sharp-attach-money', text: 'Liquidación' },
+            { to: '/finance/prestamos', iconSubmenu: 'iconoir:piggy-bank', text: 'Préstamos' },
+            { to: '/finance/liquidacion', iconSubmenu: 'ic:sharp-attach-money', text: 'Pagos' },
+            { to: '/finance/historial-pago', iconSubmenu: 'mingcute:bill-line', text: 'Colillas de pago' },
             // { to: '/ganancias', iconSubmenu: 'carbon:align-vertical-bottom', text: 'Ganancias' },
         ]
     },

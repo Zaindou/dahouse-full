@@ -11,6 +11,8 @@ from models import (
     MetaPeriodo,
 )
 
+from datetime import datetime, timedelta, date
+
 
 def inicializar_paginas():
     paginas = ["Chaturbate", "Stripchat", "Streamate", "Camsoda"]
