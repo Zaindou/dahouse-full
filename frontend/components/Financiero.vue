@@ -81,7 +81,7 @@
                             <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
                             <h3 class="text-sm font-semibold text-purple-700">Período actual</h3>
                         </div>
-                        <p class="text-2xl font-bold text-purple-800 mb-1">
+                        <p class="text-1xl font-bold text-purple-800 mb-1">
                             {{ datosFinancieros.periodo_actual[0] }}
                         </p>
                         <p class="text-xs text-purple-600">
