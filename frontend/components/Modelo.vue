@@ -6,8 +6,8 @@
             <button @click="nuevoModelo"
                 class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 mb-4 sm:mb-0">
                 <i class="fas fa-user-plus mr-2"></i>
-                <span class="hidden sm:inline">Crear usuario</span>
-                <span class="sm:hidden">Crear usuario</span>
+                <span class="hidden sm:inline">Formulario de usuario</span>
+                <span class="sm:hidden">Formulario de usuario</span>
             </button>
             <div class="relative w-full sm:w-auto">
                 <input type="text" v-model="searchQuery" placeholder="Buscar usuarios..."

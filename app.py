@@ -23,7 +23,7 @@ from models import (
     SupuestoGanancia,
     MetaPeriodo,
 )
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import pytz
 
 from config import Config
@@ -40,6 +40,7 @@ from flask_mail import Mail, Message
 
 from pdf_nomina import generar_pdf_desprendible
 from sms_send import send_sms
+from tool_db import inicializar_paginas, inicializar_roles, obtener_periodo_actual
 
 import requests
 import environ
@@ -113,23 +114,6 @@ def currency_format(value, currency_symbol="$", decimals=0):
 app.jinja_env.filters["currency"] = currency_format
 
 
-def inicializar_paginas():
-    paginas = ["Chaturbate", "Stripchat", "Streamate", "CherryTV", "Camsoda"]
-    for nombre in paginas:
-        if not Pagina.query.filter_by(nombre=nombre).first():
-            db.session.add(Pagina(nombre=nombre))
-    db.session.commit()
-
-
-def inicializar_roles():
-    roles = ["Administrador", "Modelo", "Usuario"]
-    for nombre_rol in roles:
-        if not Rol.query.filter_by(nombre=nombre_rol).first():
-            nuevo_rol = Rol(nombre=nombre_rol)
-            db.session.add(nuevo_rol)
-    db.session.commit()
-
-
 def obtener_martes_del_mes(año, mes, n):
     """Devuelve el n-ésimo martes del mes especificado."""
     primer_dia_del_mes = datetime(año, mes, 1)
@@ -138,35 +122,41 @@ def obtener_martes_del_mes(año, mes, n):
     return primer_martes + timedelta(weeks=n - 1)
 
 
-def obtener_periodo_actual():
-    hoy = datetime.today()
-    año = hoy.year
-    mes = hoy.strftime("%b").upper()
+def calcular_nuevo_periodo():
+    """
+    Calcula el próximo período basado en la última fecha de la tabla Periodo.
 
-    segundo_martes = obtener_martes_del_mes(año, hoy.month, 2)
-    cuarto_martes = obtener_martes_del_mes(año, hoy.month, 4)
+    Returns:
+        dict: Información del nuevo período con las claves 'nombre', 'fecha_inicio', y 'fecha_fin'.
+    """
+    try:
+        # Obtener el último período registrado
+        ultimo_periodo = Periodo.query.order_by(Periodo.fecha_fin.desc()).first()
 
-    if hoy.date() <= segundo_martes.date():
-        nombre_periodo = f"{año}-{mes}-1"
-        fecha_inicio = segundo_martes - timedelta(days=14)
-        fecha_fin = segundo_martes
-    elif hoy.date() <= cuarto_martes.date():
-        nombre_periodo = f"{año}-{mes}-2"
-        fecha_inicio = segundo_martes
-        fecha_fin = cuarto_martes
-    else:
-        nombre_periodo = f"{año}-{mes}-3"
-        fecha_inicio = cuarto_martes
-        fecha_fin = cuarto_martes + timedelta(days=14)
+        if not ultimo_periodo:
+            raise ValueError("No hay períodos registrados en la base de datos.")
 
-    fecha_inicio = fecha_inicio.strftime("%Y-%m-%d")
-    fecha_fin = fecha_fin.strftime("%Y-%m-%d")
+        # Usar la fecha fin del último período como el inicio del nuevo
+        fecha_inicio = ultimo_periodo.fecha_fin
 
-    nombre_periodo = "2024-NOV-1"
-    fecha_inicio = "2024-10-29"
-    fecha_fin = "2024-11-12"
+        # Calcular la nueva fecha de fin (14 días desde la fecha de inicio)
+        fecha_fin = fecha_inicio + timedelta(days=14)
 
-    return nombre_periodo, fecha_inicio, fecha_fin
+        # Generar el nombre del período usando el mes de la fecha de fin
+        año = fecha_fin.year
+        mes = fecha_fin.strftime("%b").upper()
+        semana = 1 if fecha_fin.day <= 14 else 2  # Asignar 1 o 2 según el rango de días
+        nombre_periodo = f"{año}-{mes}-{semana}"
+
+        return {
+            "nombre": nombre_periodo,
+            "fecha_inicio": fecha_inicio.strftime("%Y-%m-%d"),
+            "fecha_fin": fecha_fin.strftime("%Y-%m-%d"),
+        }
+
+    except Exception as e:
+        print(f"Error al calcular el nuevo período: {e}")
+        return None
 
 
 def obtener_trm():
@@ -196,7 +186,59 @@ def ganancias_totales_periodo(nombre_periodo):
 
 @app.route("/", methods=["GET"])
 def index():
-    return "DAHOUSE API 0.6 BETA DEPLOYED by @dahouse 2024"
+    return "DAHOUSE API 0.0.7 ALPHA DEPLOYED by @dahouse 2024"
+
+
+@app.route("/periodos/crear-nuevo", methods=["POST"])
+def crear_nuevo_periodo_endpoint():
+    try:
+        # Obtener el último período registrado
+        ultimo_periodo = Periodo.query.order_by(Periodo.fecha_fin.desc()).first()
+
+        if not ultimo_periodo:
+            return (
+                jsonify(
+                    {
+                        "error": "No hay períodos registrados. Inicializa los datos primero."
+                    }
+                ),
+                400,
+            )
+
+        # Calcular la fecha actual y el próximo día tras el último período
+        # fecha_actual = datetime.now().date()
+        fecha_actual = datetime(2024, 12, 25).date()
+        fecha_fin_ultimo_periodo = (
+            ultimo_periodo.fecha_fin
+        )  # Asumimos que fecha_fin ya es datetime.date
+
+        # Verificar si es necesario crear un nuevo período
+        if fecha_actual > fecha_fin_ultimo_periodo:
+            nuevo_periodo = calcular_nuevo_periodo()
+
+            if nuevo_periodo:
+                # Registrar el nuevo período en la base de datos
+                nuevo_periodo_db = Periodo(
+                    nombre=nuevo_periodo["nombre"],
+                    fecha_inicio=nuevo_periodo["fecha_inicio"],
+                    fecha_fin=nuevo_periodo["fecha_fin"],
+                )
+                db.session.add(nuevo_periodo_db)
+                db.session.commit()
+                return (
+                    jsonify(
+                        {"message": "Nuevo período creado", "periodo": nuevo_periodo}
+                    ),
+                    201,
+                )
+            else:
+                return jsonify({"error": "No se pudo calcular el nuevo período"}), 500
+
+        return jsonify({"message": "No es necesario crear un nuevo período aún"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al crear un nuevo período: {str(e)}"}), 500
 
 
 @app.route("/login", methods=["POST"])
@@ -293,6 +335,7 @@ def crear_modelo():
         apellidos=datos["apellidos"],
         fecha_nacimiento=datetime.strptime(datos["fecha_nacimiento"], "%Y-%m-%d"),
         correo_electronico=datos["correo_electronico"],
+        numero_celular=datos["numero_celular"],
         nombre_usuario=datos["nombre_usuario"],
         rol_id=datos["rol_id"],
         banco=datos["banco"],
@@ -378,6 +421,7 @@ def obtener_modelos():
                     "rol": modelo.rol.nombre,
                     "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
                     "correo_electronico": modelo.correo_electronico,
+                    "numero_celular": modelo.numero_celular,
                     "fecha_nacimiento": modelo.fecha_nacimiento.strftime("%Y-%m-%d"),
                     "fecha_registro": modelo.fecha_registro.strftime("%Y-%m-%d"),
                     "numero_cuenta": modelo.numero_cuenta,
@@ -424,6 +468,7 @@ def actualizar_modelo(modelo_id):
     modelo.correo_electronico = datos.get(
         "correo_electronico", modelo.correo_electronico
     )
+    modelo.numero_celular = datos.get("numero_celular", modelo.numero_celular)
     modelo.fecha_nacimiento = datetime.strptime(
         datos.get("fecha_nacimiento", modelo.fecha_nacimiento), "%Y-%m-%d"
     )

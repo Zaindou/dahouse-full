@@ -136,6 +136,7 @@ const nuevoModelo = () => {
         numero_documento: '',
         nombre_usuario: '',
         correo_electronico: '',
+        numero_celular: '',
         fecha_nacimiento: '',
         rol_id: null,
         banco: '',
@@ -158,6 +159,7 @@ const editarModelo = async (modelo) => {
 
         // Copia profunda del modelo
         const modeloCopy = JSON.parse(JSON.stringify(modelo))
+        console.log('Modelo a editar (copia):', modeloCopy) // Para depuración
 
         // Actualiza modeloForm
         modeloForm.value = {
@@ -168,11 +170,14 @@ const editarModelo = async (modelo) => {
             numero_documento: modeloCopy.numero_documento || '',
             nombre_usuario: modeloCopy.nombre_usuario || '',
             correo_electronico: modeloCopy.correo_electronico || '',
+            numero_celular: modeloCopy.numero_celular || '',
             fecha_nacimiento: modeloCopy.fecha_nacimiento || '',
             banco: modeloCopy.banco || '',
             numero_cuenta: modeloCopy.numero_cuenta || '',
             rol_id: modeloCopy.rol_id || null,
+            password: 'PasswordpORDefecto123', // Contraseña temporal
             paginas_habilitadas: modeloCopy.paginas_habilitadas || []
+
         }
 
         // Encontrar y asignar el rol_id correcto
@@ -191,7 +196,6 @@ const editarModelo = async (modelo) => {
         await nextTick()
         mostrarFormulario.value = true
 
-        console.log('Modelo a editar:', modeloForm.value) // Para depuración
     } catch (error) {
         console.error('Error al editar modelo:', error)
         Swal.fire('Error', 'No se pudo cargar el usuario para editar', 'error')
@@ -223,7 +227,7 @@ const guardarModelo = async (formData) => {
 }
 
 const validarFormulario = (formData) => {
-    const camposRequeridos = ['nombres', 'apellidos', 'tipo_documento', 'numero_documento', 'nombre_usuario', 'correo_electronico', 'fecha_nacimiento', 'rol_id', 'banco', 'numero_cuenta']
+    const camposRequeridos = ['nombres', 'apellidos', 'tipo_documento', 'numero_documento', 'nombre_usuario', 'correo_electronico', 'numero_celular', 'fecha_nacimiento', 'rol_id', 'banco', 'numero_cuenta']
 
     for (const campo of camposRequeridos) {
         if (!formData[campo]) {

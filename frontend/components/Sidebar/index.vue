@@ -67,7 +67,9 @@
                         <TransitionChild enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100"
                             leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
                             <div v-if="isSidebarOpen" class="flex items-center space-x-3">
-                                <img src="assets/avatar.png" alt="User avatar" class="h-8 w-8 rounded-full" />
+                                <img class="h-8 w-8 rounded-full"
+                                    :src="`https://ui-avatars.com/api/?name=${userName}&background=random`"
+                                    alt="Avatar">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-white truncate">
                                         {{ userName }}
@@ -93,7 +95,6 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
-import { TransitionRoot, TransitionChild } from '@headlessui/vue'
 import { useRoute } from 'vue-router' // Importamos useRoute
 import { useAuthStore } from '~/stores/auth'
 import { computed } from "vue";
@@ -143,12 +144,6 @@ const closeSidebar = () => {
 const handleLinkClick = () => {
     closeSidebar()
 }
-
-
-
-
-
-
 
 </script>
 
