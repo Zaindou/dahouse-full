@@ -952,10 +952,10 @@ def pagar_ganancia(ganancia_id):
 
     msg.attach(f"desprendible_{nombre_periodo}.pdf", "application/pdf", pdf_attachment)
 
-    # send_sms(
-    #     modelo.numero_celular,
-    #     f"¡Tu pago llegará pronto, {modelo.nombres}!\n\nRevisa tu desprendible de pago para el periodo {nombre_periodo} en tu correo: {email_modelo}.\n\nSi tienes dudas, contáctanos al +573182879509.\n\nDahouse Studio.",
-    # )
+    send_sms(
+        modelo.numero_celular,
+        f"¡Tu pago llegará pronto, {modelo.nombres}!\n\nRevisa tu desprendible de pago para el periodo {nombre_periodo} en tu correo: {email_modelo}.\n\nSi tienes dudas, contáctanos al +573182879509.\n\nDahouse Studio.",
+    )
 
     for deducible in prestamos_activos:
         if deducible.valor_restante == 0:
