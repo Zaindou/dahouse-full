@@ -232,6 +232,7 @@ def get_user():
                         "password": modelo.vpn_password,
                         "preshared_key": modelo.vpn_preshared_key,
                     },
+                    "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
                 }
             ),
             200,
