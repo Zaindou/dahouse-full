@@ -46,8 +46,8 @@ const links = [
     },
     {
         to: '/mantenimiento',
-        icon: 'mdi:tools',
-        text: 'Mantenimiento'
+        icon: 'mingcute:hotel-fill',
+        text: 'Rooms'
     }
 ]
 </script>

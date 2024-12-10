@@ -824,14 +824,14 @@ def agregar_deducible(nombre_usuario):
         valor_total_con_interes = cuota_quincenal * plazo
 
     # Verificar si ya existe un deducible con el mismo concepto y estado activo
-    deducible_existente = Deducible.query.filter_by(
-        modelo_id=modelo.id, concepto=datos["concepto"], estado="Activo"
-    ).first()
-    if deducible_existente:
-        return (
-            jsonify({"mensaje": "Ya existe un deducible activo con este concepto"}),
-            400,
-        )
+    # deducible_existente = Deducible.query.filter_by(
+    #     modelo_id=modelo.id, concepto=datos["concepto"], estado="Pagado"
+    # ).first()
+    # if deducible_existente:
+    #     return (
+    #         jsonify({"mensaje": "Ya existe un deducible activo con este concepto"}),
+    #         400,
+    #     )
 
     # Crear el nuevo deducible
     nuevo_deducible = Deducible(
