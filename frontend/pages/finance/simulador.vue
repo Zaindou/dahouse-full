@@ -1,96 +1,105 @@
 <template>
     <NuxtLayout>
-        <div class="max-w-4xl p-4 mx-auto">
-            <div class="p-4 bg-white rounded-lg shadow-lg md:p-6">
+        <div class="max-w-4xl p-2 mx-auto md:p-4">
+            <div class="p-3 bg-white rounded-lg shadow-lg md:p-6">
                 <!-- Formulario de entrada -->
-                <div class="mb-6 space-y-4">
-                    <h2 class="text-xl font-bold text-gray-800 md:text-2xl">Simulador de Préstamos</h2>
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div class="space-y-2">
+                <div class="mb-4 space-y-3 md:space-y-4 md:mb-6">
+                    <h2 class="text-lg font-bold text-gray-800 md:text-2xl">Simulador de Préstamos</h2>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
+                        <div class="space-y-1 md:space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Valor Total</label>
                             <input v-model="valorFormateado" @input="handleValorInput" type="text"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 md:text-base"
                                 placeholder="$0">
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-1 md:space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Plazo (Quincenas)</label>
                             <input v-model="deduccion.plazo" type="number"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 md:text-base"
                                 placeholder="Número de quincenas">
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-1 md:space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Tasa de Interés (%)</label>
                             <input v-model="deduccion.tasa" type="number"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 md:text-base"
                                 placeholder="Tasa de interés">
                         </div>
                     </div>
                 </div>
 
                 <!-- Resumen del préstamo -->
-                <div v-if="resumenPrestamo" class="mb-8">
-                    <h3 class="mb-4 text-lg font-semibold md:text-xl">Resumen del Préstamo</h3>
-                    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-                        <div class="p-3 rounded-lg bg-gray-50">
-                            <p class="text-xs text-gray-600">Períodos</p>
-                            <p class="text-base font-bold md:text-lg">{{ resumenPrestamo.numeroPeriodos }}</p>
+                <div v-if="resumenPrestamo" class="mb-4 md:mb-8">
+                    <h3 class="mb-3 text-base font-semibold md:text-xl">Resumen del Préstamo</h3>
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-5 md:gap-3">
+                        <div class="p-2 rounded-lg bg-gray-50 md:p-3">
+                            <p class="mb-1 text-xs text-gray-600">Períodos</p>
+                            <p class="text-sm font-bold md:text-lg">{{ resumenPrestamo.numeroPeriodos }}</p>
                         </div>
-                        <div class="p-3 rounded-lg bg-gray-50">
-                            <p class="text-xs text-gray-600">Valor a Prestar</p>
-                            <p class="text-base font-bold md:text-lg">{{ formatCurrency(resumenPrestamo.valorAdeudar) }}
+                        <div class="p-2 rounded-lg bg-gray-50 md:p-3">
+                            <p class="mb-1 text-xs text-gray-600">Valor a Prestar</p>
+                            <p class="text-sm font-bold md:text-lg">{{ formatCurrency(resumenPrestamo.valorAdeudar) }}
                             </p>
                         </div>
-                        <div class="p-3 rounded-lg bg-gray-50">
-                            <p class="text-xs text-gray-600">Total Intereses</p>
-                            <p class="text-base font-bold text-orange-600 md:text-lg">
+                        <div class="p-2 rounded-lg bg-gray-50 md:p-3">
+                            <p class="mb-1 text-xs text-gray-600">Total Intereses</p>
+                            <p class="text-sm font-bold text-orange-600 md:text-lg">
                                 {{ formatCurrency(resumenPrestamo.totalIntereses) }}
                             </p>
                         </div>
-                        <div class="p-3 rounded-lg bg-gray-50">
-                            <p class="text-xs text-gray-600">Total con Intereses</p>
-                            <p class="text-base font-bold md:text-lg">{{
-                                formatCurrency(resumenPrestamo.valorConIntereses) }}</p>
-                        </div>
-                        <div class="p-3 rounded-lg bg-gray-50">
-                            <p class="text-xs text-gray-600">Cuota Quincenal</p>
-                            <p class="text-base font-bold md:text-lg">{{ formatCurrency(resumenPrestamo.cuotaQuincenal)
+                        <div class="p-2 rounded-lg bg-gray-50 md:p-3">
+                            <p class="mb-1 text-xs text-gray-600">Total con Intereses</p>
+                            <p class="text-sm font-bold md:text-lg">{{ formatCurrency(resumenPrestamo.valorConIntereses)
                                 }}</p>
+                        </div>
+                        <div class="p-2 rounded-lg bg-gray-50 md:p-3">
+                            <p class="mb-1 text-xs text-gray-600">Cuota Quincenal</p>
+                            <p class="text-sm font-bold md:text-lg">{{ formatCurrency(resumenPrestamo.cuotaQuincenal) }}
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tabla de amortización -->
-                <div v-if="pagosDetalle.length" class="-mx-4 overflow-x-auto md:mx-0">
-                    <div class="inline-block min-w-full align-middle">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-3 py-3 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
-                                        Período</th>
-                                    <th class="px-3 py-3 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
-                                        Cuota</th>
-                                    <th class="px-3 py-3 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
-                                        Capital</th>
-                                    <th class="px-3 py-3 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
-                                        Interés</th>
-                                    <th class="px-3 py-3 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
-                                        Saldo</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="pago in pagosDetalle" :key="pago.periodo" class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-sm md:px-6 md:py-4">{{ pago.periodo }}</td>
-                                    <td class="px-3 py-2 text-sm md:px-6 md:py-4">{{ formatCurrency(pago.cuotaQuincenal)
-                                        }}</td>
-                                    <td class="px-3 py-2 text-sm md:px-6 md:py-4">{{ formatCurrency(pago.principal) }}
-                                    </td>
-                                    <td class="px-3 py-2 text-sm md:px-6 md:py-4">{{ formatCurrency(pago.interes) }}
-                                    </td>
-                                    <td class="px-3 py-2 text-sm md:px-6 md:py-4">{{ formatCurrency(pago.saldoCapital)
-                                        }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div v-if="pagosDetalle.length">
+                    <h3 class="mb-3 text-base font-semibold md:text-xl">Tabla de Amortización</h3>
+                    <div class="-mx-3 overflow-x-auto md:mx-0">
+                        <div class="inline-block min-w-full align-middle">
+                            <table class="min-w-full text-sm divide-y divide-gray-200 md:text-base">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="px-2 py-2 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
+                                            N°</th>
+                                        <th
+                                            class="px-2 py-2 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
+                                            Cuota</th>
+                                        <th
+                                            class="px-2 py-2 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
+                                            Capital</th>
+                                        <th
+                                            class="px-2 py-2 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
+                                            Interés</th>
+                                        <th
+                                            class="px-2 py-2 text-xs font-medium text-left text-gray-500 uppercase md:px-6">
+                                            Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="pago in pagosDetalle" :key="pago.periodo" class="hover:bg-gray-50">
+                                        <td class="px-2 py-2 text-xs md:px-6 whitespace-nowrap md:text-sm">{{
+                                            pago.periodo }}</td>
+                                        <td class="px-2 py-2 text-xs md:px-6 whitespace-nowrap md:text-sm">{{
+                                            formatCurrency(pago.cuotaQuincenal) }}</td>
+                                        <td class="px-2 py-2 text-xs md:px-6 whitespace-nowrap md:text-sm">{{
+                                            formatCurrency(pago.principal) }}</td>
+                                        <td class="px-2 py-2 text-xs md:px-6 whitespace-nowrap md:text-sm">{{
+                                            formatCurrency(pago.interes) }}</td>
+                                        <td class="px-2 py-2 text-xs md:px-6 whitespace-nowrap md:text-sm">{{
+                                            formatCurrency(pago.saldoCapital) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
