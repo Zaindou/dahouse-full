@@ -58,6 +58,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.config.from_object(Config)
+app.jinja_env.globals.update(int=int)
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
@@ -131,7 +132,7 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "API: V1.0.1 - FRONTEND: V1.0.2 -- DAHOUSE"
+    return "API: V1.1.0 - FRONTEND: V1.1.0 -- DAHOUSE"
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
@@ -887,7 +888,7 @@ def pagar_ganancia(ganancia_id):
     # Realiza una solicitud interna a la ruta `obtener_ganancias_por_usuario_y_periodo`
     nombre_usuario = modelo.nombre_usuario
     nombre_periodo = ganancia.periodo.nombre
-    url = f"https://api.dahouse.co/ganancias/usuario/{nombre_usuario}/periodo/{nombre_periodo}"
+    url = f"{Config.NOMINA_API_URL}/ganancias/usuario/{nombre_usuario}/periodo/{nombre_periodo}"
 
     response = requests.get(url)
 

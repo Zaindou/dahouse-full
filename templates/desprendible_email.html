@@ -171,7 +171,7 @@
                         color: #666666;
                       "
                     >
-                      {{ detalle.valor_cop }}
+                      ${{ "{:,.0f}".format(int(detalle.valor_cop.replace('$', '').replace(',', ''))).replace(',', '.') }}
                     </td>
                   </tr>
                   {% endfor %}
@@ -204,7 +204,7 @@
                         color: #333333;
                       "
                     >
-                      ${{ total_cop | int }}
+                      {{ total_cop | int | currency }}
                     </td>
                   </tr>
                 </table>

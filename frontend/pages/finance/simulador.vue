@@ -119,11 +119,15 @@ const pagosDetalle = ref([]);
 const resumenPrestamo = ref(null);
 
 const formatCurrency = (value) => {
-    return new Intl.NumberFormat('es-CO', {
+    // Primero formateamos con Intl.NumberFormat
+    const formatted = new Intl.NumberFormat('es-CO', {
         style: 'currency',
         currency: 'COP',
         minimumFractionDigits: 0,
     }).format(value);
+
+    // Removemos el espacio entre el símbolo y el número
+    return formatted.replace(/\s+/g, '');
 };
 
 const unformatCurrency = (value) => {
