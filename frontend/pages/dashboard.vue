@@ -1,21 +1,23 @@
 <template>
     <NuxtLayout>
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Ejemplo de módulos importados -->
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <Financiero />
+        <div class="container px-4 py-6 mx-auto">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- Módulo Financiero con fondo blanco -->
+                <div class="col-span-1 bg-white rounded-lg shadow-md lg:col-span-2">
+                    <div class="p-4">
+                        <Financiero />
+                    </div>
                 </div>
-                <!-- <div class="bg-white p-1 rounded-lg shadow-md">
-                    <h2 class="text-xl font-bold mb-2 ml-3 mt-3">Datos financieros</h2>
-                    <p class="ml-3">Aquí se mostrarán los datos financieros de la empresa.</p>
+
+                <!-- Espacio para futuros módulos -->
+                <!-- <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h2 class="mb-4 text-xl font-bold">Otro Módulo</h2>
+                    <p>Contenido del módulo...</p>
                 </div> -->
-                <!-- Agrega más módulos aquí siguiendo el mismo patrón -->
             </div>
         </div>
     </NuxtLayout>
 </template>
 
-<script>
-
+<script setup>
 </script>
