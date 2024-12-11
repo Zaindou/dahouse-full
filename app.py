@@ -131,7 +131,7 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "API: V1.0.0 - FRONTEND: V1.0.0 -- DAHOUSE"
+    return "API: V1.0.1 - FRONTEND: V1.0.2 -- DAHOUSE"
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
@@ -151,8 +151,8 @@ def crear_nuevo_periodo_endpoint():
             )
 
         # Calcular la fecha actual y el próximo día tras el último período
-        # fecha_actual = datetime.now().date()
-        fecha_actual = datetime(2024, 12, 26).date()
+        fecha_actual = datetime.now().date()
+        # fecha_actual = datetime(2024, 12, 13).date()
         fecha_fin_ultimo_periodo = (
             ultimo_periodo.fecha_fin
         )  # Asumimos que fecha_fin ya es datetime.date
@@ -975,21 +975,32 @@ def pagar_ganancia(ganancia_id):
 @app.route("/ganancias/eliminar", methods=["DELETE"])
 def eliminar_ganancia():
     datos = request.json
-    ganancia_id = datos["ganancia_id"]
+    ganancia_id = datos.get("ganancia_id")
+    if not ganancia_id:
+        return jsonify({"mensaje": "ID de ganancia no proporcionado"}), 400
+
+    # Obtener la ganancia
     ganancia = Ganancia.query.get(ganancia_id)
-    ganancia_por_pagina = GananciaPorPagina.query.filter_by(
-        ganancia_id=ganancia_id
-    ).all()
     if not ganancia:
         return jsonify({"mensaje": "Ganancia no encontrada"}), 404
 
-    for gpp in ganancia_por_pagina:
+    # Eliminar deducciones asociadas
+    for deduccion in ganancia.deducciones_asociadas:
+        db.session.delete(deduccion)
+
+    # Eliminar ganancias por página asociadas
+    for gpp in ganancia.ganancias_por_pagina:
         db.session.delete(gpp)
 
+    # Eliminar la ganancia principal
     db.session.delete(ganancia)
-    db.session.commit()
 
-    return jsonify({"mensaje": "Ganancia eliminada con éxito"})
+    try:
+        db.session.commit()
+        return jsonify({"mensaje": "Ganancia eliminada con éxito"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"mensaje": f"Error al eliminar ganancia: {str(e)}"}), 500
 
 
 ##NUEVO MODULO GANANCIAS

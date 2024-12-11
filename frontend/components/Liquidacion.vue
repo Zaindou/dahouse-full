@@ -3,30 +3,30 @@
 
     <SkeletonLoader v-if="initialSkeleton" />
     <template v-else>
-        <div class="container mx-auto p-4">
+        <div class="container p-4 mx-auto">
 
-            <div class="mb-4 flex flex-col sm:flex-row justify-between items-center">
-                <h2 class="text-2xl font-bold mb-4 sm:mb-0">Liquidar Ganancias</h2>
+            <div class="flex flex-col items-center justify-between mb-4 sm:flex-row">
+                <h2 class="mb-4 text-2xl font-bold sm:mb-0">Liquidar Ganancias</h2>
                 <div class="relative w-full sm:w-64">
                     <input v-model="filtro" type="text" placeholder="Buscar usuarios..."
-                        class="w-full pl-10 pr-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition duration-150 ease-in-out">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        class="w-full py-2 pl-10 pr-4 transition duration-150 ease-in-out border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300">
+                    <i class="absolute text-gray-400 transform -translate-y-1/2 fas fa-search left-3 top-1/2"></i>
                 </div>
             </div>
 
             <!-- Vista de tabla para pantallas medianas y grandes -->
-            <div class="hidden md:block overflow-x-auto bg-white shadow-md rounded-lg">
+            <div class="hidden overflow-x-auto bg-white rounded-lg shadow-md md:block">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                                 Usuario</th>
                             <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                                 Estado</th>
                             <th scope="col"
-                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">
                                 Acciones</th>
                         </tr>
                     </thead>
@@ -34,8 +34,8 @@
                         <tr v-for="modelo in paginatedModelos" :key="modelo.id" class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full"
+                                    <div class="flex-shrink-0 w-10 h-10">
+                                        <img class="w-10 h-10 rounded-full"
                                             :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
                                             alt="">
                                     </div>
@@ -46,18 +46,18 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <span :class="estadoGanancia(modelo).color"
                                     class="flex items-center justify-center text-xs">
                                     <Icon class="mr-1" :name="estadoGanancia(modelo).icono" />
                                     {{ estadoGanancia(modelo).texto }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                                 <button @click="seleccionarModelo(modelo)"
                                     :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
                                     :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
-                                    class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                    class="mr-2 text-indigo-600 hover:text-indigo-900">
                                     Liquidar
                                 </button>
                                 <button @click="verGanancia(modelo)"
@@ -73,18 +73,18 @@
             </div>
 
             <!-- Vista de tarjetas para móviles -->
-            <div class="md:hidden space-y-4">
+            <div class="space-y-4 md:hidden">
                 <div v-for="modelo in paginatedModelos" :key="modelo.id"
-                    class="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    class="overflow-hidden bg-white shadow sm:rounded-lg">
+                    <div class="flex items-center justify-between px-4 py-5 sm:px-6">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <img class="h-10 w-10 rounded-full"
+                            <div class="flex-shrink-0 w-10 h-10">
+                                <img class="w-10 h-10 rounded-full"
                                     :src="`https://ui-avatars.com/api/?name=${modelo.nombres}+${modelo.apellidos}&background=random`"
                                     alt="">
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">
                                     {{ modelo.nombres }} {{ modelo.apellidos }}
                                 </h3>
                                 <p class="text-sm text-gray-500">
@@ -97,18 +97,18 @@
                             {{ estadoGanancia(modelo).texto }}
                         </span>
                     </div>
-                    <div class="border-t border-gray-200 px-4 py-4">
+                    <div class="px-4 py-4 border-t border-gray-200">
                         <div class="flex justify-between">
                             <button @click="seleccionarModelo(modelo)"
                                 :disabled="modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo"
                                 :class="{ 'opacity-50 cursor-not-allowed': modelo.periodo_actual === modelo.ganancia_info.ultimo_periodo }"
-                                class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
                                 Liquidar
                             </button>
                             <button @click="verGanancia(modelo)"
                                 :disabled="modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo"
                                 :class="{ 'opacity-50 cursor-not-allowed': modelo.estado_ganancia === 'Pendiente' || modelo.periodo_actual !== modelo.ganancia_info.ultimo_periodo }"
-                                class="text-green-600 hover:text-green-900 text-sm font-medium">
+                                class="text-sm font-medium text-green-600 hover:text-green-900">
                                 Ver ganancia
                             </button>
                         </div>
@@ -117,7 +117,7 @@
             </div>
 
             <!-- Paginación -->
-            <div class="mt-4 flex items-center justify-between">
+            <div class="flex items-center justify-between mt-4">
                 <div>
                     <p class="text-sm text-gray-700">
                         Mostrando <span class="font-medium">{{ paginationStart + 1 }}</span> a <span
@@ -127,13 +127,13 @@
                     </p>
                 </div>
                 <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                         <button @click="prevPage" :disabled="currentPage === 1"
-                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
                             Anterior
                         </button>
                         <button @click="nextPage" :disabled="currentPage === totalPages"
-                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
                             Siguiente
                         </button>
                     </nav>
@@ -142,63 +142,63 @@
 
             <!-- Modal para ver ganancias -->
             <div v-if="gananciaSeleccionada"
-                class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+                class="fixed inset-0 z-50 w-full h-full overflow-y-auto bg-gray-600 bg-opacity-50"
                 @click="cerrarGananciaSeleccionada">
-                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                <div class="relative w-11/12 p-5 mx-auto bg-white border rounded-md shadow-lg top-20 md:w-4/5 lg:w-3/5"
                     @click.stop>
-                    <h3 class="text-xl font-semibold mb-4">Detalles de Ganancia</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-100 p-3 rounded">
+                    <h3 class="mb-4 text-xl font-semibold">Detalles de Ganancia</h3>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="p-3 bg-gray-100 rounded">
                             <p class="font-semibold">Id liquidación:</p>
                             <p>{{ gananciaSeleccionada.id }}</p>
                         </div>
-                        <div class="bg-gray-100 p-3 rounded">
+                        <div class="p-3 bg-gray-100 rounded">
                             <p class="font-semibold">Periodo:</p>
                             <p>{{ gananciaSeleccionada.nombre_periodo }}</p>
                         </div>
-                        <div class="bg-gray-100 p-3 rounded">
+                        <div class="p-3 bg-gray-100 rounded">
                             <p class="font-semibold">Deducción:</p>
                             <p>{{ formatCurrency(gananciaSeleccionada.total_deducibles) }}</p>
                         </div>
-                        <div class="bg-gray-100 p-3 rounded">
+                        <div class="p-3 bg-gray-100 rounded">
                             <p class="font-semibold">Total COP:</p>
                             <p>{{ formatCurrency(gananciaSeleccionada.gran_total_cop) }}</p>
                         </div>
-                        <div class="bg-gray-100 p-3 rounded">
+                        <div class="p-3 bg-gray-100 rounded">
                             <p class="font-semibold">Porcentaje de ganancia:</p>
                             <p>{{ (gananciaSeleccionada.porcentaje * 100).toFixed(2) }}%</p>
                         </div>
-                        <div class="bg-gray-100 p-3 rounded">
+                        <div class="p-3 bg-gray-100 rounded">
                             <p class="font-semibold">TRM:</p>
                             <p>{{ formatCurrency(gananciaSeleccionada.trm) }}</p>
                         </div>
                     </div>
 
-                    <h4 class="text-lg font-semibold mt-6 mb-3">Detallado por página</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h4 class="mt-6 mb-3 text-lg font-semibold">Detallado por página</h4>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div v-for="(detalle, index) in gananciaSeleccionada.detalles_paginas" :key="index"
-                            class="bg-gray-100 p-3 rounded flex flex-col items-center justify-center">
+                            class="flex flex-col items-center justify-center p-3 bg-gray-100 rounded">
                             <p class="font-semibold">{{ detalle.nombre_pagina }}</p>
                             <p>Tokens: {{ detalle.tokens }}</p>
                             <p>Total COP: {{ formatCurrency(detalle.total_cop) }}</p>
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-end">
+                    <div class="flex justify-end mt-6">
                         <button @click="cerrarGananciaSeleccionada"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                            class="px-4 py-2 mr-1 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">
                             Cerrar
                         </button>
                         <button v-if="gananciaSeleccionada.estado === 'Pagado'" @click="pagarGanancia"
-                            class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                            class="px-4 py-2 mr-1 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-700">
                             Re-enviar pago
                         </button>
                         <button v-else @click="pagarGanancia"
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mr-1 rounded">
+                            class="px-4 py-2 mr-1 font-bold text-white bg-green-500 rounded hover:bg-green-700">
                             Realizar pago
                         </button>
                         <button @click="eliminarLiquidacion"
-                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            class="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700">
                             Deshacer pago
                         </button>
                     </div>
@@ -206,30 +206,30 @@
             </div>
             <!-- Modal para liquidar ganancias -->
             <div v-if="modeloSeleccionado"
-                class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+                class="fixed inset-0 z-50 w-full h-full overflow-y-auto bg-gray-600 bg-opacity-50"
                 @click="cerrarLiquidacion">
-                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/5 shadow-lg rounded-md bg-white"
+                <div class="relative w-11/12 p-5 mx-auto bg-white border rounded-md shadow-lg top-20 md:w-4/5 lg:w-3/5"
                     @click.stop>
-                    <h3 class="text-xl font-semibold mb-6">Liquidar a {{ modeloSeleccionado.nombre_usuario }}</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <h3 class="mb-6 text-xl font-semibold">Liquidar a {{ modeloSeleccionado.nombre_usuario }}</h3>
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div v-for="pagina in modeloSeleccionado.paginas_habilitadas" :key="pagina"
-                            class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <label :for="`pagina-${pagina}`" class="block text-sm font-medium text-gray-700 mb-2">
+                            class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                            <label :for="`pagina-${pagina}`" class="block mb-2 text-sm font-medium text-gray-700">
                                 {{ pagina }}:
                                 <span v-if="pagina === 'Streamate'" class="text-xs text-blue-500">(en dólares)</span>
                             </label>
                             <input type="number" v-model="gananciaForm.paginas[pagina]" :id="`pagina-${pagina}`"
-                                class="w-full bg-white border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 :placeholder="pagina === 'Streamate' ? 'Ingresar valor en dólares' : 'Ingresar tokens'">
                         </div>
                     </div>
-                    <div class="mt-6 flex justify-end space-x-4">
+                    <div class="flex justify-end mt-6 space-x-4">
                         <button @click="liquidarGanancias"
-                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
+                            class="px-6 py-2 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-600">
                             Confirmar
                         </button>
                         <button @click="cerrarLiquidacion"
-                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg">
+                            class="px-6 py-2 font-bold text-white bg-red-500 rounded-lg hover:bg-red-600">
                             Cancelar
                         </button>
                     </div>
@@ -315,7 +315,8 @@ const modelosFiltrados = computed(() => {
         return (modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) ||
             modelo.nombres.toLowerCase().includes(filtroEnMinusculas) ||
             modelo.apellidos.toLowerCase().includes(filtroEnMinusculas)) &&
-            modelo.habilitado === true;
+            modelo.habilitado === true && modelo.rol === 'Modelo';
+
     });
 
     // Ordenar alfabéticamente por nombre completo
