@@ -381,7 +381,7 @@ export const useModelosStore = defineStore("modelo", {
     async fetchHistorialPagos(modelo_id) {
             this.isLoadingHistorial = true;
             try {
-                const { data, error } = await useFetch(`/api/historial-pagos/${modelo_id}`, {
+                const { data, error } = await useFetch(`${useRuntimeConfig().public.apiUrl}/historial-pagos/${modelo_id}`, {
                     method: 'GET',
                 });
 

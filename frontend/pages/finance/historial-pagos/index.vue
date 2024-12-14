@@ -89,7 +89,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <button @click="navigateTo(`${modelo.id}`)"
+                                    <button @click="navigateTo(`historial-pagos/${modelo.id}`)"
                                         class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
                                         <Icon name="uil:history" class="inline-block w-4 h-4 mr-2" />
                                         Ver Historial
@@ -141,7 +141,7 @@
                                         <div class="text-sm text-gray-500">{{ modelo.numero_cuenta }}</div>
                                     </td>
                                     <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                                        <button @click="navigateTo(`${modelo.id}`)"
+                                        <button @click="navigateTo(`historial-pagos/${modelo.id}`)"
                                             class="inline-flex items-center px-3 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700">
                                             <Icon name="uil:history" class="w-4 h-4 mr-2" />
                                             Ver Historial

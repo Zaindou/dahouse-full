@@ -132,7 +132,7 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "API: V1.1.1 - FRONTEND: V1.2.0 -- DAHOUSE"
+    return "API: V1.1.1 - FRONTEND: V1.2.1 -- DAHOUSE"
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
