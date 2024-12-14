@@ -378,5 +378,27 @@ export const useModelosStore = defineStore("modelo", {
         throw new Error(this.error);
       }
     },
+    async fetchHistorialPagos(modelo_id) {
+            this.isLoadingHistorial = true;
+            try {
+                const { data, error } = await useFetch(`/api/historial-pagos/${modelo_id}`, {
+                    method: 'GET',
+                });
+
+                if (error.value) throw error.value;
+                if (!data.value) throw new Error('No se recibieron datos');
+
+                console.log('Respuesta del servidor:', data.value); // Debug
+                this.historialPagos = data.value;
+                return data.value;
+
+            } catch (error) {
+                console.error('Error en store:', error);
+                this.error = error.message;
+                throw error;
+            } finally {
+                this.isLoadingHistorial = false;
+            }
+        },
   },
 });

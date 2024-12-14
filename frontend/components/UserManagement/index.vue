@@ -70,7 +70,7 @@ const modeloForm = ref({
 
 const searchQuery = ref('')
 const currentPage = ref(1)
-const perPage = ref(10)
+const perPage = ref(8)
 
 const filteredModelos = computed(() => {
     let filtered = modelos.value

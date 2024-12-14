@@ -132,7 +132,7 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "API: V1.1.0 - FRONTEND: V1.1.0 -- DAHOUSE"
+    return "API: V1.1.1 - FRONTEND: V1.2.0 -- DAHOUSE"
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
@@ -249,7 +249,7 @@ def refresh():
     return jsonify(access_token=access_token)
 
 
-# PENDIENTE REALIZAR LA VISTA DE ESTE ENDPOINT
+# TODO PENDIENTE REALIZAR LA VISTA DE ESTE ENDPOINT
 @app.route("/historial-pagos/<int:modelo_id>", methods=["GET"])
 def obtener_historial_pagos(modelo_id):
     modelo = Modelo.query.get_or_404(modelo_id)
@@ -451,6 +451,7 @@ def obtener_modelos():
                             "estado": deducible.estado,
                             "valor_pagado": deducible.valor_pagado,
                             "valor_restante": deducible.valor_restante,
+                            "fecha_inicio": deducible.fecha_inicio.strftime("%Y-%m-%d"),
                         }
                         for deducible in modelo.deducibles
                     ],

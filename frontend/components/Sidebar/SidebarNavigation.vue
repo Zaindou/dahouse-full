@@ -39,7 +39,7 @@ const links = [
         submenu: [
             { to: '/finance/prestamos', iconSubmenu: 'iconoir:piggy-bank', text: 'Préstamos' },
             { to: '/finance/liquidacion', iconSubmenu: 'streamline:money-atm-card-3-deposit-money-payment-finance-atm-withdraw', text: 'Pagos' },
-            { to: '/finance/historial-pago', iconSubmenu: 'mingcute:bill-line', text: 'Colillas de pago' },
+            { to: '/finance/historial-pagos', iconSubmenu: 'mingcute:bill-line', text: 'Historial de pagos' },
             { to: '/finance/simulador', iconSubmenu: 'heroicons:banknotes', text: 'Simulador' },
             // { to: '/ganancias', iconSubmenu: 'carbon:align-vertical-bottom', text: 'Ganancias' },
         ]
