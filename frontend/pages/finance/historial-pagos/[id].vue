@@ -4,7 +4,12 @@
         <div class="bg-white shadow">
             <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="md:flex md:items-center md:justify-between">
-                    <div class="flex-1 min-w-0">
+                    <div class="flex items-center min-w-0">
+                        <!-- Botón de retroceso -->
+                        <button @click="navigateTo('/finance/historial-pagos')"
+                            class="p-2 mr-4 text-gray-600 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-900">
+                            <Icon name="uil:arrow-left" class="w-6 h-6" />
+                        </button>
                         <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
                             Historial de Pagos
                         </h2>
@@ -85,12 +90,38 @@
                     </div>
                 </div>
 
+                <!-- Filtro por Mes -->
+                <div class="mb-6">
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <div class="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
+                            <div class="flex-1">
+                                <label for="month-filter" class="block text-sm font-medium text-gray-700">
+                                    Filtrar por mes
+                                </label>
+                                <select v-model="selectedMonth" id="month-filter"
+                                    class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300">
+                                    <option value="">Todos los meses</option>
+                                    <option v-for="month in availableMonths" :key="month.value" :value="month.value">
+                                        {{ month.label }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <span class="text-sm text-gray-500">
+                                    {{ filteredPagos.length }} período{{ filteredPagos.length !== 1 ? 's' : '' }}
+                                    encontrado{{ filteredPagos.length !== 1 ? 's' : '' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Timeline de Pagos -->
-                <div v-if="pagosFiltrados.length > 0" class="flow-root">
+                <div v-if="filteredPagos.length > 0" class="flow-root">
                     <ul role="list" class="-mb-8">
-                        <li v-for="(pago, index) in pagosFiltrados" :key="pago.ganancia_id">
+                        <li v-for="(pago, index) in filteredPagos" :key="pago.ganancia_id">
                             <div class="relative pb-8">
-                                <span v-if="index !== pagosFiltrados.length - 1"
+                                <span v-if="index !== filteredPagos.length - 1"
                                     class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
                                     aria-hidden="true"></span>
                                 <div class="relative flex space-x-3">
@@ -201,7 +232,7 @@
                     </ul>
                 </div>
                 <div v-else class="py-12 text-center">
-                    <p class="text-gray-500">No hay pagos registrados para esta modelo.</p>
+                    <p class="text-gray-500">No hay pagos registrados para este período.</p>
                 </div>
             </div>
         </div>
@@ -209,32 +240,84 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useModelosStore } from '~/stores/modelo';
-
 const route = useRoute();
-const router = useRouter();
 const modelosStore = useModelosStore();
 
 // Estados
-const isLoading = ref(false);
+const isLoading = ref(true);
 const historialPagos = ref(null);
 const searchQuery = ref('');
 const showResults = ref(false);
 const allModelos = ref([]);
+const selectedMonth = ref('');
+const MONTH_ORDER = {
+    'JAN': 1,
+    'FEB': 2,
+    'MAR': 3,
+    'APR': 4,
+    'MAY': 5,
+    'JUN': 6,
+    'JUL': 7,
+    'AUG': 8,
+    'SEP': 9,
+    'OCT': 10,
+    'NOV': 11,
+    'DEC': 12
+};
 
-// Computed properties
+
+// Computed property para los datos del modelo
 const modelData = computed(() => {
     return historialPagos.value?.[0] || null;
 });
 
+// Computed para los pagos base (sin filtro de mes)
 const pagosFiltrados = computed(() => {
-
     if (!historialPagos.value) return [];
     return historialPagos.value.slice(1);
 });
 
+// Computed para los meses disponibles
+const availableMonths = computed(() => {
+    if (!pagosFiltrados.value) return [];
+
+    const months = pagosFiltrados.value.map(pago => {
+        const [year, month] = pago.periodo.nombre.split('-');
+        return {
+            value: `${year}-${month}`,
+            label: `${month} ${year}`,
+            raw: pago.periodo.nombre,
+            sortOrder: parseInt(year) * 100 + MONTH_ORDER[month] // Para ordenamiento
+        };
+    });
+
+    // Eliminar duplicados y ordenar
+    const uniqueMonths = Array.from(new Set(months.map(m => m.value)))
+        .map(value => months.find(m => m.value === value))
+        .sort((a, b) => b.sortOrder - a.sortOrder); // Ordenar por el nuevo sortOrder
+
+    return uniqueMonths;
+});
+
+// Computed para los pagos filtrados por mes
+const filteredPagos = computed(() => {
+    if (!historialPagos.value) return [];
+    let pagos = historialPagos.value.slice(1);
+
+    if (selectedMonth.value) {
+        pagos = pagos.filter(pago => {
+            // Filtrar basado en el nombre del periodo en lugar de la fecha
+            const [year, month] = pago.periodo.nombre.split('-');
+            const periodoKey = `${year}-${month}`;
+            return periodoKey === selectedMonth.value;
+        });
+    }
+
+    // Ordenar por periodo de más reciente a más antiguo
+    return pagos.sort((a, b) => b.periodo.nombre.localeCompare(a.periodo.nombre));
+});
+
+// Computed para filtrado de modelos en la búsqueda
 const filteredModelos = computed(() => {
     if (!searchQuery.value) return [];
 
@@ -253,8 +336,8 @@ const fetchHistorialPagos = async () => {
 
     try {
         isLoading.value = true;
-        // Usar directamente el store para mantener consistencia
         const response = await modelosStore.fetchHistorialPagos(modelo_id);
+        console.log('Respuesta historial:', response);
 
         if (response && Array.isArray(response)) {
             historialPagos.value = response;
@@ -284,12 +367,11 @@ const searchModelos = async () => {
 
 const selectModelo = async (modelo) => {
     try {
-        // Primero navegar
         await navigateTo(`${modelo.id}`);
-        // Luego cargar los datos
         await fetchHistorialPagos();
         searchQuery.value = '';
         showResults.value = false;
+        selectedMonth.value = ''; // Resetear el filtro de mes al cambiar de modelo
     } catch (error) {
         console.error('Error al seleccionar modelo:', error);
     }
@@ -333,17 +415,22 @@ onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
 });
 
-// Continuación del script setup...
-
 // Watch route changes
 watch(() => route.params.id, (newId) => {
     if (newId) {
         fetchHistorialPagos();
         searchQuery.value = '';
         showResults.value = false;
+        selectedMonth.value = ''; // Resetear el filtro de mes cuando cambia la ruta
     } else {
         historialPagos.value = null;
     }
+});
+
+// Watch changes en el filtro de mes para debugging
+watch(selectedMonth, (newValue) => {
+    console.log('Mes seleccionado:', newValue);
+    console.log('Pagos filtrados:', filteredPagos.value.length);
 });
 
 useHead({
