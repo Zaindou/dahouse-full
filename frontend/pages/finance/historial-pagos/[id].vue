@@ -69,6 +69,18 @@
 
             <!-- Data State -->
             <div v-else>
+                <!-- Header con botón de estadísticas -->
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        Información de {{ modelData.nombres }} {{ modelData.apellidos }}
+                    </h3>
+                    <button @click="openStats"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <Icon name="uil:chart-line" class="w-5 h-5 mr-2" />
+                        Ver Estadísticas
+                    </button>
+                </div>
+
                 <!-- Info Cards -->
                 <div class="grid gap-6 mb-8 md:grid-cols-3">
                     <div class="p-6 bg-white rounded-lg shadow">
@@ -134,7 +146,6 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="p-4 bg-white rounded-lg shadow">
                                             <!-- Encabezado del pago -->
-                                            <!-- Encabezado del pago -->
                                             <div class="flex items-center justify-between mb-4">
                                                 <div>
                                                     <h3 class="text-lg font-medium text-gray-900">
@@ -152,7 +163,7 @@
                                                             <span class="text-sm text-gray-500">Valor deducido:</span>
                                                             <span class="font-semibold text-red-600">{{
                                                                 formatCurrency(getTotalDeduccionesPeriodo(pago))
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                         <div class="flex items-center gap-2">
                                                             <span class="text-sm text-gray-500">Valor antes de
@@ -260,10 +271,51 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal de Estadísticas -->
+        <TransitionRoot appear :show="isStatsOpen" as="template">
+            <Dialog as="div" @close="closeStats" class="relative z-50">
+                <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0"
+                    enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+                    <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+                </TransitionChild>
+
+                <div class="fixed inset-0 overflow-y-auto">
+                    <div class="flex items-center justify-center min-h-full p-4">
+                        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
+                            enter-to="opacity-100 scale-100" leave="duration-200 ease-in"
+                            leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+                            <DialogPanel
+                                class="w-full max-w-6xl p-6 overflow-hidden transition-all transform bg-white rounded-lg shadow-xl">
+                                <div class="flex items-center justify-between mb-4">
+                                    <DialogTitle class="text-lg font-medium text-gray-900">
+                                        Estadísticas de {{ modelData?.nombre_usuario }}
+                                    </DialogTitle>
+                                    <button @click="closeStats"
+                                        class="text-gray-400 rounded-md hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <Icon name="uil:times" class="w-6 h-6" />
+                                    </button>
+                                </div>
+                                <PaymentStatistics v-if="isStatsOpen" :historial-pagos="historialPagos" />
+                            </DialogPanel>
+                        </TransitionChild>
+                    </div>
+                </div>
+            </Dialog>
+        </TransitionRoot>
     </div>
 </template>
 
+
 <script setup>
+import {
+    TransitionRoot,
+    TransitionChild,
+    Dialog,
+    DialogPanel,
+    DialogTitle
+} from '@headlessui/vue';
+
 const route = useRoute();
 const modelosStore = useModelosStore();
 
@@ -272,8 +324,10 @@ const isLoading = ref(true);
 const historialPagos = ref(null);
 const searchQuery = ref('');
 const showResults = ref(false);
+const isStatsOpen = ref(false);
 const allModelos = ref([]);
 const selectedMonth = ref('');
+
 const MONTH_ORDER = {
     'JAN': 1,
     'FEB': 2,
@@ -288,7 +342,6 @@ const MONTH_ORDER = {
     'NOV': 11,
     'DEC': 12
 };
-
 
 // Computed property para los datos del modelo
 const modelData = computed(() => {
@@ -311,7 +364,6 @@ const availableMonths = computed(() => {
             value: `${year}-${month}`,
             label: `${month} ${year}`,
             raw: pago.periodo.nombre,
-            // Mejorar el sortOrder para asegurar el orden correcto
             sortOrder: parseInt(year) * 100 + MONTH_ORDER[month]
         };
     });
@@ -335,7 +387,7 @@ const availableMonths = computed(() => {
     return uniqueMonths;
 });
 
-// Asegurar que el orden de los pagos filtrados también sea correcto
+// Computed para los pagos filtrados
 const filteredPagos = computed(() => {
     if (!historialPagos.value) return [];
     let pagos = historialPagos.value.slice(1);
@@ -357,7 +409,6 @@ const filteredPagos = computed(() => {
         return orderB - orderA; // Orden descendente (más reciente primero)
     });
 });
-
 
 // Computed para filtrado de modelos en la búsqueda
 const filteredModelos = computed(() => {
@@ -455,6 +506,15 @@ const getTotalDeduccionesPeriodo = (pago) => {
 const getValorRealPeriodo = (pago) => {
     const deducciones = getTotalDeduccionesPeriodo(pago);
     return pago.total_cop + deducciones;
+};
+
+// Métodos del modal
+const openStats = () => {
+    isStatsOpen.value = true;
+};
+
+const closeStats = () => {
+    isStatsOpen.value = false;
 };
 
 // Lifecycle hooks
