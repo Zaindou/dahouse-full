@@ -152,7 +152,7 @@
                                                             <span class="text-sm text-gray-500">Valor deducido:</span>
                                                             <span class="font-semibold text-red-600">{{
                                                                 formatCurrency(getTotalDeduccionesPeriodo(pago))
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                         <div class="flex items-center gap-2">
                                                             <span class="text-sm text-gray-500">Valor antes de
@@ -311,35 +311,53 @@ const availableMonths = computed(() => {
             value: `${year}-${month}`,
             label: `${month} ${year}`,
             raw: pago.periodo.nombre,
-            sortOrder: parseInt(year) * 100 + MONTH_ORDER[month] // Para ordenamiento
+            // Mejorar el sortOrder para asegurar el orden correcto
+            sortOrder: parseInt(year) * 100 + MONTH_ORDER[month]
         };
     });
 
-    // Eliminar duplicados y ordenar
-    const uniqueMonths = Array.from(new Set(months.map(m => m.value)))
-        .map(value => months.find(m => m.value === value))
-        .sort((a, b) => b.sortOrder - a.sortOrder); // Ordenar por el nuevo sortOrder
+    // Eliminar duplicados
+    const uniqueValues = [...new Set(months.map(m => m.value))];
+
+    // Crear array de meses únicos con toda la información
+    const uniqueMonths = uniqueValues
+        .map(value => {
+            const monthData = months.find(m => m.value === value);
+            const [year, month] = value.split('-');
+            return {
+                ...monthData,
+                sortOrder: parseInt(year) * 100 + MONTH_ORDER[month]
+            };
+        })
+        // Ordenar por sortOrder de mayor a menor (más reciente primero)
+        .sort((a, b) => b.sortOrder - a.sortOrder);
 
     return uniqueMonths;
 });
 
-// Computed para los pagos filtrados por mes
+// Asegurar que el orden de los pagos filtrados también sea correcto
 const filteredPagos = computed(() => {
     if (!historialPagos.value) return [];
     let pagos = historialPagos.value.slice(1);
 
     if (selectedMonth.value) {
         pagos = pagos.filter(pago => {
-            // Filtrar basado en el nombre del periodo en lugar de la fecha
             const [year, month] = pago.periodo.nombre.split('-');
             const periodoKey = `${year}-${month}`;
             return periodoKey === selectedMonth.value;
         });
     }
 
-    // Ordenar por periodo de más reciente a más antiguo
-    return pagos.sort((a, b) => b.periodo.nombre.localeCompare(a.periodo.nombre));
+    // Ordenar los pagos por año y mes
+    return pagos.sort((a, b) => {
+        const [yearA, monthA] = a.periodo.nombre.split('-');
+        const [yearB, monthB] = b.periodo.nombre.split('-');
+        const orderA = parseInt(yearA) * 100 + MONTH_ORDER[monthA];
+        const orderB = parseInt(yearB) * 100 + MONTH_ORDER[monthB];
+        return orderB - orderA; // Orden descendente (más reciente primero)
+    });
 });
+
 
 // Computed para filtrado de modelos en la búsqueda
 const filteredModelos = computed(() => {
