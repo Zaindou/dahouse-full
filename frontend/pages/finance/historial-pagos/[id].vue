@@ -134,7 +134,8 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="p-4 bg-white rounded-lg shadow">
                                             <!-- Encabezado del pago -->
-                                            <div class="flex justify-between mb-4">
+                                            <!-- Encabezado del pago -->
+                                            <div class="flex items-center justify-between mb-4">
                                                 <div>
                                                     <h3 class="text-lg font-medium text-gray-900">
                                                         Periodo: {{ pago.periodo.nombre }}
@@ -144,13 +145,36 @@
                                                             formatDate(pago.periodo.fecha_fin) }}
                                                     </p>
                                                 </div>
-                                                <div class="text-right">
-                                                    <p class="text-lg font-semibold text-green-600">
-                                                        {{ formatCurrency(pago.total_cop) }}
-                                                    </p>
-                                                    <p class="text-sm text-gray-500">
-                                                        TRM: {{ formatCurrency(pago.trm) }}
-                                                    </p>
+                                                <div class="flex items-center gap-4">
+                                                    <!-- Si hay deducciones, mostrar la información completa -->
+                                                    <template v-if="getTotalDeduccionesPeriodo(pago) > 0">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-sm text-gray-500">Valor deducido:</span>
+                                                            <span class="font-semibold text-red-600">{{
+                                                                formatCurrency(getTotalDeduccionesPeriodo(pago))
+                                                            }}</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-sm text-gray-500">Valor antes de
+                                                                deducciones:</span>
+                                                            <span class="font-semibold text-blue-600">{{
+                                                                formatCurrency(getValorRealPeriodo(pago)) }}</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-sm text-gray-500">Pagado:</span>
+                                                            <span class="font-semibold text-green-600">{{
+                                                                formatCurrency(pago.total_cop) }}</span>
+                                                        </div>
+                                                    </template>
+                                                    <!-- Si no hay deducciones, mostrar solo el valor pagado -->
+                                                    <template v-else>
+                                                        <div class="text-right">
+                                                            <p class="text-lg font-semibold text-green-600">{{
+                                                                formatCurrency(pago.total_cop) }}</p>
+                                                            <p class="text-sm text-gray-500">TRM: {{
+                                                                formatCurrency(pago.trm) }}</p>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </div>
 
@@ -401,6 +425,18 @@ const handleClickOutside = (event) => {
     if (!event.target.closest('.search-container')) {
         showResults.value = false;
     }
+};
+
+const getTotalDeduccionesPeriodo = (pago) => {
+    if (!pago.deducciones_asociadas) return 0;
+    return pago.deducciones_asociadas.reduce((total, deduccion) => {
+        return total + deduccion.monto_pagado;
+    }, 0);
+};
+
+const getValorRealPeriodo = (pago) => {
+    const deducciones = getTotalDeduccionesPeriodo(pago);
+    return pago.total_cop + deducciones;
 };
 
 // Lifecycle hooks
