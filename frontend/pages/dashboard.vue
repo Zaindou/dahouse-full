@@ -8,16 +8,17 @@
                         <Financiero />
                     </div>
                 </div>
-
-                <!-- Espacio para futuros módulos -->
-                <!-- <div class="p-6 bg-white rounded-lg shadow-md">
-                    <h2 class="mb-4 text-xl font-bold">Otro Módulo</h2>
-                    <p>Contenido del módulo...</p>
-                </div> -->
+                <div class="col-span-1 bg-white rounded-lg shadow-md lg:col-span-2">
+                    <div class="p-4">
+                        <Bussines />
+                    </div>
+                </div>
             </div>
         </div>
     </NuxtLayout>
 </template>
 
 <script setup>
+import Financiero from '@/components/dashboard/Financiero.vue'
+import Bussines from '~/components/dashboard/Bussines.vue';
 </script>

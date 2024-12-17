@@ -8,7 +8,7 @@ from flask_jwt_extended import (
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from sqlalchemy import func, extract, or_
+from sqlalchemy import func, distinct, extract, or_, case, and_
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import (
@@ -320,6 +320,199 @@ def obtener_historial_pagos(modelo_id):
         )
 
     return jsonify(historial)
+
+
+@app.route("/estadisticas-negocio", methods=["GET"])
+def obtener_estadisticas_negocio():
+    # Base query
+    query = db.session.query(Ganancia)
+
+    # Estadísticas por período
+    stats_por_periodo = (
+        query.join(Periodo)
+        .outerjoin(GananciaPorPagina)
+        .group_by(Periodo.nombre, Periodo.fecha_inicio)
+        .order_by(Periodo.fecha_inicio.desc())
+        .with_entities(
+            Periodo.nombre,
+            func.sum(GananciaPorPagina.total_cop).label("total_ganancia_modelos"),
+            func.sum(GananciaPorPagina.ganancia_estudio_cop).label("ganancia_estudio"),
+            (
+                func.sum(GananciaPorPagina.total_cop)
+                + func.sum(GananciaPorPagina.ganancia_estudio_cop)
+            ).label("total_ganancias_reales"),
+            func.count(distinct(Ganancia.modelo_id)).label("total_modelos"),
+            func.sum(GananciaPorPagina.tokens).label("total_tokens"),
+        )
+        .all()
+    )
+
+    # Procesar tokens y modelos únicos por título de período
+    tokens_por_titulo = {}
+    modelos_por_titulo = {}
+    for stat in stats_por_periodo:
+        titulo = stat.nombre
+        tokens_por_titulo[titulo] = stat.total_tokens or 0
+        modelos_por_titulo[titulo] = stat.total_modelos or 0
+
+    # Agrupar por títulos que pertenezcan al mismo mes
+    stats_por_mes = {}
+    for stat in stats_por_periodo:
+        titulo = stat.nombre
+        # Extraer año y mes del título
+        partes_titulo = titulo.split("-")
+        año = int(partes_titulo[0])  # Primer componente es el año
+        mes = partes_titulo[1]  # Segundo componente es el mes (en texto)
+
+        mes_año = f"{año}-{mes}"  # Combinar como llave única
+        if mes_año not in stats_por_mes:
+            stats_por_mes[mes_año] = {
+                "total_ganancia_modelos": 0,
+                "ganancia_estudio": 0,
+                "total_ganancias_reales": 0,
+                "total_modelos": 0,
+                "total_tokens": 0,
+                "numero_periodos": 0,
+            }
+
+        # Sumar valores al mes correspondiente
+        stats_por_mes[mes_año]["total_ganancia_modelos"] += (
+            stat.total_ganancia_modelos or 0
+        )
+        stats_por_mes[mes_año]["ganancia_estudio"] += stat.ganancia_estudio or 0
+        stats_por_mes[mes_año]["total_ganancias_reales"] += (
+            stat.total_ganancias_reales or 0
+        )
+        stats_por_mes[mes_año]["total_tokens"] += tokens_por_titulo[titulo]
+        stats_por_mes[mes_año]["total_modelos"] = max(
+            stats_por_mes[mes_año]["total_modelos"], modelos_por_titulo[titulo]
+        )
+        stats_por_mes[mes_año]["numero_periodos"] += 1
+
+    # Diccionario para convertir nombres de meses a índices
+    MESES_MAP = {
+        "JAN": 1,
+        "FEB": 2,
+        "MAR": 3,
+        "APR": 4,
+        "MAY": 5,
+        "JUN": 6,
+        "JUL": 7,
+        "AUG": 8,
+        "SEP": 9,
+        "OCT": 10,
+        "NOV": 11,
+        "DEC": 12,
+    }
+
+    # Ordenar meses cronológicamente
+    meses_ordenados = sorted(
+        stats_por_mes.keys(),
+        key=lambda mes_año: (
+            int(mes_año.split("-")[0]),  # Año
+            MESES_MAP[mes_año.split("-")[1]],  # Mes numérico
+        ),
+    )
+
+    # Crear lista final de estadísticas por mes con métricas adicionales
+    estadisticas_por_mes = []
+    for i, mes_año in enumerate(meses_ordenados):
+        data = stats_por_mes[mes_año]
+        total_ganancias_reales = data["total_ganancias_reales"]
+        ganancia_estudio = data["ganancia_estudio"]
+
+        # Porcentaje del estudio
+        porcentaje_estudio = (
+            (ganancia_estudio / total_ganancias_reales) * 100
+            if total_ganancias_reales
+            else 0
+        )
+
+        # Crecimiento de ganancias mes a mes
+        crecimiento_ganancias = None
+        if i > 0:  # Solo calcular si hay un mes anterior
+            mes_anterior = meses_ordenados[i - 1]
+            ganancias_mes_anterior = stats_por_mes[mes_anterior][
+                "total_ganancias_reales"
+            ]
+            if ganancias_mes_anterior:
+                crecimiento_ganancias = (
+                    (total_ganancias_reales - ganancias_mes_anterior)
+                    / ganancias_mes_anterior
+                ) * 100
+
+        estadisticas_por_mes.append(
+            {
+                "año": int(mes_año.split("-")[0]),  # Extraer el año
+                "mes": mes_año.split("-")[1],  # Extraer el mes
+                "total_ganancia_modelos": float(data["total_ganancia_modelos"]),
+                "ganancia_estudio": float(data["ganancia_estudio"]),
+                "total_ganancias_reales": float(data["total_ganancias_reales"]),
+                "total_modelos": int(data["total_modelos"]),
+                "total_tokens": int(data["total_tokens"]),
+                "numero_periodos": data["numero_periodos"],
+                "porcentaje_estudio": porcentaje_estudio,
+                "crecimiento_ganancias": crecimiento_ganancias,
+            }
+        )
+
+    # Estadísticas de tokens por página
+    tokens_por_pagina = (
+        db.session.query(
+            Pagina.nombre,
+            func.sum(GananciaPorPagina.tokens).label("total_tokens"),
+            func.sum(GananciaPorPagina.total_cop).label("total_ganado"),
+        )
+        .join(GananciaPorPagina)
+        .group_by(Pagina.nombre)
+        .all()
+    )
+
+    # Estadísticas de deducciones
+    deducciones_stats = (
+        db.session.query(
+            Deducible.concepto,
+            func.sum(PagoDeduccion.monto_pagado).label("total_deducido"),
+            func.count(distinct(Deducible.modelo_id)).label("total_modelos"),
+        )
+        .join(PagoDeduccion)
+        .group_by(Deducible.concepto)
+        .all()
+    )
+
+    # Construir respuesta JSON
+    return jsonify(
+        {
+            "estadisticas_por_periodo": [
+                {
+                    "periodo": stat.nombre,
+                    "total_ganancia_modelos": float(stat.total_ganancia_modelos),
+                    "ganancia_estudio": float(stat.ganancia_estudio),
+                    "total_ganancias_reales": float(stat.total_ganancias_reales),
+                    "total_modelos": stat.total_modelos,
+                    "total_tokens": int(stat.total_tokens or 0),
+                }
+                for stat in stats_por_periodo
+            ],
+            "estadisticas_por_mes": estadisticas_por_mes,
+            "tokens_por_pagina": [
+                {
+                    "pagina": stat.nombre,
+                    "total_tokens": stat.total_tokens,
+                    "total_ganado": float(stat.total_ganado),
+                }
+                for stat in tokens_por_pagina
+            ],
+            "deducciones": [
+                {
+                    "concepto": stat.concepto,
+                    "total_deducido": float(stat.total_deducido),
+                    "total_modelos": stat.total_modelos,
+                }
+                for stat in deducciones_stats
+            ],
+        }
+    )
 
 
 @app.route("/financiero", methods=["GET"])
