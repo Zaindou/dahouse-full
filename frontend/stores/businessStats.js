@@ -129,7 +129,7 @@ export const useBusinessStatsStore = defineStore('businessStats', {
       this.error = null;
 
       try {
-        const response = await fetch('/api/estadisticas-negocio');
+        const response = await fetch(`${useRuntimeConfig().public.apiUrl}/estadisticas-negocio`);
         if (!response.ok) throw new Error('Error al obtener estadísticas');
 
         const data = await response.json();
