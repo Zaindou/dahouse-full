@@ -9,8 +9,11 @@ from models import (
     Rol,
     SupuestoGanancia,
     MetaPeriodo,
+    PagoDeduccion,
 )
 
+
+from sqlalchemy import func
 from datetime import datetime, timedelta, date
 
 
@@ -79,3 +82,116 @@ def calcular_nuevo_periodo():
     except Exception as e:
         print(f"Error al calcular el nuevo período: {e}")
         return None
+
+
+# TOOLS FOR BUSSINES ENDPOINTS
+
+MESES_MAP = {
+    "JAN": 1,
+    "FEB": 2,
+    "MAR": 3,
+    "APR": 4,
+    "MAY": 5,
+    "JUN": 6,
+    "JUL": 7,
+    "AUG": 8,
+    "SEP": 9,
+    "OCT": 10,
+    "NOV": 11,
+    "DEC": 12,
+}
+
+
+def get_stats_por_periodo():
+    return (
+        db.session.query(
+            Periodo.nombre.label("periodo"),
+            func.sum(GananciaPorPagina.total_cop).label("ganancia_modelos"),
+            func.sum(GananciaPorPagina.ganancia_estudio_cop).label("ganancia_estudio"),
+            func.sum(GananciaPorPagina.tokens).label("total_tokens"),
+        )
+        .join(Ganancia, Ganancia.periodo_id == Periodo.id)
+        .join(GananciaPorPagina, Ganancia.id == GananciaPorPagina.ganancia_id)
+        .group_by(Periodo.nombre)
+        .order_by(Periodo.nombre)
+        .all()
+    )
+
+
+def get_deducciones_por_periodo():
+    return (
+        db.session.query(
+            Periodo.nombre.label("periodo"),
+            Deducible.concepto.label("concepto"),
+            func.sum(PagoDeduccion.monto_pagado).label("total_deducciones"),
+        )
+        .join(Ganancia, Ganancia.periodo_id == Periodo.id)
+        .join(PagoDeduccion, PagoDeduccion.pago_id == Ganancia.id)
+        .join(Deducible, Deducible.id == PagoDeduccion.deduccion_id)
+        .group_by(Periodo.nombre, Deducible.concepto)
+        .order_by(Periodo.nombre, Deducible.concepto)
+        .all()
+    )
+
+
+def get_tokens_por_modelo_pagina():
+    return (
+        db.session.query(
+            Periodo.nombre.label("periodo"),
+            Modelo.nombre_usuario.label("modelo_usuario"),
+            Pagina.nombre.label("pagina"),
+            func.sum(GananciaPorPagina.tokens).label("total_tokens"),
+        )
+        .join(Ganancia, Ganancia.periodo_id == Periodo.id)
+        .join(GananciaPorPagina, Ganancia.id == GananciaPorPagina.ganancia_id)
+        .join(Modelo, Ganancia.modelo_id == Modelo.id)
+        .join(Pagina, GananciaPorPagina.pagina_id == Pagina.id)
+        .group_by(Periodo.nombre, Modelo.nombre_usuario, Pagina.nombre)
+        .order_by(Periodo.nombre, Modelo.nombre_usuario, Pagina.nombre)
+        .all()
+    )
+
+
+def calculate_trends(stats):
+    """
+    The function `calculate_trends` sorts statistics by year and month, calculates the percentage trend
+    in total tokens, and adds this trend to each statistic entry.
+
+    :param stats: It seems like the code snippet you provided is a Python function `calculate_trends`
+    that calculates the trend percentage based on the total tokens in the input statistics data.
+    However, the `MESES_MAP` variable is not defined in the snippet
+    :return: The function `calculate_trends` is returning a list of dictionaries where each dictionary
+    represents a statistical data point with an added key "tendencia" that represents the percentage
+    change in "total_tokens" compared to the previous data point. The list contains these updated
+    statistical data points with the calculated trends.
+    """
+    # Ordenar los datos por año y mes
+    stats_ordenados = sorted(
+        stats,
+        key=lambda x: (
+            int(x["mes_año"].split("-")[0]),  # Año
+            MESES_MAP[x["mes_año"].split("-")[1]],  # Mes
+        ),
+    )
+
+    tendencia_anterior_tokens = None
+    estadisticas_con_tendencia = []
+
+    for stat in stats_ordenados:
+        total_tokens = stat["total_tokens"]
+        if tendencia_anterior_tokens is not None:
+            if tendencia_anterior_tokens > 0:
+                tendencia = (
+                    (total_tokens - tendencia_anterior_tokens)
+                    / tendencia_anterior_tokens
+                ) * 100
+            else:
+                tendencia = 0
+        else:
+            tendencia = None
+
+        stat["tendencia"] = round(tendencia, 2) if tendencia is not None else None
+        tendencia_anterior_tokens = total_tokens
+        estadisticas_con_tendencia.append(stat)
+
+    return estadisticas_con_tendencia

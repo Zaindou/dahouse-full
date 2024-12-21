@@ -1,46 +1,47 @@
 <template>
     <NuxtLayout>
-        <div class="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100 lg:p-8">
+        <div class="min-h-screen p-4 bg-gradient-to-br from-gray-50 to-gray-100 sm:p-6 lg:p-8">
             <!-- Skeleton Loading State -->
             <DashboardSkeleton v-if="loading" />
 
             <!-- Error State -->
-            <div v-else-if="error" class="p-6 mb-6 border border-red-200 rounded-2xl bg-red-50/80 backdrop-blur-sm">
+            <div v-else-if="error"
+                class="p-4 mb-4 border border-red-200 rounded-xl bg-red-50/80 backdrop-blur-sm sm:p-6 sm:mb-6">
                 <div class="flex items-center gap-3">
-                    <Icon name="uil:exclamation-circle" class="w-6 h-6 text-red-500" />
-                    <p class="text-red-700">{{ error }}</p>
+                    <Icon name="uil:exclamation-circle" class="w-5 h-5 text-red-500 sm:w-6 sm:h-6" />
+                    <p class="text-sm text-red-700 sm:text-base">{{ error }}</p>
                 </div>
             </div>
 
             <template v-else>
-                <!-- Filtros con efecto glass -->
+                <!-- Filters -->
                 <DashboardFilters :available-years="store.availableYears" :available-months="store.availableMonths"
                     :available-periods="store.availablePeriods" @update:filters="handleFiltersUpdate"
                     @reset="handleFiltersReset"
-                    class="p-6 mb-8 border shadow-md bg-white/80 backdrop-blur-lg rounded-2xl border-gray-100/50" />
+                    class="p-4 mb-6 border shadow-md bg-white/80 backdrop-blur-lg rounded-xl border-gray-100/50 sm:p-6 sm:mb-8 sm:rounded-2xl" />
 
-                <!-- Tarjetas de Resumen -->
-                <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:mb-8">
                     <!-- Ganancia Bruta Total -->
                     <div
-                        class="p-6 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-2xl hover:shadow-xl hover:-translate-y-1">
+                        class="p-4 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl hover:-translate-y-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-medium text-gray-600">Ganancia Bruta Total</h3>
+                            <h3 class="text-xs font-medium text-gray-600 sm:text-sm">Ganancia Bruta Total</h3>
                             <div
-                                class="flex items-center justify-center w-10 h-10 transition-colors duration-300 bg-green-100 rounded-full group-hover:bg-green-200">
-                                <Icon name="uil:money-bill" class="w-6 h-6 text-green-600" />
+                                class="flex items-center justify-center w-8 h-8 transition-colors duration-300 bg-green-100 rounded-full sm:w-10 sm:h-10 group-hover:bg-green-200">
+                                <Icon name="uil:money-bill" class="w-5 h-5 text-green-600 sm:w-6 sm:h-6" />
                             </div>
                         </div>
-                        <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900">
+                        <p class="mt-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl sm:mt-4">
                             {{ formatCurrency(totalGananciaBruta) }}
                         </p>
-                        <div class="flex items-center mt-2 text-sm">
+                        <div class="flex items-center mt-2 text-xs sm:text-sm">
                             <span :class="[
                                 tendenciaGananciaBruta > 0 ? 'text-green-500' : 'text-red-500',
                                 'font-medium flex items-center'
                             ]">
                                 <Icon :name="tendenciaGananciaBruta > 0 ? 'uil:arrow-up' : 'uil:arrow-down'"
-                                    class="w-4 h-4 mr-1" />
+                                    class="w-3 h-3 mr-1 sm:w-4 sm:h-4" />
                                 {{ Math.abs(tendenciaGananciaBruta).toFixed(1) }}%
                             </span>
                             <span class="ml-2 text-gray-500">vs periodo anterior</span>
@@ -49,24 +50,24 @@
 
                     <!-- Total Tokens -->
                     <div
-                        class="p-6 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-2xl hover:shadow-xl hover:-translate-y-1">
+                        class="p-4 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl hover:-translate-y-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-medium text-gray-600">Total Tokens</h3>
+                            <h3 class="text-xs font-medium text-gray-600 sm:text-sm">Total Tokens</h3>
                             <div
-                                class="flex items-center justify-center w-10 h-10 transition-colors duration-300 bg-blue-100 rounded-full group-hover:bg-blue-200">
-                                <Icon name="uil:coins" class="w-6 h-6 text-blue-600" />
+                                class="flex items-center justify-center w-8 h-8 transition-colors duration-300 bg-blue-100 rounded-full sm:w-10 sm:h-10 group-hover:bg-blue-200">
+                                <Icon name="uil:coins" class="w-5 h-5 text-blue-600 sm:w-6 sm:h-6" />
                             </div>
                         </div>
-                        <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900">
+                        <p class="mt-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl sm:mt-4">
                             {{ formatNumber(totalTokens) }}
                         </p>
-                        <div class="flex items-center mt-2 text-sm">
+                        <div class="flex items-center mt-2 text-xs sm:text-sm">
                             <span :class="[
                                 tendenciaTokens > 0 ? 'text-green-500' : 'text-red-500',
                                 'font-medium flex items-center'
                             ]">
                                 <Icon :name="tendenciaTokens > 0 ? 'uil:arrow-up' : 'uil:arrow-down'"
-                                    class="w-4 h-4 mr-1" />
+                                    class="w-3 h-3 mr-1 sm:w-4 sm:h-4" />
                                 {{ Math.abs(tendenciaTokens).toFixed(1) }}%
                             </span>
                             <span class="ml-2 text-gray-500">vs periodo anterior</span>
@@ -75,60 +76,67 @@
 
                     <!-- Ganancia Modelos -->
                     <div
-                        class="p-6 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-2xl hover:shadow-xl hover:-translate-y-1">
+                        class="p-4 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl hover:-translate-y-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-medium text-gray-600">Ganancia Modelos</h3>
+                            <h3 class="text-xs font-medium text-gray-600 sm:text-sm">Ganancia Modelos</h3>
                             <div
-                                class="flex items-center justify-center w-10 h-10 transition-colors duration-300 bg-purple-100 rounded-full group-hover:bg-purple-200">
-                                <Icon name="gravity-ui:face-fun" class="w-6 h-6 text-purple-600" />
+                                class="flex items-center justify-center w-8 h-8 transition-colors duration-300 bg-purple-100 rounded-full sm:w-10 sm:h-10 group-hover:bg-purple-200">
+                                <Icon name="gravity-ui:face-fun" class="w-5 h-5 text-purple-600 sm:w-6 sm:h-6" />
                             </div>
                         </div>
-                        <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900">
+                        <p class="mt-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl sm:mt-4">
                             {{ formatCurrency(latestStats?.ganancia_modelos || 0) }}
                         </p>
-                        <p class="mt-2 text-sm text-gray-500">
+                        <p class="mt-2 text-xs text-gray-500 sm:text-sm">
                             {{ porcentajeModelos.toFixed(1) }}% del total
                         </p>
                     </div>
 
                     <!-- Ganancia Estudio -->
                     <div
-                        class="p-6 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-2xl hover:shadow-xl hover:-translate-y-1">
+                        class="p-4 transition-all duration-300 transform border border-gray-100 shadow-sm group bg-white/90 backdrop-blur-sm rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl hover:-translate-y-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-medium text-gray-600">Ganancia Estudio</h3>
+                            <h3 class="text-xs font-medium text-gray-600 sm:text-sm">Ganancia Estudio</h3>
                             <div
-                                class="flex items-center justify-center w-10 h-10 transition-colors duration-300 bg-orange-100 rounded-full group-hover:bg-orange-200">
-                                <Icon name="uil:building" class="w-6 h-6 text-orange-600" />
+                                class="flex items-center justify-center w-8 h-8 transition-colors duration-300 bg-orange-100 rounded-full sm:w-10 sm:h-10 group-hover:bg-orange-200">
+                                <Icon name="uil:building" class="w-5 h-5 text-orange-600 sm:w-6 sm:h-6" />
                             </div>
                         </div>
-                        <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900">
+                        <p class="mt-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl sm:mt-4">
                             {{ formatCurrency(latestStats?.ganancia_estudio || 0) }}
                         </p>
-                        <p class="mt-2 text-sm text-gray-500">
+                        <p class="mt-2 text-xs text-gray-500 sm:text-sm">
                             {{ porcentajeEstudio.toFixed(1) }}% del total
                         </p>
                     </div>
                 </div>
 
-                <!-- Gráficos -->
-                <div class="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
+                <!-- Charts -->
+                <div class="grid grid-cols-1 gap-4 mb-6 lg:grid-cols-2 sm:gap-6 sm:mb-8">
+                    <!-- Ganancias Chart -->
+                    <GananciasChart :data="filteredStats" @period-change="handlePeriodChange"
+                        class="min-h-[300px] sm:min-h-[400px]" />
 
-                    <GananciasChart :data="filteredStats" @period-change="handlePeriodChange" />
+                    <!-- Tokens Chart -->
+                    <TokensChart :data="filteredStats" :filters="store.filters"
+                        class="min-h-[300px] sm:min-h-[400px]" />
 
-                    <TokensChart :data="filteredStats" :filters="store.filters" />
+                    <!-- Tokens Distribution -->
+                    <TokensDistribution :token-data="getTokensPorPagina" :loading="loading"
+                        class="min-h-[300px] sm:min-h-[400px]" />
 
-                    <TokensDistribution :token-data="getTokensPorPagina" :loading="loading" />
-
-                    <Podium :data="podiumData" />
-
+                    <!-- Podium -->
+                    <Podium :data="podiumData" class="min-h-[300px] sm:min-h-[400px]" />
                 </div>
 
-                <!-- Tabla de Deducciones -->
-                <div class="overflow-hidden border border-gray-100 shadow-md bg-white/90 backdrop-blur-sm rounded-2xl">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/80">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-900">Deducciones</h3>
-                            <span class="px-4 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-600">
+                <!-- Deductions Table -->
+                <div
+                    class="overflow-hidden border border-gray-100 shadow-md bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl">
+                    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/80 sm:px-6 sm:py-4">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="text-base font-semibold text-gray-900 sm:text-lg">Deducciones</h3>
+                            <span
+                                class="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full sm:px-4 sm:py-1.5 sm:text-sm">
                                 Total: {{ formatCurrency(totalDeducciones) }}
                             </span>
                         </div>
@@ -138,15 +146,15 @@
                             <thead class="bg-gray-50/80">
                                 <tr>
                                     <th
-                                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                        class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase sm:px-6 sm:py-3">
                                         Periodo
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                        class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase sm:px-6 sm:py-3">
                                         Concepto
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                        class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase sm:px-6 sm:py-3">
                                         Total
                                     </th>
                                 </tr>
@@ -154,13 +162,16 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr v-for="(deduccion, index) in lastDeducciones" :key="index"
                                     class="transition-colors duration-200 hover:bg-gray-50/80">
-                                    <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                    <td
+                                        class="px-4 py-3 text-xs text-gray-900 whitespace-nowrap sm:px-6 sm:py-4 sm:text-sm">
                                         {{ formatPeriodo(deduccion.periodo) }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                    <td
+                                        class="px-4 py-3 text-xs text-gray-600 whitespace-nowrap sm:px-6 sm:py-4 sm:text-sm">
                                         {{ deduccion.concepto }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                    <td
+                                        class="px-4 py-3 text-xs text-gray-900 whitespace-nowrap sm:px-6 sm:py-4 sm:text-sm">
                                         {{ formatCurrency(deduccion.total_deducciones) }}
                                     </td>
                                 </tr>

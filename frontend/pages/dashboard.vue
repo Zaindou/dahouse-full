@@ -8,11 +8,11 @@
                         <Financiero />
                     </div>
                 </div>
-                <div class="col-span-1 bg-white rounded-lg shadow-md lg:col-span-2">
+                <!-- <div class="col-span-1 bg-white rounded-lg shadow-md lg:col-span-2">
                     <div class="p-4">
                         <Bussines />
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </NuxtLayout>

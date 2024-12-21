@@ -45,9 +45,15 @@ const links = [
         ]
     },
     {
+        to: '/estadisticas',
+        icon: 'bx:bx-bar-chart-alt-2',
+        text: 'Estadísticas'
+    },
+    {
         to: '/mantenimiento',
         icon: 'mingcute:hotel-fill',
         text: 'Rooms'
-    }
+    },
+
 ]
 </script>
