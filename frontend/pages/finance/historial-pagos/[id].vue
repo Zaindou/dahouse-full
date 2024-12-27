@@ -52,13 +52,7 @@
         <!-- Main Content -->
         <div class="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <!-- Loading State -->
-            <div v-if="isLoading" class="space-y-4">
-                <div v-for="n in 3" :key="n" class="animate-pulse">
-                    <div class="w-3/4 h-4 bg-gray-200 rounded"></div>
-                    <div class="h-4 mt-4 bg-gray-200 rounded"></div>
-                    <div class="w-5/6 h-4 mt-4 bg-gray-200 rounded"></div>
-                </div>
-            </div>
+            <PaymentHistorySkeleton v-if="isLoading" />
 
             <!-- No Data State -->
             <div v-else-if="!modelData" class="py-12 text-center">
@@ -163,7 +157,7 @@
                                                             <span class="text-sm text-gray-500">Valor deducido:</span>
                                                             <span class="font-semibold text-red-600">{{
                                                                 formatCurrency(getTotalDeduccionesPeriodo(pago))
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                         <div class="flex items-center gap-2">
                                                             <span class="text-sm text-gray-500">Valor antes de
@@ -316,12 +310,12 @@ import {
     DialogTitle
 } from '@headlessui/vue';
 
+import PaymentHistorySkeleton from '@/components/PaymentHistory/Skeleton.vue';
+
 const route = useRoute();
 const modelosStore = useModelosStore();
 
 // Estados
-const isLoading = ref(true);
-const historialPagos = ref(null);
 const searchQuery = ref('');
 const showResults = ref(false);
 const isStatsOpen = ref(false);
@@ -342,6 +336,25 @@ const MONTH_ORDER = {
     'NOV': 11,
     'DEC': 12
 };
+
+// Usar useAsyncData para cargar los datos
+const { data: historialPagos, pending: isLoading, refresh } = await useAsyncData(
+    'historialPagos',
+    async () => {
+        try {
+            if (!route.params.id) return null;
+            const response = await modelosStore.fetchHistorialPagos(route.params.id);
+            return response && Array.isArray(response) ? response : null;
+        } catch (error) {
+            console.error('Error al cargar el historial:', error);
+            useToast().error('No se pudo cargar el historial de pagos');
+            return null;
+        }
+    },
+    {
+        watch: [() => route.params.id]
+    }
+);
 
 // Computed property para los datos del modelo
 const modelData = computed(() => {
@@ -423,29 +436,6 @@ const filteredModelos = computed(() => {
 });
 
 // Métodos
-const fetchHistorialPagos = async () => {
-    const modelo_id = route.params.id;
-    if (!modelo_id) return;
-
-    try {
-        isLoading.value = true;
-        const response = await modelosStore.fetchHistorialPagos(modelo_id);
-        console.log('Respuesta historial:', response);
-
-        if (response && Array.isArray(response)) {
-            historialPagos.value = response;
-        } else {
-            historialPagos.value = null;
-        }
-    } catch (error) {
-        console.error('Error al cargar el historial:', error);
-        historialPagos.value = null;
-        useToast().error('No se pudo cargar el historial de pagos');
-    } finally {
-        isLoading.value = false;
-    }
-};
-
 const searchModelos = async () => {
     if (!allModelos.value.length) {
         try {
@@ -460,8 +450,7 @@ const searchModelos = async () => {
 
 const selectModelo = async (modelo) => {
     try {
-        await navigateTo(`${modelo.id}`);
-        await fetchHistorialPagos();
+        await navigateTo(`/finance/historial-pagos/${modelo.id}`);
         searchQuery.value = '';
         showResults.value = false;
         selectedMonth.value = ''; // Resetear el filtro de mes al cambiar de modelo
@@ -520,25 +509,10 @@ const closeStats = () => {
 // Lifecycle hooks
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
-    if (route.params.id) {
-        fetchHistorialPagos();
-    }
 });
 
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
-});
-
-// Watch route changes
-watch(() => route.params.id, (newId) => {
-    if (newId) {
-        fetchHistorialPagos();
-        searchQuery.value = '';
-        showResults.value = false;
-        selectedMonth.value = ''; // Resetear el filtro de mes cuando cambia la ruta
-    } else {
-        historialPagos.value = null;
-    }
 });
 
 // Watch changes en el filtro de mes para debugging
