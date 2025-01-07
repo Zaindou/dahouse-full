@@ -110,7 +110,8 @@ def generar_pdf_desprendible(modelo, ganancia, total_cop, fecha_pago):
     # NIT
     elements.append(
         Paragraph(
-            "NIT: 1010014363-7", ParagraphStyle("NIT", fontSize=10, alignment=TA_RIGHT)
+            "Dahouse Studio S.A.S NIT: 901.902.475-4",
+            ParagraphStyle("NIT", fontSize=10, alignment=TA_RIGHT),
         )
     )
     elements.append(Spacer(1, 20))
