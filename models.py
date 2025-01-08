@@ -167,6 +167,32 @@ class PagoDeduccion(db.Model):
     deduccion = db.relationship("Deducible", back_populates="pagos_asociados")
 
 
+class Earning(db.Model):
+    __tablename__ = "earnings"
+
+    id = db.Column(db.Integer, primary_key=True)  # Identificador único
+    nickname = db.Column(db.String(50), nullable=False)  # Nickname de la modelo
+    dollars = db.Column(db.Float, nullable=False, default=0.0)  # Ganancia en dólares
+    tokens = db.Column(db.Float, nullable=False, default=0.0)  # Ganancia en tokens
+    timestamp = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow
+    )  # Fecha y hora de registro
+    date = db.Column(db.Date, nullable=False)  # Fecha a la que pertenece la ganancia
+    page_name = db.Column(db.String(50), nullable=False)  # Nombre de la página
+    is_locked = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class EarningsUsers(db.Model):
+    __tablename__ = "earnings_users"
+
+    id = db.Column(db.Integer, primary_key=True)  # Identificador único
+    nickname = db.Column(db.String(50), nullable=False)  # Nickname de la modelo
+    username = db.Column(db.String(50), nullable=False)  # Nickname de la modelo
+    password = db.Column(db.String(50), nullable=False)  # Ganancia en dólares
+    page_name = db.Column(db.String(50), nullable=False)  # Ganancia en tokens
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
+
 # Establecer las relaciones back_populates en la otra dirección
 
 Pagina.ganancias_por_pagina = db.relationship(
