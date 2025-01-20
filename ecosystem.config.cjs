@@ -15,6 +15,7 @@ module.exports = {
       script: "/var/www/dahouse-full/env/bin/gunicorn", // Ruta a Gunicorn dentro del entorno virtual
       args: "--bind 0.0.0.0:8000 app:app", // Cambia 'app:app' si el archivo principal tiene otro nombre
       cwd: "/var/www/dahouse-full", // Ruta al backend
+      interpreter: "python3",
       env: {
         NODE_ENV: "production",
       },
