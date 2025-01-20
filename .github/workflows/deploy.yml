@@ -1,0 +1,29 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main # Cambia 'main' si usas otra rama para producción
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clonar el Repositorio
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Conectar al Servidor y Desplegar
+      - name: Deploy via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no dahouse@152.201.100.105 << 'EOF'
+            cd /var/www/dahouse-full
+            git pull origin main
+            yarn install --cwd ./frontend
+            yarn build --cwd ./frontend
+            source ./env/bin/activate
+            pip install -r requirements.txt
+            pm2 reload ecosystem.config.js --env production
+          EOF
+
