@@ -823,6 +823,8 @@ def liquidar_ganancias():
     if modelo.exclusividad:
         if modelo.porcentaje_base == 0.7:
             porcentaje = 0.70
+        elif modelo.porcentaje_base == 0.65:
+            porcentaje = 0.65
         elif modelo.porcentaje_base == 0.55:
             if total_tokens <= 44200:
                 porcentaje = 0.55
