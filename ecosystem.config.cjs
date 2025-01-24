@@ -12,12 +12,8 @@ module.exports = {
     },
     {
       name: "Backend",
-      script: "/var/www/dahouse-full/env/bin/gunicorn",
-      args: "wsgi:app --bind 0.0.0.0:8000",
-      cwd: "/var/www/dahouse-full/backend",
-      env: {
-        PATH: "/var/www/dahouse-full/env/bin:$PATH"
-      }
+      script: "/var/www/dahouse-full/start.sh",
+      cwd: "/var/www/dahouse-full"
     }
   ],
   deploy: {
