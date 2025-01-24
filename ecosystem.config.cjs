@@ -15,6 +15,7 @@ module.exports = {
       script: "/var/www/dahouse-full/env/bin/gunicorn",
       args: "--bind 0.0.0.0:8000 app:app",
       cwd: "./",
+      interpreter: "python3",
       env: {
         NODE_ENV: "production",
       },
