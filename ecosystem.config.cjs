@@ -12,10 +12,12 @@ module.exports = {
     },
     {
       name: "Backend",
-      cwd: "/var/www/dahouse-full/backend",
       script: "/var/www/dahouse-full/env/bin/gunicorn",
       args: "wsgi:app --bind 0.0.0.0:8000",
-      interpreter: null
+      cwd: "/var/www/dahouse-full/backend",
+      env: {
+        PATH: "/var/www/dahouse-full/env/bin:$PATH"
+      }
     }
   ],
   deploy: {
