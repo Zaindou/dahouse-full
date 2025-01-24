@@ -11,15 +11,14 @@ module.exports = {
       },
     },
     {
-      name: "Backend", // Nombre del proceso del backend
-      script: "gunicorn", // Ruta a Gunicorn dentro del entorno virtual
-      args: "--bind 0.0.0.0:8000 app:app", // Cambia 'app:app' si el archivo principal tiene otro nombre
-      cwd: "./", // Ruta al backend
-      interpreter: "python3",
+      name: "Backend",
+      script: "/var/www/dahouse-full/env/bin/gunicorn",
+      args: "--bind 0.0.0.0:8000 app:app",
+      cwd: "./",
       env: {
         NODE_ENV: "production",
       },
-    },
+    } 
   ],
   deploy: {
     production: {
