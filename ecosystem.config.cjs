@@ -12,14 +12,13 @@ module.exports = {
     },
     {
       name: "Backend",
-      script: "/var/www/dahouse-full/env/bin/gunicorn",
-      args: "--bind 0.0.0.0:8000 app:app",
-      cwd: "./",
-      interpreter: "python3",
+      script: "/var/www/dahouse-full/env/bin/python3",
+      args: "-m gunicorn --bind 0.0.0.0:8000 app:app",
+      cwd: "./backend",
       env: {
         NODE_ENV: "production",
-      },
-    } 
+      }
+    }
   ],
   deploy: {
     production: {
