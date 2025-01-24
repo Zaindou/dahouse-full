@@ -179,6 +179,10 @@ class Earning(db.Model):
     )  # Fecha y hora de registro
     date = db.Column(db.Date, nullable=False)  # Fecha a la que pertenece la ganancia
     page_name = db.Column(db.String(50), nullable=False)  # Nombre de la página
+    hours_worked = db.Column(
+        db.Interval,
+        nullable=True,
+    )  # Horas trabajadas
     is_locked = db.Column(db.Boolean, nullable=False, default=False)
 
 
