@@ -6,7 +6,7 @@
         ]">
             {{ isSidebarOpen ? 'DAHOUSE' : 'DH' }}
         </h1>
-        <button @click="$emit('toggle')" class="text-white hidden md:block">
+        <button @click="$emit('toggle')" class="hidden text-white md:block">
             <Icon :name="isSidebarOpen ? 'ic:baseline-chevron-left' : 'ic:baseline-chevron-right'" class="w-6 h-6" />
         </button>
     </div>

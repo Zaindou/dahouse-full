@@ -616,19 +616,14 @@ const modelosFiltrados = computed(() => {
     if (!modelos.value) {
         return [];
     }
+    let filtered = modelos.value.filter(modelo => {
+        const filtroEnMinusculas = filtro.value.toLowerCase();
+        return (modelo.nombre_usuario.toLowerCase().includes(filtroEnMinusculas) ||
+            modelo.nombres.toLowerCase().includes(filtroEnMinusculas) ||
+            modelo.apellidos.toLowerCase().includes(filtroEnMinusculas)) &&
+            modelo.habilitado === true && modelo.rol === 'Modelo';
 
-    // Filtrar solo usuarios habilitados
-    let filtered = modelos.value.filter(modelo => modelo.habilitado);
-
-    // Aplicar filtro de búsqueda
-    if (filtro.value) {
-        const filtroLowerCase = filtro.value.toLowerCase();
-        filtered = filtered.filter(modelo =>
-            modelo.nombre_usuario.toLowerCase().includes(filtroLowerCase) ||
-            modelo.nombres.toLowerCase().includes(filtroLowerCase) ||
-            modelo.apellidos.toLowerCase().includes(filtroLowerCase)
-        );
-    }
+    });
 
     // Ordenar alfabéticamente por nombre completo
     return filtered.sort((a, b) => {

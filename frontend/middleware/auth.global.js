@@ -9,6 +9,11 @@ export default defineNuxtRouteMiddleware((to, from) => {
     authStore.fetchUser();
   }
 
+  // Permite acceder a la ruta /password-reset sin autenticación
+  if (to.path === "/password-reset") {
+    return;
+  }
+
   // Redirige al dashboard si está autenticado y va al login
   if ((authStore.isAuthenticated || token) && to.path === "/") {
     return navigateTo("/dashboard");
