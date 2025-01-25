@@ -31,10 +31,11 @@ jobs:
           git reset --hard origin/main
           cd frontend
           yarn install
-          yarn nuxt build  # Changed from yarn build to yarn nuxt build
+          yarn build  # Changed from yarn build to yarn nuxt build
           cd ..
           pm2 delete NuxtFrontend
           pm2 delete Backend
           pm2 start ecosystem.config.cjs
           pm2 save
+          pm2 list
         EOF
