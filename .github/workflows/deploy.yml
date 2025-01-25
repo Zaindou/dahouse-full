@@ -13,6 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # or whatever version you're using
+
     - name: Install sshpass
       run: sudo apt-get update && sudo apt-get install -y sshpass
 
@@ -24,7 +29,9 @@ jobs:
           cd /var/www/dahouse-full
           git fetch --all
           git reset --hard origin/main
-          yarn install --cwd ./frontend
-          yarn build --cwd ./frontend
+          cd frontend
+          yarn install
+          yarn nuxt build  # Changed from yarn build to yarn nuxt build
+          cd ..
           pm2 reload ecosystem.config.cjs --env production
         EOF
