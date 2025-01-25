@@ -115,7 +115,7 @@
                             <NuxtLink to="/password-reset"
                                 class="relative inline-block group">
                                 <span class="relative z-10 text-sm font-medium text-blue-400 transition-colors duration-200 group-hover:text-blue-300">
-                                    ¿Olvidaste tu contraseña?
+                                    ¿Olvidaste tu contraseñaa?
                                 </span>
                                 <div class="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                             </NuxtLink>
