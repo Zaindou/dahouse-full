@@ -90,11 +90,12 @@ class Modelo(db.Model):
         "SupuestoGanancia", back_populates="modelo", lazy=True
     )
     password = db.Column(db.String(255), nullable=True)
-    vpn_username = db.Column(db.String(50), nullable=True)
-    vpn_password = db.Column(db.String(50), nullable=True)
-    vpn_ip = db.Column(db.String(50), nullable=True)
-    vpn_preshared_key = db.Column(db.String(50), nullable=True)
     porcentaje_base = db.Column(db.Float, nullable=True)
+    es_satelite = db.Column(db.Boolean, default=False)
+
+    acciones_inventario = db.relationship(
+        "Inventario", back_populates="usuario_modificacion", lazy="dynamic"
+    )
 
 
 class SupuestoGanancia(db.Model):
@@ -193,6 +194,63 @@ class EarningsUsers(db.Model):
     page_name = db.Column(db.String(50), nullable=False)  # Ganancia en tokens
     is_active = db.Column(db.Boolean, nullable=False, default=True)
 
+
+# Modelo de Categoría
+class Categoria(db.Model):
+    __tablename__ = "categoria"
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
+    descripcion = db.Column(db.String(255), nullable=True)
+
+    # Relación con Inventario
+    inventarios = db.relationship(
+        "Inventario", back_populates="categoria", lazy="dynamic"
+    )
+
+    def __repr__(self):
+        return f"<Categoria {self.nombre}>"
+
+
+# Modelo de Inventario
+class Inventario(db.Model):
+    __tablename__ = "inventario"
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_item = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.String(255), nullable=True)
+    cantidad = db.Column(db.Integer, nullable=False, default=0)
+    estado = db.Column(
+        db.String(50), nullable=False, default="Disponible"
+    )  # Ej: Disponible, Dañado, Prestado
+    estado_articulo = db.Column(
+        db.String(50), nullable=True, default="Excelente"
+    )  # Nuevo campo para el estado del item
+    precio = db.Column(
+        db.Float, nullable=True, default=0.0
+    )  # Nuevo campo para el precio
+    fecha_actualizacion = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    # Relación con la categoría
+    categoria_id = db.Column(db.Integer, db.ForeignKey("categoria.id"), nullable=False)
+    categoria = db.relationship("Categoria", back_populates="inventarios")
+
+    # Relación con el usuario que modificó
+    usuario_modificacion_id = db.Column(
+        db.Integer, db.ForeignKey("modelo.id"), nullable=True
+    )
+    usuario_modificacion = db.relationship(
+        "Modelo", back_populates="acciones_inventario"
+    )
+
+    def __repr__(self):
+        return f"<Inventario {self.nombre_item}>"
+
+
+# Agregar una relación inversa en el modelo `Modelo`
+Modelo.acciones_inventario = db.relationship(
+    "Inventario", back_populates="usuario_modificacion", lazy="dynamic"
+)
 
 # Establecer las relaciones back_populates en la otra dirección
 

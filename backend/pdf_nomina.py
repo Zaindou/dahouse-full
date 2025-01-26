@@ -76,7 +76,7 @@ def generar_pdf_desprendible(modelo, ganancia, total_cop, fecha_pago):
     header_table = Table(
         [
             [
-                Image("frontend/assets/logo.png", width=180, height=34),
+                Image("../frontend/assets/logo.png", width=180, height=34),
                 "Desprendible de Pago",
             ]
         ],
