@@ -59,7 +59,7 @@
             <!-- Versión con diseño adaptativo -->
             <div v-if="isSidebarOpen" class="mt-4 text-xs text-center">
                 <span class="px-3 py-1 text-gray-400 border rounded-full bg-gray-800/50 border-gray-700/30">
-                    API 1.3.0 - Frontend 1.3.1
+                    API 1.4.0 - Frontend 1.3.1
                 </span>
             </div>
         </div>
