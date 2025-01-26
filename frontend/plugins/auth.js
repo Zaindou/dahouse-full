@@ -18,7 +18,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (response.status === 401) {
       // El token ha expirado o es inválido
       authStore.logout(); // Limpia el estado de autenticación y cookies
-      navigateTo("/login"); // Redirige al usuario al login
+      navigateTo("/"); // Redirige al usuario al login
     }
   });
 });

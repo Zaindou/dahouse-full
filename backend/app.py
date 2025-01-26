@@ -53,6 +53,7 @@ from tool_db import (
     MESES_MAP,
 )
 
+from modules import register_blueprints
 import requests
 import environ
 import os
@@ -233,11 +234,6 @@ def get_user():
                     "exclusividad": modelo.exclusividad,
                     "jornada": modelo.jornada,
                     "fecha_registro": modelo.fecha_registro,
-                    "vpn_data": {
-                        "username": modelo.vpn_username,
-                        "password": modelo.vpn_password,
-                        "preshared_key": modelo.vpn_preshared_key,
-                    },
                     "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
                 }
             ),
@@ -1085,6 +1081,7 @@ def pagar_ganancia(ganancia_id):
     nombre_usuario = modelo.nombre_usuario
     nombre_periodo = ganancia.periodo.nombre
     url = f"{Config.NOMINA_API_URL}/ganancias/usuario/{nombre_usuario}/periodo/{nombre_periodo}"
+    print(url)
 
     response = requests.get(url)
 
@@ -1432,23 +1429,7 @@ def obtener_meta(periodo):
     )
 
 
-@app.route("/periodos/ultimo", methods=["GET"])
-def obtener_ultimo_periodo():
-    ultimo_periodo = (
-        db.session.query(SupuestoGanancia.inicio_periodo, SupuestoGanancia.fin_periodo)
-        .order_by(SupuestoGanancia.fin_periodo.desc())
-        .first()
-    )
-    if ultimo_periodo:
-        return jsonify(
-            {
-                "periodo": f"{ultimo_periodo.inicio_periodo} - {ultimo_periodo.fin_periodo}",
-                "fecha_inicio": ultimo_periodo.inicio_periodo.strftime("%Y-%m-%d"),
-                "fecha_fin": ultimo_periodo.fin_periodo.strftime("%Y-%m-%d"),
-            }
-        )
-    return jsonify({"mensaje": "No se encontró ningún periodo"}), 404
-
+register_blueprints(app)
 
 if __name__ == "__main__":
     with app.app_context():
