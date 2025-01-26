@@ -15,8 +15,8 @@ module.exports = {
     },
     {
       name: "Backend",
-      script: "/var/www/dahouse-full/start.sh",
-      cwd: "/var/www/dahouse-full",
+      script: "/var/www/dahouse-full/backend/start.sh",
+      cwd: "/var/www/dahouse-full/backend",
       env: {
         NODE_ENV: "production",
       },

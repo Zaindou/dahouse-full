@@ -49,6 +49,11 @@ const links = [
         icon: 'bx:bx-bar-chart-alt-2',
         text: 'Estadísticas'
     },
+        {
+        to: '/inventory',
+        icon: 'ic:outline-inventory-2',
+        text: 'Inventario'
+    },
     {
         to: '/mantenimiento',
         icon: 'mingcute:hotel-fill',
