@@ -232,7 +232,7 @@ class Inventario(db.Model):
     )
 
     # Relación con la categoría
-    categoria_id = db.Column(db.Integer, db.ForeignKey("categoria.id"), nullable=False)
+    categoria_id = db.Column(db.Integer, db.ForeignKey("categoria.id"), nullable=True)
     categoria = db.relationship("Categoria", back_populates="inventarios")
 
     # Relación con el usuario que modificó
