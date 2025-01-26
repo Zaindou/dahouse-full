@@ -34,7 +34,6 @@ jobs:
           yarn build  # Changed from yarn build to yarn nuxt build
           cd ..
           cd backend
-          python3 -m venv env
           source env/bin/activate
           pip3 install -r requirements.txt
           cd ..

@@ -1,5 +1,5 @@
 #!/bin/bash
-source /var/www/dahouse-full/env/bin/activate
+source /var/www/dahouse-full/backend/env/bin/activate
 exec gunicorn wsgi:app \
     --bind 0.0.0.0:8000 \
     --workers 4 \
