@@ -37,7 +37,7 @@
                     </div>
                     <!-- Versión del frontend -->
                     <p class="mt-2 text-xs text-center text-gray-400 opacity-70">
-                        API 1.4.0 - Frontend 1.3.1
+                        API 1.5.0 - Frontend 1.4.0
                     </p>
                 </div>
             </div>
