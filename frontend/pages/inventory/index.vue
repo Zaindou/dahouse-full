@@ -436,18 +436,22 @@ const filteredItems = computed(() => {
   return filtered
 })
 
-function formatCurrency(value) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0
-  }).format(value)
-}
+const formatCurrency = (value) => {
+    // Primero formateamos con Intl.NumberFormat
+    const formatted = new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+    }).format(value);
+
+    // Removemos el espacio entre el símbolo y el número
+    return formatted.replace(/\s+/g, '');
+};
 
 function formatDate(date) {
   return new Date(date).toLocaleString('es-CO', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
