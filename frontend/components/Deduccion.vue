@@ -499,7 +499,6 @@ const formatMonth = (dateString) => {
 };
 
 const formatDate = (dateString) => {
-    console.log(dateString)
     if (!dateString) return '-';
 
     try {

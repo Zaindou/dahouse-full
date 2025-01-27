@@ -160,7 +160,6 @@ const editarModelo = async (modelo) => {
 
         // Copia profunda del modelo
         const modeloCopy = JSON.parse(JSON.stringify(modelo))
-        console.log('Modelo a editar (copia):', modeloCopy) // Para depuración
 
         // Actualiza modeloForm
         modeloForm.value = {

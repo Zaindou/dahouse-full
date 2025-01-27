@@ -56,8 +56,6 @@ export const useBusinessStatsStore = defineStore('businessStats', {
 
     // Estadísticas filtradas
     filteredStats: (state) => {
-      console.log("Estadísticas sin filtrar:", state.stats);
-
       if (!state.stats) return null;
 
       const { year, month, period } = state.filters;
@@ -87,8 +85,6 @@ export const useBusinessStatsStore = defineStore('businessStats', {
         mejor_modelo_por_mes: state.stats?.mejores_modelos?.mejor_modelo_por_mes || {},
         mejor_modelo_por_periodo: state.stats?.mejores_modelos?.mejor_modelo_por_periodo || {}
     };
-
-    console.log("Datos mejores_modelos desde el store:", mejores_modelos);
 
       return {
         estadisticas_por_mes,
@@ -141,7 +137,6 @@ export const useBusinessStatsStore = defineStore('businessStats', {
           mejores_modelos: data.mejores_modelos || {}, // Incluyendo los mejores modelos
         };
 
-        console.log('Datos obtenidos desde la API:', this.stats);
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Error desconocido';
         console.error('Error en fetchStats:', error);
