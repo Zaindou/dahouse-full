@@ -387,6 +387,8 @@
 import { useInventoryStore } from '~/stores/inventory'
 import ItemModal from '~/components/inventory/AddItemModal.vue'
 import CategoryModal from '~/components/inventory/AddCategoryModal.vue'
+import { toast } from 'vue-sonner';
+
 
 const inventory = useInventoryStore()
 const loading = ref(true)
@@ -407,6 +409,7 @@ onMounted(async () => {
       inventory.fetchItems()
     ])
   } catch (error) {
+    toast.error('Error al cargar los datos: ' + error.message)
     console.error('Error al cargar datos:', error)
   } finally {
     loading.value = false
@@ -414,7 +417,7 @@ onMounted(async () => {
 })
 
 const filteredItems = computed(() => {
-  return inventory.items.filter(item => {
+  const filtered = inventory.items.filter(item => {
     const matchesCategory = !filters.value.categoria || item.categoria?.id === parseInt(filters.value.categoria)
     const matchesStatus = (!filters.value.estado || item.estado === filters.value.estado) &&
       (!filters.value.estadoArticulo || item.estado_articulo === filters.value.estadoArticulo)
@@ -424,6 +427,13 @@ const filteredItems = computed(() => {
     
     return matchesCategory && matchesStatus && matchesSearch
   })
+
+  // Notificar cuando no hay resultados
+  if (filtered.length === 0 && (filters.value.categoria || filters.value.estado || filters.value.estadoArticulo || filters.value.search)) {
+    toast.info('No se encontraron items con los filtros seleccionados')
+  }
+
+  return filtered
 })
 
 function formatCurrency(value) {
@@ -518,11 +528,14 @@ async function saveItem(itemData) {
   try {
     if (editingItem.value) {
       await inventory.updateItem(editingItem.value.id, itemData)
+      toast.success('Item actualizado correctamente')
     } else {
       await inventory.addItem(itemData)
+      toast.success('Item agregado correctamente')
     }
     closeModal('item')
   } catch (error) {
+    toast.error('Error al guardar el item: ' + error.message)
     console.error('Error al guardar item:', error)
   }
 }
@@ -530,19 +543,34 @@ async function saveItem(itemData) {
 async function saveCategory(categoryData) {
   try {
     await inventory.addCategory(categoryData)
+    toast.success('Categoría agregada correctamente')
     closeModal('category')
   } catch (error) {
+    toast.error('Error al guardar la categoría: ' + error.message)
     console.error('Error al guardar categoría:', error)
   }
 }
 
 async function deleteItem(id) {
-  if (window.confirm('¿Estás seguro de eliminar este ítem?')) {
-    try {
-      await inventory.deleteItem(id)
-    } catch (error) {
-      console.error('Error al eliminar:', error)
-    }
-  }
+  toast('¿Estás seguro de eliminar este ítem?', {
+    action: {
+      label: 'Eliminar',
+      onClick: () => {
+        toast.promise(
+          inventory.deleteItem(id),
+          {
+            loading: 'Eliminando item...',
+            success: 'Item eliminado correctamente',
+            error: (err) => `Error al eliminar: ${err.message}`
+          }
+        )
+      }
+    },
+    cancel: {
+      label: 'Cancelar',
+      onClick: () => toast.dismiss()
+    },
+    duration: Infinity // Para que no desaparezca automáticamente
+  })
 }
 </script>

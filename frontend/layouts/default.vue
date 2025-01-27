@@ -1,7 +1,13 @@
 <template>
     <div class="flex h-full bg-gray-100">
         <Sidebar />
-        <div class="flex-1 flex flex-col">
+        <div class="flex flex-col flex-1">
+                <Toaster 
+      richColors
+      expand
+      closeButton
+      position="bottom-center"
+    />
             <Navbar />
             <slot />
         </div>
@@ -9,3 +15,7 @@
     </div>
 
 </template>
+
+<script>
+import { toast } from 'vue-sonner';
+</script>

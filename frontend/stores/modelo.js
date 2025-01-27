@@ -18,7 +18,6 @@ export const useModelosStore = defineStore("modelo", {
         const response = await fetch(
           `${useRuntimeConfig().public.apiUrl}/modelos`
         );
-        console.log(response);
         if (!response.ok) {
           const message = await response.text();
           throw new Error(message);
@@ -388,7 +387,6 @@ export const useModelosStore = defineStore("modelo", {
                 if (error.value) throw error.value;
                 if (!data.value) throw new Error('No se recibieron datos');
 
-                console.log('Respuesta del servidor:', data.value); // Debug
                 this.historialPagos = data.value;
                 return data.value;
 

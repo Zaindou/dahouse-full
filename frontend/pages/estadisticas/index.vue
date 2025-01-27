@@ -466,23 +466,19 @@ const podiumData = computed(() => {
 
     if (period) {
         const key = `${year}-${month}-${period}`;
-        console.log("Clave generada para el período:", key);
         return mejores_modelos.mejor_modelo_por_periodo?.[key] || [];
     }
 
     if (month) {
         const key = `${year}-${month}`;
-        console.log("Clave generada para el mes:", key);
         return mejores_modelos.mejor_modelo_por_mes?.[key] || [];
     }
 
     if (year) {
-        console.log("Usando datos anuales");
         return mejores_modelos.mejor_modelo_año || [];
     }
 
     else {
-        console.log("Usando datos generales");
         return mejores_modelos.mejor_modelo_año || [];
     }
 
@@ -514,7 +510,6 @@ watch(seriesPie, () => {
 watch(
     () => podiumData.value,
     () => {
-        console.log('Podio actualizado:', podiumData.value);
         podiumKey.value += 1;
     }
 );
