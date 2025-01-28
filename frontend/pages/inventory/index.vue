@@ -282,8 +282,8 @@
               <tbody class="divide-y divide-gray-200">
                 <tr v-for="item in filteredItems" :key="item.id" class="transition-colors hover:bg-gray-50">
                   <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900">{{ item.nombre_item }}</div>
-                    <div class="text-sm text-gray-500">{{ item.descripcion }}</div>
+                    <div class="text-xs font-medium text-gray-900">{{ item.nombre_item }}</div>
+                    <div class="text-xs text-gray-500">{{ item.descripcion }}</div>
                   </td>
                   <td class="px-6 py-4">
                     <span class="inline-flex px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">

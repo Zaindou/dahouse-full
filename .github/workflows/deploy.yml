@@ -31,7 +31,7 @@ jobs:
           git reset --hard origin/main
           cd frontend
           yarn install
-          yarn build  # Changed from yarn build to yarn nuxt build
+          yarn build
           cd ..
           cd backend
           source env/bin/activate
