@@ -7,7 +7,7 @@
           <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div>
               <h1 class="text-2xl font-bold tracking-tight text-gray-900">Gestión de Deducciones</h1>
-              <p class="mt-1 text-sm text-gray-500">Administra las deducciones de tus empleados de forma eficiente</p>
+              <p class="mt-1 text-sm text-gray-500">Administra las deducciones de tus modelos de forma eficiente</p>
             </div>
             <div class="relative w-full md:w-64">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3">
