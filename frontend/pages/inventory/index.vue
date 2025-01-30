@@ -131,6 +131,7 @@
               >
                 <option value="">Todos los estados</option>
                 <option value="Excelente">Excelente</option>
+                <option value="Bueno">Bueno</option>
                 <option value="Regular">Regular</option>
                 <option value="Defectuoso">Defectuoso</option>
               </select>
@@ -279,7 +280,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200">
+             <tbody class="divide-y divide-gray-200">
                 <tr v-for="item in filteredItems" :key="item.id" class="transition-colors hover:bg-gray-50">
                   <td class="px-6 py-4">
                     <div class="text-xs font-medium text-gray-900">{{ item.nombre_item }}</div>
@@ -363,6 +364,13 @@
             </table>
           </div>
         </div>
+
+        <!-- Pagination -->
+        <Pagination
+          v-model="currentPage"
+          :total="filteredTotal"
+          :per-page="itemsPerPage"
+        />
       </template>
     </div>
 
@@ -387,17 +395,26 @@
 import { useInventoryStore } from '~/stores/inventory'
 import ItemModal from '~/components/inventory/AddItemModal.vue'
 import CategoryModal from '~/components/inventory/AddCategoryModal.vue'
-import { toast } from 'vue-sonner';
-
+import Pagination from '~/components/inventory/Pagination.vue'
+import { toast } from 'vue-sonner'
 
 const inventory = useInventoryStore()
 const loading = ref(true)
+const currentPage = ref(1)
+const itemsPerPage = 7
+
 const filters = ref({
   categoria: '',
   estado: '',
   estadoArticulo: '',
   search: ''
 })
+
+// Reset page when filters change
+watch(filters, () => {
+  currentPage.value = 1
+}, { deep: true })
+
 const showItemModal = ref(false)
 const showCategoryModal = ref(false)
 const editingItem = ref(null)
@@ -414,6 +431,20 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+// Computed para el total de items filtrados
+const filteredTotal = computed(() => {
+  return inventory.items.filter(item => {
+    const matchesCategory = !filters.value.categoria || item.categoria?.id === parseInt(filters.value.categoria)
+    const matchesStatus = (!filters.value.estado || item.estado === filters.value.estado) &&
+      (!filters.value.estadoArticulo || item.estado_articulo === filters.value.estadoArticulo)
+    const matchesSearch = !filters.value.search || 
+      item.nombre_item.toLowerCase().includes(filters.value.search.toLowerCase()) ||
+      item.descripcion?.toLowerCase().includes(filters.value.search.toLowerCase())
+    
+    return matchesCategory && matchesStatus && matchesSearch
+  }).length
 })
 
 const filteredItems = computed(() => {
@@ -433,20 +464,20 @@ const filteredItems = computed(() => {
     toast.info('No se encontraron items con los filtros seleccionados')
   }
 
-  return filtered
+  // Aplicar paginación
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filtered.slice(start, end)
 })
 
 const formatCurrency = (value) => {
-    // Primero formateamos con Intl.NumberFormat
-    const formatted = new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0,
-    }).format(value);
-
-    // Removemos el espacio entre el símbolo y el número
-    return formatted.replace(/\s+/g, '');
-};
+  const formatted = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(value);
+  return formatted.replace(/\s+/g, '');
+}
 
 function formatDate(date) {
   return new Date(date).toLocaleString('es-CO', {
@@ -484,6 +515,8 @@ function getEstadoArticuloClass(estado) {
   switch (estado) {
     case 'Excelente':
       return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20'
+    case 'Bueno':
+      return 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20'
     case 'Regular':
       return 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20'
     case 'Defectuoso':
@@ -497,6 +530,8 @@ function getEstadoArticuloIcon(estado) {
   switch (estado) {
     case 'Excelente':
       return 'material-symbols:star'
+    case 'Bueno':
+      return 'material-symbols:stars'
     case 'Regular':
       return 'material-symbols:star-half'
     case 'Defectuoso':
