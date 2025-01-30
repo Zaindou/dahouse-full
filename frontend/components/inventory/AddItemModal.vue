@@ -141,6 +141,7 @@
                 class="block w-full p-2 sm:p-2.5 mt-1 text-sm sm:text-base border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               >
                 <option value="Excelente">Excelente</option>
+                <option value="Bueno">Bueno</option>
                 <option value="Regular">Regular</option>
                 <option value="Defectuoso">Defectuoso</option>
               </select>

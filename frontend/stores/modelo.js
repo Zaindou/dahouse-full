@@ -36,7 +36,10 @@ export const useModelosStore = defineStore("modelo", {
           }/modelos/${nombreUsuario}/creardeducible`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            credentials: 'omit',
+            headers: { "Content-Type": "application/json",
+            'Authorization': `Bearer ${useCookie('token').value}`
+          },
             body: JSON.stringify(DeducibleData),
           }
         );

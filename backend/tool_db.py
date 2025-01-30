@@ -195,3 +195,10 @@ def calculate_trends(stats):
         estadisticas_con_tendencia.append(stat)
 
     return estadisticas_con_tendencia
+
+
+def obtener_nombre_creador(creado_por_id):
+    creador = Modelo.query.get(creado_por_id)
+    if creador:
+        return f"{creador.nombre_usuario}"
+    return "Administrador"

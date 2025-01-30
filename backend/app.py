@@ -51,6 +51,7 @@ from tool_db import (
     get_tokens_por_modelo_pagina,
     calculate_trends,
     MESES_MAP,
+    obtener_nombre_creador
 )
 
 from modules import register_blueprints
@@ -641,6 +642,8 @@ def obtener_modelos():
                             "valor_pagado": deducible.valor_pagado,
                             "valor_restante": deducible.valor_restante,
                             "fecha_inicio": deducible.fecha_inicio.strftime("%Y-%m-%d"),
+                            "fecha_fin": deducible.fecha_fin.strftime("%Y-%m-%d"),
+                            "creado_por": obtener_nombre_creador(deducible.creado_por),
                         }
                         for deducible in modelo.deducibles
                     ],
@@ -977,14 +980,17 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
 
 
 @app.route("/modelos/<nombre_usuario>/creardeducible", methods=["POST"])
+@jwt_required()
 def agregar_deducible(nombre_usuario):
+    # Buscar el modelo por nombre de usuario
     modelo = Modelo.query.filter_by(nombre_usuario=nombre_usuario).first()
     if not modelo:
         return jsonify({"mensaje": "Modelo no encontrado"}), 404
 
+    # Obtener los datos del cuerpo de la solicitud
     datos = request.json
 
-    # Validación de datos de entrada
+    # Validar campos requeridos
     campos_requeridos = ["concepto", "valor_total", "plazo", "tasa"]
     for campo in campos_requeridos:
         if campo not in datos:
@@ -993,7 +999,7 @@ def agregar_deducible(nombre_usuario):
     if datos["valor_total"] <= 0 or datos["plazo"] <= 0 or datos["tasa"] < 0:
         return jsonify({"mensaje": "Los valores deben ser mayores que cero"}), 400
 
-    # Conversión de la tasa a decimal si está en porcentaje
+    # Convertir tasa a decimal si está en porcentaje
     tasa = datos["tasa"]
     if tasa > 1:  # Si está en porcentaje, convertir a decimal
         tasa = tasa / 100
@@ -1002,11 +1008,11 @@ def agregar_deducible(nombre_usuario):
     valor_total = datos["valor_total"]
 
     if tasa == 0:
-        # Sin intereses, cuota simple
+        # Sin intereses
         cuota_quincenal = valor_total / plazo
-        valor_total_con_interes = valor_total  # Sin incremento
+        valor_total_con_interes = valor_total
     else:
-        # Con intereses, usar la fórmula del sistema francés
+        # Con intereses (sistema francés)
         tasa_quincenal = tasa / 2
         cuota_quincenal = (
             valor_total
@@ -1016,15 +1022,11 @@ def agregar_deducible(nombre_usuario):
         )
         valor_total_con_interes = cuota_quincenal * plazo
 
-    # Verificar si ya existe un deducible con el mismo concepto y estado activo
-    # deducible_existente = Deducible.query.filter_by(
-    #     modelo_id=modelo.id, concepto=datos["concepto"], estado="Pagado"
-    # ).first()
-    # if deducible_existente:
-    #     return (
-    #         jsonify({"mensaje": "Ya existe un deducible activo con este concepto"}),
-    #         400,
-    #     )
+    # Obtener información del usuario que realiza la operación
+    usuario_id = get_jwt_identity()
+    usuario = Modelo.query.get(usuario_id.get("id"))
+    if not usuario:
+        return jsonify({"mensaje": "Usuario no encontrado"}), 404
 
     # Crear el nuevo deducible
     nuevo_deducible = Deducible(
@@ -1032,7 +1034,7 @@ def agregar_deducible(nombre_usuario):
         valor_sin_interes=valor_total,
         valor_total=valor_total_con_interes,
         plazo=plazo,
-        tasa=tasa / 2 if tasa > 0 else 0,  # Tasa quincenal o 0 si no hay intereses
+        tasa=tasa / 2 if tasa > 0 else 0,
         valor_quincenal=cuota_quincenal,
         quincenas_restantes=plazo,
         fecha_inicio=datetime.now(),
@@ -1040,6 +1042,7 @@ def agregar_deducible(nombre_usuario):
         valor_pagado=0,
         valor_restante=valor_total_con_interes,
         modelo_id=modelo.id,
+        creado_por=usuario.id,  # Registrar el ID del usuario que crea el deducible
         estado="Activo",
     )
 
@@ -1053,6 +1056,7 @@ def agregar_deducible(nombre_usuario):
     return jsonify(
         {"mensaje": "Deducible agregado con éxito", "deducible_id": nuevo_deducible.id}
     )
+
 
 
 @app.route("/roles", methods=["GET"])
