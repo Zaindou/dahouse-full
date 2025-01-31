@@ -194,63 +194,6 @@ def crear_nuevo_periodo_endpoint():
         return jsonify({"error": f"Error al crear un nuevo período: {str(e)}"}), 500
 
 
-@app.route("/login", methods=["POST"])
-def login():
-    datos = request.json
-    modelo = Modelo.query.filter_by(nombre_usuario=datos["nombre_usuario"]).first()
-    rol = Rol.query.filter_by(id=modelo.rol_id).first()
-
-    if modelo not in Modelo.query.all():
-        return jsonify({"mensaje": "Usario no encontrado."}), 404
-
-    if not modelo or not check_password_hash(modelo.password, datos["password"]):
-        return jsonify({"mensaje": "Credenciales incorrectas"}), 401
-
-    # Si la contraseña es correcta, generar y devolver el token
-    access_token = create_access_token(identity={"id": modelo.id, "rol": rol.nombre})
-    return jsonify(access_token=access_token, port="5900"), 200
-
-
-@app.route("/user", methods=["GET"])
-@jwt_required()
-def get_user():
-    current_user = get_jwt_identity()  # Obtiene el ID y el rol del usuario del token
-    modelo = Modelo.query.get(current_user["id"])
-
-    if modelo:
-        return (
-            jsonify(
-                {
-                    "id": modelo.id,
-                    "tipo_documento": modelo.tipo_documento,
-                    "numero_documento": modelo.numero_documento,
-                    "nombres": modelo.nombres,
-                    "apellidos": modelo.apellidos,
-                    "correo_electronico": modelo.correo_electronico,
-                    "nombre_usuario": modelo.nombre_usuario,
-                    "rol": modelo.rol.nombre,  # Asume que tienes una relación con la tabla de roles
-                    "banco": modelo.banco,
-                    "numero_cuenta": modelo.numero_cuenta,
-                    "habilitado": modelo.habilitado,
-                    "exclusividad": modelo.exclusividad,
-                    "jornada": modelo.jornada,
-                    "fecha_registro": modelo.fecha_registro,
-                    "paginas_habilitadas": [pagina.nombre for pagina in modelo.paginas],
-                }
-            ),
-            200,
-        )
-    return jsonify({"mensaje": "Usuario no encontrado"}), 404
-
-
-@app.route("/refresh", methods=["POST"])
-@jwt_required(refresh=True)
-def refresh():
-    current_user = get_jwt_identity()
-    access_token = create_access_token(identity=current_user)
-    return jsonify(access_token=access_token)
-
-
 @app.route("/historial-pagos/<int:modelo_id>", methods=["GET"])
 def obtener_historial_pagos(modelo_id):
     modelo = Modelo.query.get_or_404(modelo_id)
