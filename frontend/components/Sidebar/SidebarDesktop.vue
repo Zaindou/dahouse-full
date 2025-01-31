@@ -18,13 +18,13 @@
                 </span>
                 <span v-else class="text-2xl font-bold text-white">D</span>
             </div>
-            <button @click="$emit('toggle-sidebar')"
+            <!-- <button @click="$emit('toggle-sidebar')"
                 class="items-center justify-center hidden w-8 h-8 transition-all duration-300 rounded-lg md:flex hover:bg-gray-700/50 hover:shadow-lg hover:shadow-purple-500/10 group"
                 :class="isSidebarOpen ? 'text-gray-400 hover:text-white' : 'text-purple-400 hover:text-white'">
                 <Icon
                     :name="isSidebarOpen ? 'ic:round-keyboard-double-arrow-left' : 'ic:round-keyboard-double-arrow-right'"
                     class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-            </button>
+            </button> -->
         </div>
 
         <!-- Navegación con iconos centrados cuando está cerrado -->
