@@ -14,7 +14,7 @@
             <Navbar class="sticky top-0 z-10" />
             
             <!-- Contenedor para el contenido scrolleable -->
-            <div class="flex-1 p-4 overflow-y-auto">
+            <div class="flex-1 p-2 overflow-y-auto">
                 <slot />
             </div>
         </div>
