@@ -58,7 +58,7 @@ def crear_item():
     if datos.get("precio", 0.0) < 0:
         return jsonify({"mensaje": "El precio no puede ser negativo"}), 400
 
-    usuario = Modelo.query.get(usuario_id.get("id"))
+    usuario = db.session.get(Modelo, usuario_id.get("id"))
     if not usuario:
         return jsonify({"mensaje": "Usuario no encontrado"}), 404
 
@@ -183,7 +183,7 @@ def actualizar_item(item_id):
         return jsonify({"mensaje": "El precio no puede ser negativo"}), 400
 
     usuario_id = get_jwt_identity()
-    usuario = Modelo.query.get(usuario_id.get("id"))
+    usuario = db.session.get(Modelo, usuario_id.get("id"))
     if not usuario:
         return jsonify({"mensaje": "Usuario no encontrado"}), 404
 

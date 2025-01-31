@@ -967,7 +967,7 @@ def agregar_deducible(nombre_usuario):
 
     # Obtener información del usuario que realiza la operación
     usuario_id = get_jwt_identity()
-    usuario = Modelo.query.get(usuario_id.get("id"))
+    usuario = db.session.get(Modelo, usuario_id.get("id"))
     if not usuario:
         return jsonify({"mensaje": "Usuario no encontrado"}), 404
 
