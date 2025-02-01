@@ -51,7 +51,7 @@ from tool_db import (
     get_tokens_por_modelo_pagina,
     calculate_trends,
     MESES_MAP,
-    obtener_nombre_creador
+    obtener_nombre_creador,
 )
 
 from modules import register_blueprints
@@ -192,78 +192,6 @@ def crear_nuevo_periodo_endpoint():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error al crear un nuevo período: {str(e)}"}), 500
-
-
-@app.route("/historial-pagos/<int:modelo_id>", methods=["GET"])
-def obtener_historial_pagos(modelo_id):
-    modelo = Modelo.query.get_or_404(modelo_id)
-    ganancias = (
-        Ganancia.query.filter_by(modelo_id=modelo.id).order_by(Ganancia.id.desc()).all()
-    )
-
-    historial = []
-    historial.append(
-        {
-            "id": modelo.id,
-            "nombres": modelo.nombres,
-            "apellidos": modelo.apellidos,
-            "tipo_documento": modelo.tipo_documento,
-            "numero_documento": modelo.numero_documento,
-            "nombre_usuario": modelo.nombre_usuario,
-            "correo_electronico": modelo.correo_electronico,
-            "numero_celular": modelo.numero_celular,
-            "numero_cuenta": modelo.numero_cuenta,
-            "banco": modelo.banco,
-            "rol": modelo.rol.nombre,
-            "habilitado": modelo.habilitado,
-        }
-    )
-    for ganancia in ganancias:
-        # Detalles de las ganancias por página
-        detalles_paginas = [
-            {
-                "nombre_pagina": ganancia_pagina.pagina.nombre,
-                "tokens": ganancia_pagina.tokens,
-                "total_cop": ganancia_pagina.total_cop,
-                "ganancia_estudio_cop": ganancia_pagina.ganancia_estudio_cop,
-            }
-            for ganancia_pagina in ganancia.ganancias_por_pagina
-        ]
-
-        # Deducciones asociadas al pago
-        deducciones_asociadas = [
-            {
-                "deduccion_id": pago_deduccion.deduccion.id,
-                "concepto": pago_deduccion.deduccion.concepto,
-                "plazo": pago_deduccion.deduccion.plazo,
-                "cuotas_restantes": pago_deduccion.cuotas_restantes,
-                "valor_total": pago_deduccion.deduccion.valor_total,
-                "valor_quincenal": pago_deduccion.deduccion.valor_quincenal,
-                "monto_pagado": pago_deduccion.monto_pagado,
-                "estado": pago_deduccion.deduccion.estado,
-            }
-            for pago_deduccion in ganancia.deducciones_asociadas
-        ]
-
-        # Construir la entrada del historial
-        historial.append(
-            {
-                "ganancia_id": ganancia.id,
-                "periodo": {
-                    "nombre": ganancia.periodo.nombre,
-                    "fecha_inicio": ganancia.periodo.fecha_inicio.strftime("%Y-%m-%d"),
-                    "fecha_fin": ganancia.periodo.fecha_fin.strftime("%Y-%m-%d"),
-                },
-                "trm": ganancia.trm,
-                "total_cop": ganancia.total_cop,
-                "porcentaje": ganancia.porcentaje,
-                "ganancia_estudio_general_cop": ganancia.ganancia_general_cop,
-                "detalles_paginas": detalles_paginas,
-                "deducciones_asociadas": deducciones_asociadas,
-            }
-        )
-
-    return jsonify(historial)
 
 
 # TODO Terminar este fuking endpoint que ya me esta sacando canas.
@@ -999,7 +927,6 @@ def agregar_deducible(nombre_usuario):
     return jsonify(
         {"mensaje": "Deducible agregado con éxito", "deducible_id": nuevo_deducible.id}
     )
-
 
 
 @app.route("/roles", methods=["GET"])

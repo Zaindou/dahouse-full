@@ -127,6 +127,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useModelosStore } from '~/stores/modelo';
+import { useLoansStore } from '~/stores/loans';
 import { toast } from 'vue-sonner';
 import NewLoanModal from '~/components/Loans/NewLoanModal.vue';
 import SimulationModal from '~/components/Loans/SimulationModal.vue';
@@ -138,6 +139,7 @@ useHead({
 });
 
 const modelosStore = useModelosStore();
+const loansStore = useLoansStore();
 const isLoading = ref(false);
 const initialSkeleton = ref(false);
 const openModal = ref(false);
@@ -267,7 +269,7 @@ const guardarDeduccion = async (deduccionData) => {
 
   try {
     isSubmitting.value = true;
-    const response = await modelosStore.crearDeduccion(
+    const response = await loansStore.crearDeduccion(
       modeloSeleccionado.value.nombre_usuario,
       deduccionData
     );
