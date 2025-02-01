@@ -28,30 +28,6 @@ export const useModelosStore = defineStore("modelo", {
         this.error = error.message;
       }
     },
-    async crearDeduccion(nombreUsuario, DeducibleData) {
-      try {
-        const response = await fetch(
-          `${
-            useRuntimeConfig().public.apiUrl
-          }/modelos/${nombreUsuario}/creardeducible`,
-          {
-            method: "POST",
-            credentials: 'omit',
-            headers: { "Content-Type": "application/json",
-            'Authorization': `Bearer ${useCookie('token').value}`
-          },
-            body: JSON.stringify(DeducibleData),
-          }
-        );
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message);
-        }
-        return await response.json();
-      } catch (error) {
-        this.error = error.message;
-      }
-    },
     async fetchGananciaInfo(nombreUsuario, nombrePeriodo) {
       try {
         const response = await fetch(
@@ -380,26 +356,6 @@ export const useModelosStore = defineStore("modelo", {
         throw new Error(this.error);
       }
     },
-    async fetchHistorialPagos(modelo_id) {
-            this.isLoadingHistorial = true;
-            try {
-                const { data, error } = await useFetch(`${useRuntimeConfig().public.apiUrl}/historial-pagos/${modelo_id}`, {
-                    method: 'GET',
-                });
-
-                if (error.value) throw error.value;
-                if (!data.value) throw new Error('No se recibieron datos');
-
-                this.historialPagos = data.value;
-                return data.value;
-
-            } catch (error) {
-                console.error('Error en store:', error);
-                this.error = error.message;
-                throw error;
-            } finally {
-                this.isLoadingHistorial = false;
-            }
-        },
+    
   },
 });

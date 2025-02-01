@@ -199,7 +199,7 @@ def calculate_trends(stats):
 
 def obtener_nombre_creador(creado_por_id):
     if creado_por_id is None:
-        return "No identificado"  # Valor por defecto si no hay creador
+        return "Administrador"  # Valor por defecto si no hay creador
 
     creador = Modelo.query.get(creado_por_id)
-    return creador.nombre_usuario if creador else "No identificado"
+    return creador.nombre_usuario if creador else "Administrador"

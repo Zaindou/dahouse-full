@@ -302,18 +302,15 @@
 
 
 <script setup>
-import {
-    TransitionRoot,
-    TransitionChild,
-    Dialog,
-    DialogPanel,
-    DialogTitle
-} from '@headlessui/vue';
-
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
 import PaymentHistorySkeleton from '@/components/PaymentHistory/Skeleton.vue';
+import { useModelosStore } from '~/stores/modelo';
+import { useLoansStore } from '~/stores/loans';
+
 
 const route = useRoute();
 const modelosStore = useModelosStore();
+const loansStore = useLoansStore();
 
 // Estados
 const searchQuery = ref('');
@@ -343,7 +340,8 @@ const { data: historialPagos, pending: isLoading, refresh } = await useAsyncData
     async () => {
         try {
             if (!route.params.id) return null;
-            const response = await modelosStore.fetchHistorialPagos(route.params.id);
+            const response = await loansStore.fetchHistorialPagos(route.params.id);
+            console.log('Historial de pagos:', response);
             return response && Array.isArray(response) ? response : null;
         } catch (error) {
             console.error('Error al cargar el historial:', error);
