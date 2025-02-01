@@ -628,15 +628,12 @@ def liquidar_ganancias():
 
     # Procesar deducciones
     for deducible in modelo.deducibles:
-        if deducible.quincenas_restantes > 0:
+        if deducible.quincenas_restantes > 0 and deducible.estado == "Activo":
             deducible.quincenas_restantes -= 1  # Disminuye las quincenas restantes
             deducible.valor_pagado = (
                 deducible.plazo - deducible.quincenas_restantes
             ) * deducible.valor_quincenal
             deducible.valor_restante = deducible.valor_total - deducible.valor_pagado
-            # deducible.estado = (
-            #     "Activo" if deducible.quincenas_restantes > 0 else "Pagado"
-            # )
 
             # Añadir al total de deducciones activas
             deducciones_activas += deducible.valor_quincenal
@@ -828,7 +825,7 @@ def obtener_ganancias_por_usuario_y_periodo(nombre_usuario, nombre_periodo):
 
     total_deducible = 0
     for deducible in modelo.deducibles:
-        if deducible.estado != "Pagado":
+        if deducible.estado == "Activo":
             total_deducible += deducible.valor_quincenal
 
     return jsonify(
@@ -1048,7 +1045,7 @@ def eliminar_ganancia():
         return jsonify({"mensaje": "ID de ganancia no proporcionado"}), 400
 
     # Obtener la ganancia
-    ganancia = Ganancia.query.get(ganancia_id)
+    ganancia = db.session.get(Ganancia, ganancia_id)
     if not ganancia:
         return jsonify({"mensaje": "Ganancia no encontrada"}), 404
 
@@ -1059,6 +1056,22 @@ def eliminar_ganancia():
     # Eliminar ganancias por página asociadas
     for gpp in ganancia.ganancias_por_pagina:
         db.session.delete(gpp)
+
+    for deducible in ganancia.modelo.deducibles:
+        if deducible.estado == "Activo":
+            deducible.quincenas_restantes = min(
+                deducible.plazo, deducible.quincenas_restantes + 1
+            )
+
+            # Evitar que valor_pagado sea negativo
+            deducible.valor_pagado = max(
+                0, deducible.valor_pagado - deducible.valor_quincenal
+            )
+            # Incrementar valor_restante sin que supere el valor_total
+            deducible.valor_restante = min(
+                deducible.valor_total,
+                deducible.valor_restante + deducible.valor_quincenal,
+            )
 
     # Eliminar la ganancia principal
     db.session.delete(ganancia)
@@ -1084,98 +1097,6 @@ def obtener_periodo_actual_endpoint():
     )
 
 
-# Definimos las zonas horarias y horarios específicos de cierre
-HORARIOS_PAGINAS = {
-    "Streamate": pytz.timezone("GMT"),  # Sábado a sábado a las 00:00 GMT
-    "Camsoda": pytz.timezone("UTC"),  # Lunes a domingo a las 00:00 UTC
-    "Stripchat": pytz.timezone("UTC"),  # Lunes a domingo a las 00:00 UTC
-    "Chaturbate": pytz.timezone("America/Bogota"),  # Lunes a lunes a las 00:00 UTC-5
-    "CherryTV": pytz.timezone("America/Bogota"),  # Lunes a lunes a las 00:00 UTC-5
-    "default": pytz.timezone("UTC"),  # Usaremos UTC como zona horaria predeterminada
-}
-
-# Zona horaria del servidor
-SERVIDOR_TZ = pytz.timezone("America/Bogota")  # UTC-5
-
-
-def obtener_cierre_por_pagina(pagina_nombre, fecha):
-    # Convertimos la fecha a la zona horaria de la página y ajustamos a las 00:00
-    tz_pagina = HORARIOS_PAGINAS.get(pagina_nombre, HORARIOS_PAGINAS["default"])
-    fecha_pagina = fecha.astimezone(tz_pagina).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-
-    if pagina_nombre == "Streamate":
-        # Streamate cierra de sábado a sábado a las 00:00 GMT
-        inicio_periodo = fecha_pagina - timedelta(days=(fecha_pagina.weekday() + 1) % 7)
-        fin_periodo = inicio_periodo + timedelta(
-            days=6, hours=23, minutes=59, seconds=59
-        )
-        proximo_cierre = fin_periodo + timedelta(
-            seconds=1
-        )  # Ajuste para el próximo cierre a 00:00 GMT
-        fin_periodo = fin_periodo.replace(
-            hour=23, minute=59, second=59
-        )  # Fin del periodo es el sábado
-
-    elif pagina_nombre == "Camsoda":
-        # Camsoda va de lunes a domingo (domingo a las 23:59 UTC)
-        inicio_periodo = fecha_pagina - timedelta(days=fecha_pagina.weekday())
-        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodo  # El próximo cierre es el mismo que el fin del periodo para Camsoda y Stripchat
-
-    elif pagina_nombre == "Stripchat":
-        # Stripchat va de lunes a domingo (domingo a las 23:59 UTC)
-        inicio_periodo = fecha_pagina - timedelta(days=fecha_pagina.weekday())
-        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodo  # El próximo cierre es el mismo que el fin del periodo para Camsoda y Stripchat
-
-    elif pagina_nombre in ["Chaturbate", "CherryTV"]:
-        # Chaturbate y CherryTV cierran de lunes a lunes a las 00:00 UTC-5 (de martes a lunes)
-        inicio_periodo = fecha_pagina - timedelta(
-            days=(fecha_pagina.weekday() + 6) % 7
-        )  # Inicia el martes
-        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodo  # El próximo cierre es el mismo que el fin del periodo para Chaturbate y CherryTV
-
-    else:
-        # Para otros casos, se usa un periodo semanal estándar de lunes a domingo
-        inicio_periodo = fecha_pagina - timedelta(days=fecha_pagina.weekday())
-        fin_periodo = inicio_periodo + timedelta(days=6, hours=23, minutes=59)
-        proximo_cierre = fin_periodo + timedelta(
-            days=1
-        )  # Ajuste para el próximo cierre
-
-    # Convertimos a la zona horaria del servidor
-    inicio_periodo = inicio_periodo.astimezone(SERVIDOR_TZ)
-    fin_periodo = fin_periodo.astimezone(SERVIDOR_TZ)
-    proximo_cierre = proximo_cierre.astimezone(SERVIDOR_TZ)
-
-    print(
-        f"Página: {pagina_nombre}, Fecha: {fecha}, Inicio Periodo: {inicio_periodo}, Fin Periodo: {fin_periodo}, Próximo Cierre: {proximo_cierre}"
-    )
-
-    return inicio_periodo, fin_periodo, proximo_cierre
-
-
-def asignar_ganancias_a_periodos(supuesto, pagina_nombre, fecha):
-    inicio_periodo, fin_periodo, proximo_cierre = obtener_cierre_por_pagina(
-        pagina_nombre, fecha
-    )
-
-    if pagina_nombre in ["Chaturbate", "CherryTV"]:
-        # Ajustar lógica para que las ganancias del lunes hasta las 23:59 se asignen al periodo anterior
-        if fecha.weekday() == 0:  # Si es lunes
-            inicio_periodo -= timedelta(days=7)
-            fin_periodo -= timedelta(days=7)
-
-    supuesto.inicio_periodo = inicio_periodo
-    supuesto.fin_periodo = fin_periodo
-    supuesto.proximo_cierre = proximo_cierre
-
-    return supuesto
-
-
 @app.route("/periodos/<int:periodo_id>/semanas", methods=["GET"])
 def obtener_semanas_disponibles(periodo_id):
     periodo = Periodo.query.get_or_404(periodo_id)
@@ -1197,33 +1118,6 @@ def obtener_semanas_disponibles(periodo_id):
         fecha_actual = fin_semana + timedelta(days=1)
 
     return jsonify(semanas_disponibles)
-
-
-@app.route("/paginas/cierres", methods=["GET"])
-def listar_cierres_paginas():
-    try:
-        paginas = ["Chaturbate", "Stripchat", "Camsoda", "Streamate", "CherryTV"]
-        fecha_actual = datetime.now(SERVIDOR_TZ)  # Usamos la zona horaria del servidor
-        cierres = []
-
-        for pagina in paginas:
-            inicio_periodo, fin_periodo, proximo_cierre = obtener_cierre_por_pagina(
-                pagina, fecha_actual
-            )
-            dias_restantes = (proximo_cierre - fecha_actual).days
-            cierres.append(
-                {
-                    "pagina": pagina,
-                    "proximo_cierre": proximo_cierre.strftime("%Y-%m-%d %H:%M:%S"),
-                    "dias_restantes": dias_restantes,
-                    "inicio_periodo": inicio_periodo.strftime("%Y-%m-%d %H:%M:%S"),
-                    "fin_periodo": fin_periodo.strftime("%Y-%m-%d %H:%M:%S"),
-                }
-            )
-
-        return jsonify(cierres)
-    except Exception as e:
-        return jsonify({"mensaje": str(e)}), 500
 
 
 @app.route("/jornadas", methods=["GET"])
