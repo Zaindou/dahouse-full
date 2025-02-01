@@ -96,7 +96,9 @@
                   <span :class="{
                     'inline-flex px-3 py-1 text-sm font-medium rounded-full': true,
                     'bg-green-100 text-green-700 ring-1 ring-green-700/10': deducible.estado === 'Activo',
-                    'bg-blue-100 text-blue-700 ring-1 ring-blue-700/10': deducible.estado === 'Pagado'
+                    'bg-blue-100 text-blue-700 ring-1 ring-blue-700/10': deducible.estado === 'Pagado',
+                    'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-700/10': deducible.estado === 'Refinanciado',
+
                   }">
                     {{ deducible.estado }}
                   </span>
