@@ -1,4 +1,3 @@
-<!-- components/Loans/ActiveLoansModal.vue -->
 <template>
   <div v-if="show" class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="onClose"></div>
@@ -64,7 +63,7 @@
                     <div class="flex items-start sm:justify-end">
                       <button
                         v-if="deducible.estado === 'Activo'"
-                        @click="refinanciarDeducible(deducible.id)"
+                        @click="showRefinanceConfirmation(deducible)"
                         :disabled="refiningLoans.get(deducible.id)"
                         class="inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg sm:w-auto hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -191,8 +190,42 @@ const calculateProgress = (deducible) => {
   return Math.round(progress);
 };
 
+const showRefinanceConfirmation = (deducible) => {
+  toast(`¿Estás seguro que deseas refinanciar la deducción por ${formatCurrency(deducible.valor_total)}?`, {
+    action: {
+      label: 'Refinanciar',
+      onClick: () => {
+        toast.promise(
+          refinanciarDeducible(deducible.id),
+          {
+            loading: 'Refinanciando...',
+            success: `La deducción #${deducible.id} ha sido refinanciada correctamente.`,
+            error: (err) => {
+              let errorMessage = '';
+              try {
+                const errorData = JSON.parse(err.message);
+                errorMessage = errorData.mensaje;
+              } catch {
+                errorMessage = err.message;
+              }
+              return `${errorMessage}`;
+            }
+          }
+        )
+      }
+    },
+    cancel: {
+      label: 'Cancelar',
+      onClick: () => toast.dismiss()
+    },
+    duration: Infinity
+  });
+};
+
 const refinanciarDeducible = async (deducibleId) => {
-  if (refiningLoans.value.get(deducibleId)) return;
+  if (refiningLoans.value.get(deducibleId)) {
+    throw new Error('Ya hay un refinanciamiento en proceso');
+  }
   
   try {
     refiningLoans.value.set(deducibleId, true);
@@ -203,27 +236,7 @@ const refinanciarDeducible = async (deducibleId) => {
       deducible.estado = 'Refinanciado';
     }
     
-    toast.success('Deducción refinanciada con éxito', {
-      description: `La deducción #${deducibleId} ha sido refinanciada correctamente.`,
-      duration: 4000,
-    });
-    
     emit('refinanced', deducibleId);
-  } catch (error) {
-    let errorMessage = '';
-    try {
-      const errorData = JSON.parse(error.message);
-      errorMessage = errorData.mensaje;
-    } catch {
-      errorMessage = error.message;
-    }
-
-    toast.error('Error al refinanciar', {
-      description: errorMessage || 'Ocurrió un error al intentar refinanciar la deducción.',
-      duration: 4000,
-    });
-    
-    console.error('Error al refinanciar:', error);
   } finally {
     refiningLoans.value.delete(deducibleId);
   }
