@@ -50,14 +50,36 @@
             <div v-for="deducible in activeDeductions" :key="deducible.id" 
               class="p-4 transition-colors border border-gray-100 sm:p-5 bg-gray-50 rounded-xl hover:bg-gray-50/80">
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-                <div>
-                  <p class="text-sm font-medium text-gray-500">Concepto</p>
-                  <p class="mt-1 font-medium text-gray-900">{{ deducible.concepto }}</p>
+                <!-- Primera fila con Concepto, Valor Total y botón -->
+                <div class="sm:col-span-2">
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                    <div class="space-y-4 sm:space-y-0 sm:col-span-3">
+                      <p class="text-sm font-medium text-gray-500">Concepto</p>
+                      <p class="font-medium text-gray-900">{{ deducible.concepto }}</p>
+                    </div>
+                    <div class="space-y-4 sm:space-y-0 sm:col-span-2">
+                      <p class="text-sm font-medium text-gray-500">Valor Total</p>
+                      <p class="font-medium text-gray-900">{{ formatCurrency(deducible.valor_total) }}</p>
+                    </div>
+                    <div class="flex items-start sm:justify-end">
+                      <button
+                        v-if="deducible.estado === 'Activo'"
+                        @click="refinanciarDeducible(deducible.id)"
+                        :disabled="refiningLoans.get(deducible.id)"
+                        class="inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg sm:w-auto hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Icon 
+                          :name="refiningLoans.get(deducible.id) ? 'i-uil-spinner-alt' : 'i-uil-sync'" 
+                          class="w-4 h-4 mr-2"
+                          :class="{ 'animate-spin': refiningLoans.get(deducible.id) }"
+                        />
+                        {{ refiningLoans.get(deducible.id) ? 'Refinanciando...' : 'Refinanciar' }}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-500">Valor Total</p>
-                  <p class="mt-1 font-medium text-gray-900">{{ formatCurrency(deducible.valor_total) }}</p>
-                </div>
+
+                <!-- Resto de la información -->
                 <div>
                   <p class="text-sm font-medium text-gray-500">Valor Quincenal</p>
                   <p class="mt-1 font-medium text-gray-900">{{ formatCurrency(deducible.valor_quincenal) }}</p>
@@ -129,7 +151,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { useLoansStore } from '~/stores/loans';
+import { toast } from 'vue-sonner';
 
 const props = defineProps({
   show: {
@@ -142,7 +166,9 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'refinanced']);
+const loansStore = useLoansStore();
+const refiningLoans = ref(new Map());
 
 const activeDeductions = computed(() => {
   return props.selectedUser?.deducibles?.filter(d => d.estado === 'Activo') || [];
@@ -157,14 +183,50 @@ const totalRemainingAmount = computed(() => {
 });
 
 const calculatePaidInstallments = (deducible) => {
-  // Si quincenas_restantes es 1 y plazo es 4, significa que se han pagado 3 quincenas
   return deducible.plazo - deducible.quincenas_restantes;
 };
 
 const calculateProgress = (deducible) => {
-  // Calcular el progreso basado en el valor pagado vs valor total
   const progress = (deducible.valor_pagado / deducible.valor_total) * 100;
   return Math.round(progress);
+};
+
+const refinanciarDeducible = async (deducibleId) => {
+  if (refiningLoans.value.get(deducibleId)) return;
+  
+  try {
+    refiningLoans.value.set(deducibleId, true);
+    await loansStore.refinanciarDeducible(deducibleId);
+    
+    const deducible = activeDeductions.value.find(d => d.id === deducibleId);
+    if (deducible) {
+      deducible.estado = 'Refinanciado';
+    }
+    
+    toast.success('Deducción refinanciada con éxito', {
+      description: `La deducción #${deducibleId} ha sido refinanciada correctamente.`,
+      duration: 4000,
+    });
+    
+    emit('refinanced', deducibleId);
+  } catch (error) {
+    let errorMessage = '';
+    try {
+      const errorData = JSON.parse(error.message);
+      errorMessage = errorData.mensaje;
+    } catch {
+      errorMessage = error.message;
+    }
+
+    toast.error('Error al refinanciar', {
+      description: errorMessage || 'Ocurrió un error al intentar refinanciar la deducción.',
+      duration: 4000,
+    });
+    
+    console.error('Error al refinanciar:', error);
+  } finally {
+    refiningLoans.value.delete(deducibleId);
+  }
 };
 
 const formatCurrency = (value) => {

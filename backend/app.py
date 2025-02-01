@@ -515,6 +515,7 @@ def obtener_modelos():
                             "fecha_inicio": deducible.fecha_inicio.strftime("%Y-%m-%d"),
                             "fecha_fin": deducible.fecha_fin.strftime("%Y-%m-%d"),
                             "creado_por": obtener_nombre_creador(deducible.creado_por),
+                            "id": deducible.id,
                         }
                         for deducible in modelo.deducibles
                     ],

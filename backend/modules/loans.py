@@ -98,6 +98,55 @@ def agregar_deducible(nombre_usuario):
     )
 
 
+@loans_bp.route("/<int:deducible_id>/refinanciar", methods=["PUT"])
+@jwt_required()
+def refinanciar_deducible(deducible_id):
+    # Obtener información del usuario que realiza la operación
+    usuario_id = get_jwt_identity()
+    usuario = db.session.get(Modelo, usuario_id.get("id"))
+
+    if not usuario:
+        return jsonify({"mensaje": "Usuario no encontrado"}), 404
+
+    # Verificar que el usuario tenga rol de Administrador
+    if usuario.rol.nombre != "Administrador":
+        return (
+            jsonify(
+                {
+                    "mensaje": "Acceso denegado: solo los administradores pueden refinanciar deducibles"
+                }
+            ),
+            403,
+        )
+
+    # Buscar el deducible por ID
+    deducible = Deducible.query.get(deducible_id)
+    if not deducible:
+        return jsonify({"mensaje": "Deducible no encontrado"}), 404
+
+    # Verificar el estado actual del deducible
+    if deducible.estado == "Refinanciado":
+        return jsonify({"mensaje": "El deducible ya está refinanciado"}), 400
+
+    # Actualizar el estado del deducible a Refinanciado
+    deducible.estado = "Refinanciado"
+    deducible.modificado_por = usuario.id  # Registrar el ID del usuario que modifica
+    deducible.fecha_modificacion = datetime.now()
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return (
+            jsonify({"mensaje": "Error al refinanciar el deducible", "error": str(e)}),
+            500,
+        )
+
+    return jsonify(
+        {"mensaje": "Deducible refinanciado con éxito", "deducible_id": deducible.id}
+    )
+
+
 @loans_bp.route("/historial-pagos/<int:modelo_id>", methods=["GET"])
 def obtener_historial_pagos(modelo_id):
     modelo = Modelo.query.get_or_404(modelo_id)
