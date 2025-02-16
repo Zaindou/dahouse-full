@@ -1,15 +1,6 @@
-<template>
-<NuxtLayout>
-
-    <div>
-        <h1>Estadísticas diarias</h1>
-    </div>
-
-</NuxtLayout>
-
+!<template>
+  <h1>hola!</h1>
 </template>
-  
-
 
 <script>
 export default {
