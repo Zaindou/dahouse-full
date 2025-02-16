@@ -1,0 +1,16 @@
+meta {
+  name: Obtener ganancias
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://127.0.0.1:5000/earnings/?periodo=2025-JAN
+  body: none
+  auth: none
+}
+
+params:query {
+  periodo: 2025-JAN
+  ~nickname: XiaPhoenix
+}
