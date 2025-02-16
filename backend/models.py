@@ -141,6 +141,7 @@ class Periodo(db.Model):
     nombre = db.Column(db.String(10), nullable=False)
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
+    meta_periodo = db.Column(db.Float, nullable=True)
     ganancias = db.relationship("Ganancia", back_populates="periodo", lazy=True)
 
 
@@ -214,7 +215,7 @@ class Categoria(db.Model):
 
 # Modelo de Inventario
 class Inventario(db.Model):
-    __tablename__ = 'inventario'
+    __tablename__ = "inventario"
     id = db.Column(db.Integer, primary_key=True)
     nombre_item = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.String(255), nullable=True)
@@ -222,15 +223,27 @@ class Inventario(db.Model):
     estado = db.Column(db.String(50), nullable=False, default="Disponible")
     estado_articulo = db.Column(db.String(50), nullable=True, default="Excelente")
     precio = db.Column(db.Float, nullable=True, default=0.0)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_actualizacion = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     # Clave foránea con nombre explícito
-    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id', name='fk_inventario_categoria'), nullable=False)
+    categoria_id = db.Column(
+        db.Integer,
+        db.ForeignKey("categoria.id", name="fk_inventario_categoria"),
+        nullable=False,
+    )
     categoria = db.relationship("Categoria", back_populates="inventarios")
 
     # Clave foránea con nombre explícito
-    usuario_modificacion_id = db.Column(db.Integer, db.ForeignKey('modelo.id', name='fk_inventario_modelo'), nullable=True)
-    usuario_modificacion = db.relationship("Modelo", back_populates="acciones_inventario")
+    usuario_modificacion_id = db.Column(
+        db.Integer,
+        db.ForeignKey("modelo.id", name="fk_inventario_modelo"),
+        nullable=True,
+    )
+    usuario_modificacion = db.relationship(
+        "Modelo", back_populates="acciones_inventario"
+    )
 
 
 # Agregar una relación inversa en el modelo `Modelo`

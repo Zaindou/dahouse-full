@@ -58,10 +58,15 @@ const links = [
         ]
     },
     {
-        to: '/estadisticas',
         icon: 'bx:bx-bar-chart-alt-2',
         text: 'Estadísticas',
-        roles: ['Administrador',]
+        roles: ['Administrador',],
+        submenu: [
+            {to: '/statistics/general-summary', iconSubmenu: 'mdi:clipboard-text-outline', text: 'Resumen General', roles: ['Administrador'] },
+            {to: '/statistics/statistics-daily', iconSubmenu: 'mdi:calendar-clock-outline', text: 'Estadísticas Diarias ', roles: ['Administrador', 'Monitor', 'Inventario'] }
+
+        ]
+
     },
     {
         to: '/inventory',
