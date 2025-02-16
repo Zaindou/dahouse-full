@@ -6,6 +6,34 @@ from collections import defaultdict
 earnings_bp = Blueprint("earnings", __name__)
 
 
+@earnings_bp.route("/initial-data", methods=["GET"])
+def obtener_datos_iniciales():
+    # Obtener todos los periodos desde enero del año actual
+    year_actual = datetime.now().year
+    periodos_disponibles = (
+        Periodo.query.filter(Periodo.fecha_inicio >= f"{year_actual}-01-01")
+        .order_by(Periodo.fecha_inicio)
+        .all()
+    )
+
+    # Obtener todos los modelos con ganancias registradas
+    modelos_con_ganancias = (
+        db.session.query(Earning.nickname).distinct().order_by(Earning.nickname).all()
+    )
+
+    # Convertir datos a formato JSON
+    periodos_json = [
+        {"nombre": p.nombre, "fecha_inicio": p.fecha_inicio.strftime("%Y-%m-%d")}
+        for p in periodos_disponibles
+    ]
+
+    modelos_json = [m.nickname for m in modelos_con_ganancias]
+
+    return jsonify(
+        {"periodos_disponibles": periodos_json, "modelos_con_ganancias": modelos_json}
+    )
+
+
 # Función para obtener las fechas de inicio y fin de cada semana por página
 def calcular_fechas_semanales(periodo):
     ajustes = {"Streamate": -2, "Stripchat": -1, "Camsoda": -1, "Chaturbate": 0}
