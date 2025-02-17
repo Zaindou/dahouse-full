@@ -6,34 +6,6 @@ from collections import defaultdict
 earnings_bp = Blueprint("earnings", __name__)
 
 
-@earnings_bp.route("/initial-data", methods=["GET"])
-def obtener_datos_iniciales():
-    # Obtener todos los periodos desde enero del año actual
-    year_actual = datetime.now().year
-    periodos_disponibles = (
-        Periodo.query.filter(Periodo.fecha_inicio >= f"{year_actual}-01-01")
-        .order_by(Periodo.fecha_inicio)
-        .all()
-    )
-
-    # Obtener todos los modelos con ganancias registradas
-    modelos_con_ganancias = (
-        db.session.query(Earning.nickname).distinct().order_by(Earning.nickname).all()
-    )
-
-    # Convertir datos a formato JSON
-    periodos_json = [
-        {"nombre": p.nombre, "fecha_inicio": p.fecha_inicio.strftime("%Y-%m-%d")}
-        for p in periodos_disponibles
-    ]
-
-    modelos_json = [m.nickname for m in modelos_con_ganancias]
-
-    return jsonify(
-        {"periodos_disponibles": periodos_json, "modelos_con_ganancias": modelos_json}
-    )
-
-
 # Función para obtener las fechas de inicio y fin de cada semana por página
 def calcular_fechas_semanales(periodo):
     ajustes = {"Streamate": -2, "Stripchat": -1, "Camsoda": -1, "Chaturbate": 0}
@@ -63,6 +35,64 @@ def calcular_fechas_semanales(periodo):
             semanas_por_pagina[page][week] = {"start": start, "end": end}
 
     return semanas_por_pagina
+
+
+@earnings_bp.route("/initial-data", methods=["GET"])
+def obtener_datos_iniciales():
+    # Obtener todos los periodos desde enero del año actual
+    year_actual = datetime.now().year
+    periodos_disponibles = (
+        Periodo.query.filter(Periodo.fecha_inicio >= f"{year_actual}-01-01")
+        .order_by(Periodo.fecha_inicio)
+        .all()
+    )
+
+    # Agrupar por mes y año en formato YYYY-MMM (ejemplo: 2025-FEB)
+    meses_disponibles = sorted(
+        {p.fecha_inicio.strftime("%Y-%b").upper() for p in periodos_disponibles}
+    )
+
+    # Obtener todos los modelos con ganancias registradas
+    modelos_con_ganancias = (
+        db.session.query(Earning.nickname).distinct().order_by(Earning.nickname).all()
+    )
+    modelos_json = [m.nickname for m in modelos_con_ganancias]
+
+    # Determinar la semana actual dentro del mes actual
+    today = datetime.today().date()
+    mes_actual = today.strftime("%Y-%b").upper()
+    current_week = None
+
+    # Buscar el primer periodo del mes actual
+    periodo_actual = next(
+        (
+            p
+            for p in periodos_disponibles
+            if p.fecha_inicio.strftime("%Y-%b").upper() == mes_actual
+        ),
+        None,
+    )
+
+    if periodo_actual:
+        semanas_por_pagina = calcular_fechas_semanales(periodo_actual)
+        for _, weeks in semanas_por_pagina.items():
+            for week, date_range in weeks.items():
+                start_date = date_range["start"]  # Ya es un objeto datetime.date
+                end_date = date_range["end"]  # Ya es un objeto datetime.date
+
+                if start_date <= today <= end_date:
+                    current_week = week
+                    break
+            if current_week:
+                break  # Salir del loop si encontramos la semana actual
+
+    return jsonify(
+        {
+            "meses_disponibles": meses_disponibles,  # Solo YYYY-MMM
+            "modelos_con_ganancias": modelos_json,
+            "current_week": current_week,  # Semana actual del mes
+        }
+    )
 
 
 @earnings_bp.route("/", methods=["GET"])
@@ -98,23 +128,23 @@ def listar_earnings():
         "tokens_totales_por_dia_y_semana": tokens_totales_por_dia_y_semana,
     }
 
-    if nickname:
-        totals["total_dias_asistidos"] = 0
-
     resultado = []
-    dias_asistidos_set = set()
+    dias_asistidos_set = set()  # Días asistidos de una modelo específica
+    dias_generales_set = set()  # Días con tokens > 0 (sin importar modelo)
 
     for page_name, weeks in semanas_por_pagina.items():
         for week, date_range in weeks.items():
             start_date = date_range["start"]
             end_date = date_range["end"]
 
+            # Filtrar solo por página y fechas
             earnings_list = Earning.query.filter(
                 Earning.page_name == page_name,
                 Earning.date >= start_date,
                 Earning.date <= end_date,
             )
 
+            # Si hay un nickname, filtramos por ese modelo
             if nickname:
                 earnings_list = earnings_list.filter(Earning.nickname == nickname)
 
@@ -172,11 +202,20 @@ def listar_earnings():
 
                     totals["total_hours"] += hours_worked
 
-                    if nickname and hours_worked > 0:
-                        dias_asistidos_set.add(fecha_str)
+                # Si hay un nickname, contar sus días asistidos
+                if nickname and e.tokens > 0:
+                    dias_asistidos_set.add(fecha_str)
 
+                # Contamos días con actividad en general (cuando no hay filtro de modelo)
+                if not nickname and e.tokens > 0:
+                    dias_generales_set.add(fecha_str)
+
+    # Si se filtra por modelo, solo contar los días asistidos de la modelo
     if nickname:
         totals["total_dias_asistidos"] = len(dias_asistidos_set)
+    else:
+        # Si no hay filtro, contar los días con actividad en el periodo
+        totals["total_dias_asistidos"] = len(dias_generales_set)
 
     return (
         jsonify(
@@ -310,6 +349,8 @@ def resumen_rendimiento_modelo():
 @earnings_bp.route("/distribution", methods=["GET"])
 def distribucion_ganancias():
     periodo_nombre = request.args.get("periodo")
+    nickname = request.args.get("nickname")  # Opcional
+    date_filter = request.args.get("date")  # Opcional (YYYY-MM-DD)
 
     if not periodo_nombre:
         return jsonify({"error": "Se requiere un periodo"}), 400
@@ -330,34 +371,41 @@ def distribucion_ganancias():
 
     tokens_totales = 0
     earnings_per_page = defaultdict(lambda: {"tokens": 0, "percentage": 0})
-    tokens_por_dia_y_semana = defaultdict(
-        lambda: defaultdict(lambda: {"tokens_por_dia": {}, "total_tokens": 0})
-    )
 
+    # Validar si `date_filter` es una fecha válida
+    date_filter_obj = None
+    if date_filter:
+        try:
+            date_filter_obj = datetime.strptime(date_filter, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+
+    # Recorrer páginas y calcular distribución de ganancias
     for page_name, weeks in semanas_por_pagina.items():
         for week, date_range in weeks.items():
             start_date = date_range["start"]
             end_date = date_range["end"]
 
-            earnings_list = Earning.query.filter(
+            # Construir la consulta base
+            earnings_query = Earning.query.filter(
                 Earning.page_name == page_name,
                 Earning.date >= start_date,
                 Earning.date <= end_date,
-            ).all()
+            )
+
+            # Filtrar por modelo si se especifica `nickname`
+            if nickname:
+                earnings_query = earnings_query.filter(Earning.nickname == nickname)
+
+            # Filtrar por día específico si se especifica `date_filter`
+            if date_filter_obj:
+                earnings_query = earnings_query.filter(Earning.date == date_filter_obj)
+
+            # Obtener los datos
+            earnings_list = earnings_query.all()
 
             for e in earnings_list:
-                fecha_str = e.date.strftime("%Y-%m-%d")
-
-                # Acumulamos tokens por día y por semana
-                tokens_por_dia_y_semana[page_name][week]["tokens_por_dia"].setdefault(
-                    fecha_str, 0
-                )
-                tokens_por_dia_y_semana[page_name][week]["tokens_por_dia"][
-                    fecha_str
-                ] += e.tokens
-                tokens_por_dia_y_semana[page_name][week]["total_tokens"] += e.tokens
-
-                # Acumulamos totales por página
+                # Acumulamos tokens por página
                 earnings_per_page[page_name]["tokens"] += e.tokens
                 tokens_totales += e.tokens
 
@@ -372,6 +420,8 @@ def distribucion_ganancias():
         {
             "total_tokens": tokens_totales,
             "earnings_distribution": earnings_per_page,
+            "filtered_nickname": nickname if nickname else "All Models",
+            "filtered_date": date_filter if date_filter else "Full Period",
         }
     )
 
