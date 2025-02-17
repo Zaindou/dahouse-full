@@ -62,8 +62,8 @@ const links = [
         text: 'Estadísticas',
         roles: ['Administrador',],
         submenu: [
-            {to: '/statistics/general-summary', iconSubmenu: 'mdi:clipboard-text-outline', text: 'Resumen General', roles: ['Administrador'] },
-            {to: '/statistics/statistics-daily', iconSubmenu: 'mdi:calendar-clock-outline', text: 'Estadísticas Diarias ', roles: ['Administrador', 'Monitor', 'Inventario'] }
+            {to: '/statistics/general', iconSubmenu: 'mdi:clipboard-text-outline', text: 'Resumen General', roles: ['Administrador'] },
+            {to: '/statistics/daily', iconSubmenu: 'mdi:calendar-clock-outline', text: 'Estadísticas Diarias ', roles: ['Administrador', 'Monitor', 'Inventario'] }
 
         ]
 
