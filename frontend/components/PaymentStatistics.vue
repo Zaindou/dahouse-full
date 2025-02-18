@@ -20,7 +20,7 @@
                         <p class="text-sm text-gray-500">Tokens Totales</p>
                         <p class="mt-1 text-2xl font-semibold">{{ formatNumber(statistics.totalTokens) }}</p>
                     </div>
-                    <Icon name="uil:coins" class="w-8 h-8 text-blue-500" />
+                    <Icon name="ph:coins" class="w-8 h-8 text-blue-500" />
                 </div>
             </div>
 
