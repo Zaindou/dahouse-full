@@ -187,7 +187,7 @@ const chartOptions = computed(() => ({
     bar: {
       horizontal: false,
       columnWidth: '60%',
-      borderRadius: 6,
+      borderRadius: 4,
       dataLabels: {
         position: 'top'
       }
@@ -198,7 +198,7 @@ const chartOptions = computed(() => ({
     formatter: (val) => val.toLocaleString(),
     offsetY: -20,
     style: {
-      fontSize: '12px',
+      fontSize: '10px',
       colors: ['#304758'],
       fontWeight: '600'
     }
@@ -206,7 +206,7 @@ const chartOptions = computed(() => ({
   xaxis: {
     type: 'datetime',
     labels: {
-      format: 'dd MMM',
+      format: 'dd/MMM',
       style: {
         colors: '#64748b',
         fontSize: '12px'

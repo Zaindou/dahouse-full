@@ -54,7 +54,7 @@
                             <h3 class="text-sm font-medium text-gray-600">Total Tokens</h3>
                             <div
                                 class="flex items-center justify-center w-10 h-10 transition-colors duration-300 bg-blue-100 rounded-full group-hover:bg-blue-200">
-                                <Icon name="uil:coins" class="w-6 h-6 text-blue-600" />
+                                <Icon name="ph:coins" class="w-6 h-6 text-blue-600" />
                             </div>
                         </div>
                         <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900">
