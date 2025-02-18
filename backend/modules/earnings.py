@@ -8,7 +8,13 @@ earnings_bp = Blueprint("earnings", __name__)
 
 # Función para obtener las fechas de inicio y fin de cada semana por página
 def calcular_fechas_semanales(periodo):
-    ajustes = {"Streamate": -2, "Stripchat": -1, "Camsoda": -1, "Chaturbate": 0}
+    ajustes = {
+        "Streamate": -2,
+        "Stripchat": -1,
+        "Camsoda": -1,
+        "Bongacams": -1,
+        "Chaturbate": 0,
+    }
     semanas_por_pagina = defaultdict(dict)
 
     for page, ajuste in ajustes.items():
