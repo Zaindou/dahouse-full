@@ -1,51 +1,81 @@
-// components/DailyStats/DistributionChart.vue
+<!-- components/DailyStats/DistributionChart.vue -->
 <template>
-  <div class="p-6 bg-white rounded-lg shadow">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h3 class="text-lg font-semibold">Distribución por Página</h3>
-        <div class="mt-1 text-sm text-gray-500">
+  <div class="p-6 transition-all duration-300 bg-white shadow-lg rounded-xl">
+    <!-- Header Section -->
+    <div class="flex flex-col justify-between gap-4 mb-4 md:flex-row md:items-center">
+      <div class="space-y-2">
+        <div class="flex items-center gap-2">
+          <Icon name="ph:chart-pie-slice-bold" class="w-6 h-6 text-blue-600" />
+          <h3 class="text-xl font-bold text-gray-900">Distribución por Página</h3>
+        </div>
+        <div class="flex flex-wrap gap-3 text-sm text-gray-600">
           <template v-if="data.filtered_nickname !== 'All Models'">
-            <span class="font-medium">Modelo:</span> {{ data.filtered_nickname }}
+            <div class="flex items-center gap-1">
+              <Icon name="ph:user-circle" class="w-4 h-4" />
+              <span class="font-medium">{{ data.filtered_nickname }}</span>
+            </div>
           </template>
           <template v-if="data.filtered_date !== 'Full Period'">
-            <span class="ml-2 font-medium">Fecha:</span> {{ formatDate(data.filtered_date) }}
+            <div class="flex items-center gap-1">
+              <Icon name="ph:calendar" class="w-4 h-4" />
+              <span>{{ formatDate(data.filtered_date) }}</span>
+            </div>
           </template>
         </div>
       </div>
-      <div class="text-sm text-gray-500">
-        Total: {{ totalTokens.toLocaleString() }} tokens
+      <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50">
+        <Icon name="ph:coins" class="w-5 h-5 text-blue-500" />
+        <div class="text-sm">
+          <span class="text-gray-500">Total:</span>
+          <span class="ml-1 font-bold text-gray-900">
+            {{ totalTokens.toLocaleString() }} tokens
+          </span>
+        </div>
       </div>
     </div>
     
-    <div class="grid grid-cols-1 gap-6">
-      <!-- Gráfica de Pie -->
-      <div class="h-[300px]">
-        <apexchart
-          type="pie"
-          height="100%"
-          :options="chartOptions"
-          :series="chartSeries"
-        />
+    <div class="grid gap-6 md:grid-cols-5">
+      <!-- Chart Section -->
+      <div class="md:col-span-3">
+        <div class="h-[400px] bg-gray-50 rounded-lg p-4">
+          <apexchart
+            type="pie"
+            height="100%"
+            :options="chartOptions"
+            :series="chartSeries"
+          />
+        </div>
       </div>
       
-      <!-- Detalles por página -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div 
-          v-for="(data, page) in distribution" 
-          :key="page"
-          class="flex items-center justify-between p-3 border border-gray-100 rounded bg-gray-50"
-        >
-          <div class="flex items-center space-x-2">
-            <div 
-              class="w-3 h-3 rounded-full"
-              :style="{ backgroundColor: getPageColor(page) }"
-            ></div>
-            <span class="font-medium">{{ page }}</span>
-          </div>
-          <div class="text-right">
-            <div class="font-semibold">{{ data.tokens.toLocaleString() }}</div>
-            <div class="text-sm text-gray-500">{{ data.percentage }}%</div>
+      <!-- Details Section -->
+      <div class="space-y-4 md:col-span-2">
+<!-- "        <div class="mb-2 text-sm font-medium text-gray-600">
+          Desglose Detallado
+        </div>" -->
+        <div class="space-y-3">
+          <div 
+            v-for="item in sortedDistribution" 
+            :key="item.page"
+            class="flex items-center justify-between p-4 transition-all duration-200 rounded-lg bg-gray-50 hover:shadow-md"
+          >
+            <div class="flex items-center gap-3">
+              <div 
+                class="w-4 h-4 rounded-full"
+                :style="{ backgroundColor: getPageColor(item.page) }"
+              ></div>
+              <div class="space-y-1">
+                <span class="font-medium text-gray-900">{{ item.page }}</span>
+                <div class="text-xs text-gray-500">
+                  {{ item.percentage }}% del total
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-bold text-gray-900">
+                {{ item.tokens.toLocaleString() }}
+              </div>
+              <div class="text-xs text-gray-500">tokens</div>
+            </div>
           </div>
         </div>
       </div>
@@ -65,16 +95,15 @@ const props = defineProps({
 
 // Colores para cada página
 const pageColors = {
-  'Chaturbate': '#f5a142',
-  'Stripchat': '#b83737',
-  'Streamate': '#2b20bd',
-  'Camsoda': '#11d5f7'
+  'Chaturbate': '#f09711',  // Blue
+  'Stripchat': '#c9240a',   // Red
+  'Streamate': '#0356fc',   // Green
+  'Camsoda': '#22f2eb',     // Yellow
+  'Bongacams': '#de3159',   // Purple
 }
 
-// Función para obtener el color de cada página
-const getPageColor = (page) => pageColors[page] || '#808080'
+const getPageColor = (page) => pageColors[page] || '#CBD5E1'
 
-// Función para formatear la fecha
 const formatDate = (dateString) => {
   if (!dateString || dateString === 'Full Period') return ''
   const date = new Date(dateString)
@@ -85,14 +114,28 @@ const formatDate = (dateString) => {
   })
 }
 
-// Datos computados
 const distribution = computed(() => props.data.earnings_distribution || {})
 const totalTokens = computed(() => props.data.total_tokens || 0)
 
-// Configuración del gráfico
+// Ordenar la distribución por tokens (de mayor a menor)
+const sortedDistribution = computed(() => {
+  const distributionArray = Object.entries(distribution.value).map(([page, data]) => ({
+    page,
+    tokens: data.tokens,
+    percentage: data.percentage
+  }))
+  
+  return distributionArray.sort((a, b) => b.tokens - a.tokens)
+})
+
+// Obtener las etiquetas y series ordenadas para el gráfico
+const sortedLabels = computed(() => sortedDistribution.value.map(item => item.page))
+const sortedSeries = computed(() => sortedDistribution.value.map(item => item.tokens))
+
 const chartOptions = computed(() => ({
   chart: {
     type: 'pie',
+    fontFamily: 'Inter, sans-serif',
     animations: {
       enabled: true,
       speed: 500,
@@ -104,15 +147,24 @@ const chartOptions = computed(() => ({
         enabled: true,
         speed: 350
       }
-    }
+    },
+    background: 'transparent'
   },
-  colors: Object.values(pageColors),
-  labels: Object.keys(distribution.value),
+  colors: sortedLabels.value.map(page => getPageColor(page)),
+  labels: sortedLabels.value,
   legend: {
     position: 'bottom',
     horizontalAlign: 'center',
     floating: false,
     fontSize: '14px',
+    labels: {
+      colors: '#64748b'
+    },
+    markers: {
+      width: 12,
+      height: 12,
+      radius: 6
+    },
     formatter: function(seriesName, opts) {
       const value = opts.w.globals.series[opts.seriesIndex]
       const percentage = ((value / totalTokens.value) * 100).toFixed(1)
@@ -120,6 +172,8 @@ const chartOptions = computed(() => ({
     }
   },
   tooltip: {
+    enabled: true,
+    theme: 'light',
     y: {
       formatter: (value) => {
         const percentage = ((value / totalTokens.value) * 100).toFixed(1)
@@ -129,14 +183,23 @@ const chartOptions = computed(() => ({
   },
   plotOptions: {
     pie: {
+      expandOnClick: false,
       dataLabels: {
         enabled: true,
         formatter: function(val, opts) {
           return `${val.toFixed(1)}%`
+        },
+        style: {
+          fontSize: '14px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600
         }
       },
       donut: {
-        size: '65%'
+        size: '65%',
+        labels: {
+          show: false
+        }
       }
     }
   },
@@ -147,26 +210,30 @@ const chartOptions = computed(() => ({
         height: 300
       },
       legend: {
-        position: 'bottom'
+        position: 'bottom',
+        fontSize: '12px'
       }
     }
   }],
   states: {
     hover: {
       filter: {
-        type: 'none'
+        type: 'darken',
+        value: 0.1
       }
     },
     active: {
       filter: {
-        type: 'none'
+        type: 'darken',
+        value: 0.1
       }
     }
+  },
+  stroke: {
+    width: 2,
+    colors: ['#fff']
   }
 }))
 
-const chartSeries = computed(() => {
-  if (!distribution.value) return []
-  return Object.values(distribution.value).map(item => item.tokens)
-})
+const chartSeries = computed(() => sortedSeries.value)
 </script>
