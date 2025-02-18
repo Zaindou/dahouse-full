@@ -60,7 +60,7 @@ const links = [
     {
         icon: 'bx:bx-bar-chart-alt-2',
         text: 'Estadísticas',
-        roles: ['Administrador',],
+        roles: ['Administrador', 'Monitor', 'Inventario'],
         submenu: [
             {to: '/statistics/general', iconSubmenu: 'mdi:clipboard-text-outline', text: 'Resumen General', roles: ['Administrador'] },
             {to: '/statistics/daily', iconSubmenu: 'mdi:calendar-clock-outline', text: 'Estadísticas Diarias ', roles: ['Administrador', 'Monitor', 'Inventario'] }
