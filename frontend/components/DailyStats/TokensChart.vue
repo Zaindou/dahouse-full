@@ -23,8 +23,7 @@
           v-model="selectedPeriod" 
           class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="30">Último semana</option>
-          <option value="90">Último mes</option>
+          <option value="90">Total periodo</option>
         </select>
       </div>
     </div>
@@ -81,7 +80,7 @@ const emit = defineEmits(['update:selectedDate'])
 
 // Estado
 const loading = ref(true)
-const selectedPeriod = ref('30')
+const selectedPeriod = ref('90')
 
 // Funciones auxiliares
 const formatDate = (dateString) => {

@@ -116,11 +116,11 @@ const statsCards = computed(() => {
     },
     {
       title: 'Días Trabajados',
-      value: totals.total_dias_asistidos || 0,
+      value: totals.total_days_worked || 0,
       type: 'number',
       icon: 'ic:baseline-calendar-today',
       description: 'Días con actividad registrada',
-      trend: calculateTrend(totals.total_dias_asistidos, totals.previous_total_dias),
+      trend: calculateTrend(totals.total_days_worked, totals.previous_total_dias),
       info: 'Número total de días únicos en los que se registró al menos una actividad durante el período.',
       bgColor: 'bg-emerald-50',
       hoverBgColor: 'group-hover:bg-emerald-100',
@@ -129,7 +129,7 @@ const statsCards = computed(() => {
     },
     {
       title: 'Promedio Tokens/Día',
-      value: calculateAverage(totals.total_tokens, totals.total_dias_asistidos),
+      value: calculateAverage(totals.total_tokens, totals.total_days_worked),
       type: 'number',
       icon: 'ic:baseline-trending-up',
       description: 'Promedio diario de tokens',
