@@ -3,12 +3,15 @@
   <NuxtLayout>
     <div class='container mx-auto'>
     <!-- Filtros -->
-    <Filters
-      :periodo="selectedPeriodo"
-      :modelo="selectedModelo"
-      @update:periodo="selectedPeriodo = $event"
-      @update:modelo="selectedModelo = $event"
-    />
+      <Filters
+    :periodo="selectedPeriodo"
+    :subperiodo="selectedSubPeriodo"
+    :modelo="selectedModelo"
+    @update:periodo="selectedPeriodo = $event"
+    @update:subperiodo="selectedSubPeriodo = $event"
+    @update:modelo="selectedModelo = $event"
+  />
+
 
     <!-- Tabs -->
     <div class="mb-6 border-b border-gray-200">
@@ -100,6 +103,7 @@ const store = useEarningsStore()
 
 // Estado local
 const selectedPeriodo = ref('')
+const selectedSubPeriodo = ref('')
 const selectedModelo = ref('')
 const selectedDate = ref(null)
 const activeTab = ref('stats')
@@ -128,11 +132,11 @@ const visibleTabs = computed(() => {
 // Función para manejar la selección de fecha
 const handleDateSelection = async (date) => {
   try {
-    await store.fetchDistribution(selectedPeriodo.value, selectedModelo.value, date)
+    await store.fetchDistribution(selectedPeriodo.value, selectedSubPeriodo.value, selectedModelo.value, date);
   } catch (error) {
-    toast.error('Error al cargar distribución por fecha')
+    toast.error('Error al cargar distribución por fecha');
   }
-}
+};
 
 // Watch para cambios en el tab activo
 watch(activeTab, async (newTab) => {
@@ -146,7 +150,7 @@ watch(activeTab, async (newTab) => {
 })
 
 // Cargar datos cuando cambien los filtros
-watch([selectedPeriodo, selectedModelo], async ([periodo, modelo], [oldPeriodo, oldModelo]) => {
+watch([selectedPeriodo, selectedSubPeriodo, selectedModelo], async ([periodo, subperiodo, modelo], [oldPeriodo, oldsubperiodo, oldModelo]) => {
   if (!periodo) return
   
   try {
@@ -156,8 +160,8 @@ watch([selectedPeriodo, selectedModelo], async ([periodo, modelo], [oldPeriodo, 
     
     // Realizar las peticiones
     const requests = [
-      store.fetchEarnings(periodo, modelo),
-      store.fetchDistribution(periodo, modelo)
+      store.fetchEarnings(periodo,subperiodo, modelo),
+      store.fetchDistribution(periodo, subperiodo, modelo)
     ]
 
     // Si no hay modelo seleccionado y estamos en la vista de metas, cargar metas
