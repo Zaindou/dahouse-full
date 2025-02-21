@@ -140,13 +140,24 @@ def listar_earnings():
     resultado = []
     dias_con_actividad = set()
 
+    # Almacenar las fechas de cada semana para cada página
+    week_date_ranges = {}
+
     for page_name, weeks in semanas_por_pagina.items():
+        week_date_ranges[page_name] = {}  # Crear estructura para cada página
+
         for week, date_range in weeks.items():
             if semanas_filtradas and week not in semanas_filtradas:
                 continue  # Si filtramos por `subperiodo`, ignoramos las semanas que no correspondan
 
             start_date = date_range["start"]
             end_date = date_range["end"]
+
+            # Guardamos las fechas de inicio y fin de cada semana por página
+            week_date_ranges[page_name][week] = {
+                "start": start_date.strftime("%Y-%m-%d"),
+                "end": end_date.strftime("%Y-%m-%d"),
+            }
 
             earnings_list = Earning.query.filter(
                 Earning.page_name == page_name,
@@ -208,6 +219,7 @@ def listar_earnings():
             "horas_totales": horas_totales,
             "tokens_por_dia_y_semana": tokens_por_dia_y_semana,
             "earnings": resultado,
+            "week_date_ranges": week_date_ranges,  # Agregamos las fechas de cada semana
         }
     )
 
@@ -340,11 +352,20 @@ def distribucion_ganancias():
     periodo_base = periodos[0]
     semanas_por_pagina = calcular_fechas_semanales(periodo_base)
 
+    # Definir las semanas que corresponden al `subperiodo`
     semanas_filtradas = None
     if subperiodo == "periodo_1":
         semanas_filtradas = ["week_1", "week_2"]
     elif subperiodo == "periodo_2":
         semanas_filtradas = ["week_3", "week_4"]
+
+    # Validar si `date_filter` es una fecha válida
+    date_filter_obj = None
+    if date_filter:
+        try:
+            date_filter_obj = datetime.strptime(date_filter, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
 
     tokens_totales = 0
     earnings_per_page = defaultdict(lambda: {"tokens": 0, "percentage": 0})
@@ -357,29 +378,28 @@ def distribucion_ganancias():
             start_date = date_range["start"]
             end_date = date_range["end"]
 
-            earnings_list = Earning.query.filter(
+            # Construcción de la consulta base
+            earnings_query = Earning.query.filter(
                 Earning.page_name == page_name,
                 Earning.date >= start_date,
                 Earning.date <= end_date,
             )
 
+            # Aplicar filtro por modelo si se proporciona
             if nickname:
-                earnings_list = earnings_list.filter(Earning.nickname == nickname)
+                earnings_query = earnings_query.filter(Earning.nickname == nickname)
 
-            earnings_list = earnings_list.all()
+            # Aplicar filtro por fecha exacta si se proporciona
+            if date_filter_obj:
+                earnings_query = earnings_query.filter(Earning.date == date_filter_obj)
+
+            earnings_list = earnings_query.all()
 
             for e in earnings_list:
                 earnings_per_page[page_name]["tokens"] += e.tokens
                 tokens_totales += e.tokens
 
-    # Validar si `date_filter` es una fecha válida
-    date_filter_obj = None
-    if date_filter:
-        try:
-            date_filter_obj = datetime.strptime(date_filter, "%Y-%m-%d").date()
-        except ValueError:
-            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
-
+    # Calcular el porcentaje de cada página si hay tokens registrados
     if tokens_totales > 0:
         for page in earnings_per_page:
             earnings_per_page[page]["percentage"] = round(

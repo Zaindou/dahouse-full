@@ -53,6 +53,7 @@ from tool_db import (
     MESES_MAP,
     obtener_nombre_creador,
 )
+from utils.version import get_version
 
 from modules import register_blueprints
 import requests
@@ -139,7 +140,12 @@ def obtener_trm():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "API: V1.6.0 - FRONTEND: V1.6.0 -- DAHOUSE"
+    version_data = get_version()
+    return {
+        "api_version": version_data["api"],
+        "frontend_version": version_data["frontend"],
+        "name": "DAHOUSE",
+    }
 
 
 @app.route("/periodos/crear-nuevo", methods=["POST"])
