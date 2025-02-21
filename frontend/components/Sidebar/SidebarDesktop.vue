@@ -18,13 +18,6 @@
                 </span>
                 <span v-else class="text-2xl font-bold text-white">D</span>
             </div>
-            <!-- <button @click="$emit('toggle-sidebar')"
-                class="items-center justify-center hidden w-8 h-8 transition-all duration-300 rounded-lg md:flex hover:bg-gray-700/50 hover:shadow-lg hover:shadow-purple-500/10 group"
-                :class="isSidebarOpen ? 'text-gray-400 hover:text-white' : 'text-purple-400 hover:text-white'">
-                <Icon
-                    :name="isSidebarOpen ? 'ic:round-keyboard-double-arrow-left' : 'ic:round-keyboard-double-arrow-right'"
-                    class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-            </button> -->
         </div>
 
         <!-- Navegación con iconos centrados cuando está cerrado -->
@@ -47,6 +40,12 @@
                         class="absolute z-50 px-3 py-2 ml-4 transition-opacity duration-300 bg-gray-800 rounded-lg shadow-lg opacity-0 left-full group-hover:opacity-100 whitespace-nowrap">
                         <p class="text-sm font-medium text-white">{{ userName }}</p>
                         <p class="text-xs text-gray-400">{{ mail }}</p>
+                        <!-- Versión en tooltip -->
+                        <p v-if="isLoading" class="mt-1 text-xs text-gray-400">Cargando versiones...</p>
+                        <p v-else-if="error" class="mt-1 text-xs text-red-400">Error al cargar versiones</p>
+                        <p v-else class="mt-1 text-xs text-gray-400">
+                            API {{ version.apiVersion }} - Frontend {{ version.frontVersion }}
+                        </p>
                     </div>
                 </div>
                 <!-- Información del usuario visible solo cuando está abierto -->
@@ -56,10 +55,16 @@
                 </div>
             </div>
 
-            <!-- Versión con diseño adaptativo -->
+            <!-- Versión con diseño adaptativo cuando está abierto -->
             <div v-if="isSidebarOpen" class="mt-4 text-xs text-center">
-                <span class="px-3 py-1 text-gray-400 border rounded-full bg-gray-800/50 border-gray-700/30">
-                    API 1.6.0 - Frontend 1.6.0
+                <div v-if="isLoading" class="px-3 py-1 text-gray-400 border rounded-full bg-gray-800/50 border-gray-700/30">
+                    Cargando versiones...
+                </div>
+                <div v-else-if="error" class="px-3 py-1 text-red-400 border rounded-full bg-gray-800/50 border-gray-700/30">
+                    Error al cargar versiones
+                </div>
+                <span v-else class="px-3 py-1 text-gray-400 border rounded-full bg-gray-800/50 border-gray-700/30">
+                    API {{ apiVersion }} - Frontend {{ frontVersion }}
                 </span>
             </div>
         </div>
@@ -67,7 +72,11 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useVersionStore } from '~/stores/version';
+import { storeToRefs } from 'pinia';
+
+const props = defineProps({
     isSidebarOpen: {
         type: Boolean,
         required: true
@@ -80,5 +89,46 @@ defineProps({
         type: String,
         required: true
     }
-})
+});
+
+// Usar storeToRefs para mantener la reactividad
+const versionStore = useVersionStore();
+const { apiVersion, frontVersion, isLoading, error } = storeToRefs(versionStore);
+
+// Cargar versiones al montar el componente
+onMounted(async () => {
+    await versionStore.fetchVersion();
+});
+
+// Recargar versiones cuando la página vuelve a estar activa
+if (process.client) {
+    const handleVisibilityChange = async () => {
+        if (!document.hidden) {
+            await versionStore.fetchVersion();
+        }
+    };
+    
+    onMounted(() => {
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+    });
+    
+    onUnmounted(() => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+    });
+}
+
+// Recargar versiones periódicamente
+const interval = ref(null);
+
+onMounted(() => {
+    interval.value = setInterval(async () => {
+        await versionStore.fetchVersion();
+    }, 5 * 60 * 1000);
+});
+
+onUnmounted(() => {
+    if (interval.value) {
+        clearInterval(interval.value);
+    }
+});
 </script>

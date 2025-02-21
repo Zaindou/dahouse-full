@@ -106,7 +106,8 @@ const getPageColor = (page) => pageColors[page] || '#CBD5E1'
 
 const formatDate = (dateString) => {
   if (!dateString || dateString === 'Full Period') return ''
-  const date = new Date(dateString)
+  // Ajustamos la fecha para manejar la zona horaria
+  const date = new Date(dateString + 'T00:00:00')
   return date.toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',

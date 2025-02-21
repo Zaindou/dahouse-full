@@ -36,9 +36,15 @@
                         </div>
                     </div>
                     <!-- Versión del frontend -->
-                    <p class="mt-2 text-xs text-center text-gray-400 opacity-70">
-                        API 1.6.0 - Frontend 1.6.0
-                    </p>
+                    <div v-if="isLoading" class="mt-2 text-xs text-center text-gray-400 opacity-70">
+                        Cargando versiones...
+                    </div>
+                    <div v-else-if="error" class="mt-2 text-xs text-center text-red-400 opacity-70">
+                        Error al cargar versiones
+                    </div>
+                    <div v-else class="mt-2 text-xs text-center text-gray-400 opacity-70">
+                        API {{ apiVersion }} - Frontend {{ frontVersion }}
+                    </div>
                 </div>
             </div>
         </aside>
@@ -50,5 +56,63 @@
 </template>
 
 <script setup>
-defineProps(['isSidebarOpen', 'userName', 'mail'])
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useVersionStore } from '~/stores/version';
+import { storeToRefs } from 'pinia';
+
+const props = defineProps({
+    isSidebarOpen: {
+        type: Boolean,
+        required: true
+    },
+    userName: {
+        type: String,
+        required: true
+    },
+    mail: {
+        type: String,
+        required: true
+    }
+});
+
+// Usar storeToRefs para mantener la reactividad
+const versionStore = useVersionStore();
+const { apiVersion, frontVersion, isLoading, error } = storeToRefs(versionStore);
+
+// Cargar versiones al montar el componente
+onMounted(async () => {
+    await versionStore.fetchVersion();
+});
+
+// Recargar versiones cuando la página vuelve a estar activa
+if (process.client) {
+    const handleVisibilityChange = async () => {
+        if (!document.hidden) {
+            await versionStore.fetchVersion();
+        }
+    };
+    
+    onMounted(() => {
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+    });
+    
+    onUnmounted(() => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+    });
+}
+
+// Recargar versiones periódicamente
+const interval = ref(null);
+
+onMounted(() => {
+    interval.value = setInterval(async () => {
+        await versionStore.fetchVersion();
+    }, 5 * 60 * 1000);
+});
+
+onUnmounted(() => {
+    if (interval.value) {
+        clearInterval(interval.value);
+    }
+});
 </script>
