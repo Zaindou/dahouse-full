@@ -9,8 +9,23 @@ export default defineNuxtRouteMiddleware((to, from) => {
     authStore.fetchUser();
   }
 
-  // Permite acceder a la ruta /password-reset sin autenticación
-  if (to.path === "/password-reset") {
+  // Lista de rutas públicas que no requieren autenticación
+  const publicRoutes = ["/password-reset", "/rules/*"];
+
+  // Función para verificar si una ruta coincide con un patrón
+  const isRoutePublic = (path) => {
+    return publicRoutes.some((route) => {
+      if (route.endsWith("/*")) {
+        const baseRoute = route.slice(0, -2); // Elimina el "/*"
+        return path.startsWith(baseRoute);
+      }
+      // Si no tiene "/*", verifica coincidencia exacta
+      return path === route;
+    });
+  };
+
+  // Permite acceder a rutas públicas sin autenticación
+  if (isRoutePublic(to.path)) {
     return;
   }
 
