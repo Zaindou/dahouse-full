@@ -22,7 +22,6 @@ export const useVersionStore = defineStore("version", {
         if (response) {
           this.api = response.api_version;
           this.frontend = response.frontend_version;
-          console.log("Versiones actualizadas:", response); // Para debug
         }
 
         return true;

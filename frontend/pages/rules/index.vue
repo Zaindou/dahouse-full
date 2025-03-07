@@ -235,7 +235,7 @@
               <Icon :name="plataforma.icon" size="20" class="sm:text-3xl" />
             </div>
             <h3 class="mb-1 text-sm font-semibold text-gray-800 sm:text-lg">{{ plataforma.nombre }}</h3>
-            <p class="text-xs text-center text-gray-500 sm:text-sm">Plataforma global</p>
+            <!-- <p class="text-xs text-center text-gray-500 sm:text-sm">Plataforma global</p> -->
           </div>
         </div>
       </div>

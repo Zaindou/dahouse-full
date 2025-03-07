@@ -53,10 +53,13 @@ def obtener_datos_iniciales():
         .all()
     )
 
-    # Agrupar por mes y año en formato YYYY-MMM (ejemplo: 2025-FEB)
-    meses_disponibles = sorted(
-        {p.fecha_inicio.strftime("%Y-%b").upper() for p in periodos_disponibles}
-    )
+    # Agrupar por mes y año en formato YYYY-MMM
+    meses_sin_ordenar = {
+        p.fecha_inicio.strftime("%Y-%b").upper() for p in periodos_disponibles
+    }
+
+    # Ordenar la lista de meses resultante
+    meses_disponibles = sorted(meses_sin_ordenar, reverse=True)
 
     # Obtener todos los modelos con ganancias registradas
     modelos_con_ganancias = (
