@@ -4,12 +4,12 @@
 <!-- Hero con experiencia móvil mejorada -->
 <div class="relative w-full overflow-hidden">
   <!-- Sección de fotos a pantalla casi completa como fondo -->
-  <div class="relative" style="height: 90vh">
+  <div class="relative" style="height: 100vh">
     <!-- Grid de imágenes con efecto de transición suave (escritorio) -->
     <div class="relative hidden h-full grid-cols-3 md:grid">
       <!-- Primera imagen -->
       <div class="relative h-full overflow-hidden group">
-        <img src="/assets/test8.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
+        <img src="/landing-images/Xia-Jacuzzi.webp" alt="DAHOUSE Studio Webcam" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
         <!-- Degradado vertical estándar -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
         
@@ -19,7 +19,7 @@
       
       <!-- Segunda imagen -->
       <div class="relative h-full overflow-hidden group">
-        <img src="/assets/test2.jpg" alt="DAHOUSE Webcam" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
+        <img src="/landing-images/Aly-mirada.webp" alt="DAHOUSE Studio Webcam" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
         <!-- Degradado vertical estándar -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
         
@@ -30,7 +30,7 @@
       
       <!-- Tercera imagen -->
       <div class="relative h-full overflow-hidden group">
-        <img src="/assets/test9.jpg" alt="DAHOUSE Bogotá" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
+        <img src="/landing-images/LilithJacob-mirada.webp" alt="DAHOUSE Studio Webcam Bogotá" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
         <!-- Degradado vertical estándar -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
         
@@ -47,7 +47,7 @@
   <div class="relative h-full overflow-hidden">
     <!-- Imagen principal (se elige aleatoriamente) -->
     <ClientOnly>
-      <img :src="randomImage" alt="DAHOUSE Studio" class="object-cover w-full h-full animate-slow-fade"/>
+      <img :src="randomImage" alt="DAHOUSE Studio Webcam" class="object-cover w-full h-full animate-slow-fade"/>
     </ClientOnly>
     
     <!-- Degradado optimizado para texto -->
@@ -507,6 +507,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useFinancieroStore } from '~/stores/financiero';
+import { useServerSeoMeta } from 'nuxt/app'
+
+useServerSeoMeta({
+  title: 'DAHOUSE - Estudio Webcam en Bogotá | Gana Dinero Seguro en Línea',
+  ogTitle: 'DAHOUSE - Estudio Webcam en Bogotá',
+  description: 'Descubre DAHOUSE, el mejor estudio webcam en Bogotá. Gana dinero seguro trabajando en nuestras instalaciones o desde casa con asesoría profesional.',
+  ogDescription: 'Gana dinero de forma segura en el mejor estudio webcam en Bogotá, DAHOUSE.',
+  ogImage: '/dh-white.png',
+  robots: 'index, follow',
+  keywords: 'estudio webcam en Bogotá, ganar dinero en línea, DAHOUSE, trabajo webcam seguro, webcam studio',
+  canonical: 'https://dahouse.co'
+})
 
 const financieroStore = useFinancieroStore();
 const datosFinancieros = ref(null);
@@ -578,11 +590,16 @@ const calcularFechaPago = computed(() => {
 
 // Array de imágenes disponibles
 const availableImages = [
-  '_nuxt/assets/test2.jpg',
-  '_nuxt/assets/test3.jpg',
-  '_nuxt/assets/test7.jpg',
-  '_nuxt/assets/test8.jpg',
-  '_nuxt/assets/test9.jpg'
+  '/landing-images/Kim-mirada.webp',
+  '/landing-images/Aly-mirada.webp',
+  '/landing-images/Xia-Jacuzzi.webp',
+  '/landing-images/Lilith-mirada.webp',
+  '/landing-images/Stormy-mirada.webp',
+  '/landing-images/Xia-rosa.webp',
+  '/landing-images/LilithJacob-mirada.webp',
+
+
+
 ];
 
 // Referencia para la imagen aleatoria

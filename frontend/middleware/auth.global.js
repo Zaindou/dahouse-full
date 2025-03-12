@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   }
 
   // Lista de rutas públicas que no requieren autenticación
-  const publicRoutes = ["/login/password-reset", "/rules/*", "/"];
+  const publicRoutes = ["/login/password-reset", "/rules/*", "/assets/*", "/"];
 
   // Función para verificar si una ruta coincide con un patrón
   const isRoutePublic = (path) => {
