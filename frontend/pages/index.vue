@@ -1,11 +1,11 @@
 // pages/index.vue
 <template>
   <div class="min-h-screen bg-gradient-to-b from-pink-50 to-purple-50">
-<!-- Hero integrado con transiciones suaves entre imágenes -->
+<!-- Hero con experiencia móvil mejorada -->
 <div class="relative w-full overflow-hidden">
   <!-- Sección de fotos a pantalla casi completa como fondo -->
   <div class="relative" style="height: 90vh">
-    <!-- Grid de imágenes con efecto de transición suave -->
+    <!-- Grid de imágenes con efecto de transición suave (escritorio) -->
     <div class="relative hidden h-full grid-cols-3 md:grid">
       <!-- Primera imagen -->
       <div class="relative h-full overflow-hidden group">
@@ -42,11 +42,21 @@
       <div class="absolute inset-0 pointer-events-none bg-black/5"></div>
     </div>
     
-    <!-- Versión móvil (solo visible en móvil) -->
+    <!-- Versión móvil mejorada (autocarrusel simulado) -->
     <div class="h-full md:hidden">
       <div class="relative h-full overflow-hidden">
-        <img src="/assets/test2.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full"/>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20"></div>
+        <!-- Imagen principal -->
+        <img src="/assets/test3.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full animate-slow-fade"/>
+        
+        <!-- Degradado optimizado para texto -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
+        
+        <!-- Indicador de scroll para mejorar UX -->
+        <div class="absolute left-0 right-0 flex justify-center bottom-3 animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white opacity-80">
+            <path d="M7 13l5 5 5-5M7 7l5 5 5-5"/>
+          </svg>
+        </div>
       </div>
     </div>
     
@@ -56,29 +66,30 @@
     <!-- Contenido: Logo, menú y texto central integrados -->
     <div class="absolute inset-0 flex flex-col">
       <!-- Sección superior con logo y menú -->
-      <div class="w-full pt-8 pb-4 md:pt-12 md:pb-8">
+      <div class="w-full pt-6 pb-3 md:pt-12 md:pb-8">
         <div class="relative max-w-5xl px-4 mx-auto text-center sm:px-6">
-          <h1 class="mb-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
+          <h1 class="mb-4 text-3xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-4xl md:text-5xl">
             DAHOUSE
           </h1>
           
-          <!-- Menú de navegación para móvil con estilo integrado -->
+          <!-- Menú de navegación para móvil mejorado -->
           <div class="flex flex-wrap justify-center gap-2 md:hidden">
-            <NuxtLink to="#modalidades" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+            <NuxtLink to="#modalidades" class="px-4 py-2 text-sm font-medium text-white transition-transform rounded-full shadow-md backdrop-blur-sm bg-gradient-to-r from-pink-500/40 to-purple-500/20 active:scale-95">
               Modalidades
             </NuxtLink>
-            <NuxtLink to="#beneficios" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+            <NuxtLink to="#beneficios" class="px-4 py-2 text-sm font-medium text-white transition-transform rounded-full shadow-md backdrop-blur-sm bg-gradient-to-r from-pink-500/40 to-purple-500/20 active:scale-95">
               Beneficios
             </NuxtLink>
-            <NuxtLink to="#pagos" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+            <NuxtLink to="#pagos" class="px-4 py-2 text-sm font-medium text-white transition-transform rounded-full shadow-md backdrop-blur-sm bg-gradient-to-r from-pink-500/40 to-purple-500/20 active:scale-95">
               Pagos
             </NuxtLink>
-            <NuxtLink to="#plataformas" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+            <NuxtLink to="#plataformas" class="px-4 py-2 text-sm font-medium text-white transition-transform rounded-full shadow-md backdrop-blur-sm bg-gradient-to-r from-pink-500/40 to-purple-500/20 active:scale-95">
               Plataformas
             </NuxtLink>
-            <NuxtLink to="#faq" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+            <NuxtLink to="#faq" class="px-4 py-2 text-sm font-medium text-white transition-transform rounded-full shadow-md backdrop-blur-sm bg-gradient-to-r from-pink-500/40 to-purple-500/20 active:scale-95">
               FAQ
             </NuxtLink>
+            
           </div>
           
           <!-- Menú de navegación para tablet/desktop con estilo integrado -->
@@ -105,28 +116,29 @@
       <!-- Espacio flexible para centrar el texto descriptivo -->
       <div class="flex-grow"></div>
       
-<!-- Texto central descriptivo optimizado para móvil -->
-<div class="z-10 flex flex-col items-center justify-center p-4 mb-12 md:mb-24">
-  <div class="text-center text-white">
-    <!-- Versión móvil (horizontal con guiones) -->
-    <div class="flex items-center justify-center gap-2 text-xl font-semibold sm:hidden">
-      <span class="drop-shadow-md">Studio</span>
-      <span >•</span>
-      <span class="drop-shadow-md">Webcam</span>
-      <span >•</span>
-      <span class="drop-shadow-md">Bogotá</span>
-    </div>
-    
-    <!-- Versión tablet/desktop (con puntos) -->
-    <div class="flex-row items-center justify-center hidden gap-6 text-2xl font-semibold sm:flex md:text-3xl">
-      <span class="drop-shadow-md">Studio</span>
-      <span>•</span>
-      <span class="drop-shadow-md">Webcam</span>
-      <span>•</span>
-      <span class="drop-shadow-md">Bogotá</span>
-    </div>
-  </div>
-</div>
+      <!-- Texto central descriptivo optimizado para móvil -->
+      <div class="z-10 flex flex-col items-center justify-center p-4 mb-12 md:mb-24">
+        <div class="text-center text-white">
+          <!-- Versión móvil mejorada con mejor espaciado -->
+          <div class="flex items-center justify-center gap-3 text-xl font-semibold drop-shadow-lg sm:hidden">
+            <span>Studio</span>
+            <span class="text-white-300">•</span>
+            <span>Webcam</span>
+            <span class="text-white-300">•</span>
+            <span>Bogotá</span>
+          </div>
+          
+          <!-- Versión tablet/desktop (con puntos) -->
+          <div class="flex-row items-center justify-center hidden gap-6 text-2xl font-semibold sm:flex md:text-3xl">
+            <span class="drop-shadow-md">Studio</span>
+            <span>•</span>
+            <span class="drop-shadow-md">Webcam</span>
+            <span>•</span>
+            <span class="drop-shadow-md">Bogotá</span>
+          </div>
+        </div>
+      </div>
+      
       
       <!-- Degradado inferior para suavizar la transición a la siguiente sección -->
       <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/30 to-transparent"></div>
