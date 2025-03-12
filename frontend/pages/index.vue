@@ -1,36 +1,51 @@
 // pages/index.vue
 <template>
   <div class="min-h-screen bg-gradient-to-b from-pink-50 to-purple-50">
-    <!-- Hero Section with Softer Aesthetic -->
-   <!-- Hero integrado con menú y galería -->
+<!-- Hero integrado con transiciones suaves entre imágenes -->
 <div class="relative w-full overflow-hidden">
-  <!-- Sección de fotos a pantalla completa como fondo -->
-  <div class="relative h-screen">
-    <!-- Grid de imágenes en formato elegante -->
-    <div class="grid h-full grid-cols-3">
+  <!-- Sección de fotos a pantalla casi completa como fondo -->
+  <div class="relative" style="height: 90vh">
+    <!-- Grid de imágenes con efecto de transición suave -->
+    <div class="relative hidden h-full grid-cols-3 md:grid">
       <!-- Primera imagen -->
-      <div class="relative h-full overflow-hidden">
-        <img src="/assets/test5.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full"/>
+      <div class="relative h-full overflow-hidden group">
+        <img src="/assets/test8.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
+        <!-- Degradado vertical estándar -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+        
+        <!-- Degradado lateral derecho para transición suave -->
+        <div class="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-r from-transparent to-black/20"></div>
       </div>
       
       <!-- Segunda imagen -->
-      <div class="relative h-full overflow-hidden">
-        <img src="/assets/test2.jpg" alt="DAHOUSE Webcam" class="object-cover w-full h-full"/>
+      <div class="relative h-full overflow-hidden group">
+        <img src="/assets/test2.jpg" alt="DAHOUSE Webcam" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
+        <!-- Degradado vertical estándar -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+        
+        <!-- Degradados laterales para transición suave en ambos lados -->
+        <div class="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-l from-transparent to-black/20"></div>
+        <div class="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-r from-transparent to-black/20"></div>
       </div>
       
       <!-- Tercera imagen -->
-      <div class="relative h-full overflow-hidden">
-        <img src="/assets/test3.jpg" alt="DAHOUSE Bogotá" class="object-cover w-full h-full"/>
+      <div class="relative h-full overflow-hidden group">
+        <img src="/assets/test9.jpg" alt="DAHOUSE Bogotá" class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
+        <!-- Degradado vertical estándar -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+        
+        <!-- Degradado lateral izquierdo para transición suave -->
+        <div class="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-l from-transparent to-black/20"></div>
       </div>
+      
+      <!-- Overlay sutil que unifica las tres imágenes -->
+      <div class="absolute inset-0 pointer-events-none bg-black/5"></div>
     </div>
     
     <!-- Versión móvil (solo visible en móvil) -->
-    <div class="absolute inset-0 md:hidden">
+    <div class="h-full md:hidden">
       <div class="relative h-full overflow-hidden">
-        <img src="/assets/test5.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full"/>
+        <img src="/assets/test2.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full"/>
         <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20"></div>
       </div>
     </div>
@@ -90,22 +105,31 @@
       <!-- Espacio flexible para centrar el texto descriptivo -->
       <div class="flex-grow"></div>
       
-      <!-- Texto central descriptivo -->
-      <div class="z-10 flex flex-col items-center justify-center p-4 mb-16 md:mb-32">
-        <div class="text-center text-white">
-          <h2 class="mb-4 text-4xl font-bold sm:text-5xl md:text-6xl drop-shadow-lg">DAHOUSE</h2>
-          <div class="flex flex-col items-center justify-center gap-4 text-xl font-semibold sm:flex-row sm:gap-6 sm:text-2xl md:text-3xl">
-            <span class="drop-shadow-md">Estudio</span>
-            <span class="hidden sm:inline">•</span>
-            <span class="drop-shadow-md">Webcam</span>
-            <span class="hidden sm:inline">•</span>
-            <span class="drop-shadow-md">Bogotá</span>
-          </div>
-        </div>
-      </div>
+<!-- Texto central descriptivo optimizado para móvil -->
+<div class="z-10 flex flex-col items-center justify-center p-4 mb-12 md:mb-24">
+  <div class="text-center text-white">
+    <!-- Versión móvil (horizontal con guiones) -->
+    <div class="flex items-center justify-center gap-2 text-xl font-semibold sm:hidden">
+      <span class="drop-shadow-md">Studio</span>
+      <span >•</span>
+      <span class="drop-shadow-md">Webcam</span>
+      <span >•</span>
+      <span class="drop-shadow-md">Bogotá</span>
+    </div>
+    
+    <!-- Versión tablet/desktop (con puntos) -->
+    <div class="flex-row items-center justify-center hidden gap-6 text-2xl font-semibold sm:flex md:text-3xl">
+      <span class="drop-shadow-md">Studio</span>
+      <span>•</span>
+      <span class="drop-shadow-md">Webcam</span>
+      <span>•</span>
+      <span class="drop-shadow-md">Bogotá</span>
+    </div>
+  </div>
+</div>
       
-      <!-- Decoración inferior con efecto de desvanecimiento -->
-      <div class="w-full h-24 bg-gradient-to-t from-white to-transparent"></div>
+      <!-- Degradado inferior para suavizar la transición a la siguiente sección -->
+      <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/30 to-transparent"></div>
     </div>
   </div>
 </div>
