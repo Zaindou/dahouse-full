@@ -1,53 +1,65 @@
-// pages/rules/index.vue
+// pages/index.vue
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-    <!-- Hero Section -->
-    <div class="relative py-16 overflow-hidden md:py-20 bg-gradient-to-r from-purple-900 to-indigo-900">
+  <div class="min-h-screen bg-gradient-to-b from-pink-50 to-purple-50">
+    <!-- Hero Section with Softer Aesthetic -->
+    <div class="relative py-16 overflow-hidden md:py-20 bg-gradient-to-r from-pink-600 to-purple-700">
       <div class="absolute inset-0 opacity-20">
         <div class="absolute inset-0 bg-black opacity-20"></div>
         <div class="absolute inset-0" style="background-image: url('/backdrop-pattern.svg'); background-size: cover;"></div>
       </div>
+      <!-- Cute decorative elements -->
+      <div class="absolute top-0 left-0 w-full overflow-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" class="absolute bottom-0 w-full h-20 text-pink-50 opacity-30">
+          <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" fill="currentColor"></path>
+        </svg>
+      </div>
+      
       <div class="relative max-w-5xl px-4 mx-auto text-center sm:px-6">
         <h1 class="mb-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
           DAHOUSE
         </h1>
-        <p class="mb-6 text-lg text-purple-100 sm:mb-8 sm:text-xl">Descubre nuestras reglas y condiciones</p>
         
-        <!-- Menú de navegación para móvil -->
+        <!-- Menú de navegación para móvil con estilo redondeado -->
         <div class="flex flex-wrap justify-center gap-2 md:hidden">
-          <NuxtLink to="#modalidades" class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-purple-800/50 backdrop-blur-sm hover:bg-purple-800/70">
+          <NuxtLink to="#modalidades" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
             Modalidades
           </NuxtLink>
-          <NuxtLink to="#pagos" class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-purple-800/50 backdrop-blur-sm hover:bg-purple-800/70">
+          <NuxtLink to="#beneficios" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+            Beneficios
+          </NuxtLink>
+          <NuxtLink to="#pagos" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
             Pagos
           </NuxtLink>
-          <NuxtLink to="#plataformas" class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-purple-800/50 backdrop-blur-sm hover:bg-purple-800/70">
+          <NuxtLink to="#plataformas" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
             Plataformas
           </NuxtLink>
-          <NuxtLink to="#faq" class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-purple-800/50 backdrop-blur-sm hover:bg-purple-800/70">
+          <NuxtLink to="#faq" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
             FAQ
           </NuxtLink>
         </div>
         
-        <!-- Menú de navegación para tablet/desktop -->
+        <!-- Menú de navegación para tablet/desktop más redondeado y femenino -->
         <div class="hidden p-1 space-x-1 bg-white rounded-full shadow-lg md:inline-flex">
-          <NuxtLink to="#modalidades" class="px-6 py-3 text-sm font-medium text-purple-900 transition-colors rounded-full hover:bg-purple-100">
+          <NuxtLink to="#modalidades" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
             Modalidades
           </NuxtLink>
-          <NuxtLink to="#pagos" class="px-6 py-3 text-sm font-medium text-purple-900 transition-colors rounded-full hover:bg-purple-100">
+          <NuxtLink to="#beneficios" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
+            Beneficios
+          </NuxtLink>
+          <NuxtLink to="#pagos" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
             Pagos
           </NuxtLink>
-          <NuxtLink to="#plataformas" class="px-6 py-3 text-sm font-medium text-purple-900 transition-colors rounded-full hover:bg-purple-100">
+          <NuxtLink to="#plataformas" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
             Plataformas
           </NuxtLink>
-          <NuxtLink to="#faq" class="px-6 py-3 text-sm font-medium text-purple-900 transition-colors rounded-full hover:bg-purple-100">
+          <NuxtLink to="#faq" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
             FAQ
           </NuxtLink>
         </div>
       </div>
     </div>
 
-    <!-- Modalidades Section -->
+    <!-- Modalidades Section with reordered cards and softer corners -->
     <section id="modalidades" class="py-16">
       <div class="max-w-6xl px-6 mx-auto">
         <div class="text-center">
@@ -58,78 +70,78 @@
         </div>
 
         <div class="grid max-w-4xl grid-cols-1 gap-6 mx-auto sm:gap-8 md:grid-cols-2">
-          <!-- Tarjeta de Trabajo Remoto -->
-          <div class="relative overflow-hidden transition-all duration-300 bg-white border-t-4 border-purple-600 rounded-lg shadow-lg group hover:-translate-y-2 hover:shadow-xl">
-            <div class="absolute inset-0 transition-opacity opacity-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 group-hover:opacity-100"></div>
+          <!-- Tarjeta de Trabajo Presencial (AHORA PRIMERO) -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white border-t-4 border-pink-500 shadow-lg rounded-2xl group hover:-translate-y-2 hover:shadow-xl">
+            <div class="absolute inset-0 transition-opacity opacity-0 bg-gradient-to-br from-pink-500/10 to-purple-500/10 group-hover:opacity-100"></div>
             <div class="relative p-5 sm:p-8">
-              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white sm:w-20 sm:h-20 sm:mb-6 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl">
-                <Icon name="uil:laptop" class="text-2xl sm:text-3xl" />
+              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white rounded-full sm:w-20 sm:h-20 sm:mb-6 bg-gradient-to-br from-pink-500 to-purple-600">
+                <Icon name="uil:building" class="text-2xl sm:text-3xl" />
               </div>
-              <h3 class="mb-2 text-xl font-bold text-center text-gray-900 sm:mb-3 sm:text-2xl">Trabajo Remoto</h3>
-              <p class="mb-4 text-sm text-center text-gray-600 sm:mb-6 sm:text-base">Trabaja desde la comodidad de tu hogar con tu propio equipo y horarios flexibles.</p>
+              <h3 class="mb-2 text-xl font-bold text-center text-gray-900 sm:mb-3 sm:text-2xl">Trabajo Presencial</h3>
+              <p class="mb-4 text-sm text-center text-gray-600 sm:mb-6 sm:text-base">Trabaja en nuestras instalaciones con equipamiento profesional completo.</p>
               
-              <div class="p-3 mb-4 rounded-lg sm:p-4 sm:mb-6 bg-gray-50">
+              <div class="p-3 mb-4 rounded-full sm:p-4 sm:mb-6 bg-pink-50">
                 <div class="text-center">
-                  <span class="block text-2xl font-bold text-purple-600 sm:text-3xl">60%</span>
+                  <span class="block text-2xl font-bold text-pink-600 sm:text-3xl">50%</span>
                   <span class="text-xs text-gray-500 sm:text-sm">de ganancias para ti</span>
                 </div>
               </div>
               
               <ul class="mb-6 space-y-2 text-sm sm:mb-8 sm:space-y-3 sm:text-base">
                 <li class="flex items-start">
-                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-green-500 sm:mr-3" />
-                  <span class="text-gray-600">Soporte técnico 24/7</span>
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-pink-500 sm:mr-3" />
+                  <span class="text-gray-600">Equipos de alta gama</span>
                 </li>
                 <li class="flex items-start">
-                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-green-500 sm:mr-3" />
-                  <span class="text-gray-600">Horarios flexibles</span>
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-pink-500 sm:mr-3" />
+                  <span class="text-gray-600">Sets profesionales</span>
                 </li>
                 <li class="flex items-start">
-                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-green-500 sm:mr-3" />
-                  <span class="text-gray-600">Asesoría profesional</span>
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-pink-500 sm:mr-3" />
+                  <span class="text-gray-600">Ambiente controlado</span>
                 </li>
               </ul>
               
-              <NuxtLink to="/rules/remote" class="flex items-center justify-center w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-colors bg-purple-600 rounded-lg hover:bg-purple-700">
+              <NuxtLink to="/rules/presencial" class="flex items-center justify-center w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-colors bg-pink-500 rounded-full hover:bg-pink-600 shadow-md">
                 Ver todas las reglas
                 <Icon name="uil:arrow-right" class="ml-2" />
               </NuxtLink>
             </div>
           </div>
 
-          <!-- Tarjeta de Trabajo Presencial -->
-          <div class="relative overflow-hidden transition-all duration-300 bg-white border-t-4 border-indigo-600 rounded-lg shadow-lg group hover:-translate-y-2 hover:shadow-xl">
-            <div class="absolute inset-0 transition-opacity opacity-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 group-hover:opacity-100"></div>
+          <!-- Tarjeta de Trabajo Remoto (AHORA SEGUNDO) -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white border-t-4 border-purple-500 shadow-lg rounded-2xl group hover:-translate-y-2 hover:shadow-xl">
+            <div class="absolute inset-0 transition-opacity opacity-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 group-hover:opacity-100"></div>
             <div class="relative p-5 sm:p-8">
-              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white sm:w-20 sm:h-20 sm:mb-6 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl">
-                <Icon name="uil:building" class="text-2xl sm:text-3xl" />
+              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white rounded-full sm:w-20 sm:h-20 sm:mb-6 bg-gradient-to-br from-purple-500 to-indigo-600">
+                <Icon name="uil:laptop" class="text-2xl sm:text-3xl" />
               </div>
-              <h3 class="mb-2 text-xl font-bold text-center text-gray-900 sm:mb-3 sm:text-2xl">Trabajo Presencial</h3>
-              <p class="mb-4 text-sm text-center text-gray-600 sm:mb-6 sm:text-base">Trabaja en nuestras instalaciones con equipamiento profesional completo.</p>
+              <h3 class="mb-2 text-xl font-bold text-center text-gray-900 sm:mb-3 sm:text-2xl">Trabajo Remoto (Satélite)</h3>
+              <p class="mb-4 text-sm text-center text-gray-600 sm:mb-6 sm:text-base">Trabaja desde la comodidad de tu hogar con tu propio equipo y horarios flexibles.</p>
               
-              <div class="p-3 mb-4 rounded-lg sm:p-4 sm:mb-6 bg-gray-50">
+              <div class="p-3 mb-4 rounded-full sm:p-4 sm:mb-6 bg-purple-50">
                 <div class="text-center">
-                  <span class="block text-2xl font-bold text-indigo-600 sm:text-3xl">50%</span>
+                  <span class="block text-2xl font-bold text-purple-600 sm:text-3xl">70%</span>
                   <span class="text-xs text-gray-500 sm:text-sm">de ganancias para ti</span>
                 </div>
               </div>
               
               <ul class="mb-6 space-y-2 text-sm sm:mb-8 sm:space-y-3 sm:text-base">
                 <li class="flex items-start">
-                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-green-500 sm:mr-3" />
-                  <span class="text-gray-600">Equipos de alta gama</span>
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-purple-500 sm:mr-3" />
+                  <span class="text-gray-600">Soporte técnico 24/7</span>
                 </li>
                 <li class="flex items-start">
-                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-green-500 sm:mr-3" />
-                  <span class="text-gray-600">Sets profesionales</span>
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-purple-500 sm:mr-3" />
+                  <span class="text-gray-600">Horarios flexibles</span>
                 </li>
                 <li class="flex items-start">
-                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-green-500 sm:mr-3" />
-                  <span class="text-gray-600">Ambiente controlado</span>
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-purple-500 sm:mr-3" />
+                  <span class="text-gray-600">Asesoría profesional</span>
                 </li>
               </ul>
               
-              <NuxtLink to="/rules/presencial" class="flex items-center justify-center w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700">
+              <NuxtLink to="/rules/remote" class="flex items-center justify-center w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-colors bg-purple-500 rounded-full hover:bg-purple-600 shadow-md">
                 Ver todas las reglas
                 <Icon name="uil:arrow-right" class="ml-2" />
               </NuxtLink>
@@ -139,7 +151,111 @@
       </div>
     </section>
 
-    <!-- Pagos Section -->
+    <!-- NUEVA SECCIÓN: Beneficios Section con estilo femenino y cute -->
+    <section id="beneficios" class="py-16 bg-gradient-to-b from-pink-50 to-white">
+      <div class="max-w-6xl px-6 mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Nuestros Beneficios</h2>
+          <p class="mb-12 text-lg text-gray-600">
+            En DAHOUSE nos preocupamos por tu bienestar y crecimiento profesional
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <!-- Beneficio 1: Psicóloga Personal -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-100">
+                <path d="M12 2a8 8 0 0 0-8 8c0 5.2 8 12 8 12s8-6.8 8-12a8 8 0 0 0-8-8z"></path>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-pink-500 to-purple-500">
+                <Icon name="uil:heart" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Psicóloga Personal</h3>
+              <p class="text-gray-600">Sabemos la importancia de la salud mental, siempre cuenta con nosotros. Acceso a profesionales que te apoyarán en tu desarrollo personal y profesional.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 2: Programa de Crecimiento -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-100">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-purple-500 to-indigo-500">
+                <Icon name="uil:chart-line" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Programa de Crecimiento</h3>
+              <p class="text-gray-600">Desde que ingresas haces parte de un programa personalizado para garantizar tu crecimiento. Mentoras expertas te guiarán en cada paso del camino.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 3: Facilidades de Pago -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-100">
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <circle cx="12" cy="12" r="2"></circle>
+                <path d="M6 12h.01M18 12h.01"></path>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-pink-500 to-purple-500">
+                <Icon name="uil:tag" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Facilidades de Pago</h3>
+              <p class="text-gray-600">Aprovecha tarifas especiales en lencería, juguetes y págalo a cuotas o por descuento de nómina. Queremos hacerte la vida más fácil con opciones flexibles.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 4: Adelantos y Créditos -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-100">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-purple-500 to-indigo-500">
+                <Icon name="uil:money-bill" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Adelantos de Nómina y Créditos</h3>
+              <p class="text-gray-600">Entendemos que a veces necesitas un poco de ayuda financiera. Ofrecemos adelantos de nómina y pequeños créditos con tasas preferenciales para nuestras modelos.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 5: Fotografías Profesionales -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-100">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                <circle cx="12" cy="13" r="3"></circle>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-pink-500 to-purple-500">
+                <Icon name="uil:camera" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Fotografías Profesionales</h3>
+              <p class="text-gray-600">Mejora tu perfil con nuestro servicio de fotografía profesional. Nuestro equipo de fotógrafos captará tu mejor ángulo para destacar tu belleza natural y autenticidad.</p>
+            </div>
+          </div>
+          
+          <!-- Espaciador para mantener la simetría en cuadrícula de 3 -->
+          <div class="hidden lg:block"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pagos Section con diseño más femenino -->
     <section id="pagos" class="py-16 bg-white">
       <div class="max-w-6xl px-6 mx-auto">
         <div class="max-w-3xl mx-auto text-center">
@@ -149,44 +265,44 @@
           </p>
         </div>
 
-        <div class="overflow-hidden shadow-lg rounded-xl" v-if="datosFinancieros">
-          <div class="px-6 py-5 bg-gradient-to-r from-blue-700 to-indigo-800">
+        <div class="overflow-hidden shadow-lg rounded-3xl" v-if="datosFinancieros">
+          <div class="px-6 py-5 bg-gradient-to-r from-pink-500 to-purple-600">
             <h3 class="text-xl font-semibold text-white">Próximo Periodo de Pago</h3>
           </div>
 
-          <div class="p-4 sm:p-6 bg-gradient-to-b from-blue-50 to-white">
+          <div class="p-4 sm:p-6 bg-gradient-to-b from-pink-50 to-white">
             <div class="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
-              <div class="p-4 bg-white rounded-lg shadow-sm sm:p-6">
+              <div class="p-4 bg-white shadow-sm rounded-2xl sm:p-6">
                 <div class="flex items-center mb-4">
-                  <div class="flex items-center justify-center w-10 h-10 mr-3 text-white bg-blue-600 rounded-full sm:w-12 sm:h-12 sm:mr-4">
+                  <div class="flex items-center justify-center w-10 h-10 mr-3 text-white bg-pink-500 rounded-full sm:w-12 sm:h-12 sm:mr-4">
                     <Icon name="uil:calendar-alt" size="20" class="sm:text-2xl" />
                   </div>
                   <h4 class="text-lg font-semibold text-gray-800 sm:text-xl">Fechas Importantes</h4>
                 </div>
 
                 <ul class="space-y-2 sm:space-y-4">
-                  <li class="flex flex-col p-2 rounded-md sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-blue-50">
+                  <li class="flex flex-col p-2 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-pink-50">
                     <span class="mb-1 text-sm text-gray-600 sm:text-base sm:mb-0">Periodo:</span>
                     <span class="text-sm font-medium text-gray-900 sm:text-base">{{ periodoActual[0] || 'Cargando...' }}</span>
                   </li>
-                  <li class="flex flex-col p-2 rounded-md sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-blue-50">
+                  <li class="flex flex-col p-2 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-pink-50">
                     <span class="mb-1 text-sm text-gray-600 sm:text-base sm:mb-0">Fecha inicio:</span>
                     <span class="text-sm font-medium text-gray-900 sm:text-base">{{ formatDate(periodoActual[1]) || 'Cargando...' }}</span>
                   </li>
-                  <li class="flex flex-col p-2 rounded-md sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-blue-50">
+                  <li class="flex flex-col p-2 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-pink-50">
                     <span class="mb-1 text-sm text-gray-600 sm:text-base sm:mb-0">Fecha corte:</span>
                     <span class="text-sm font-medium text-gray-900 sm:text-base">{{ formatDate(periodoActual[2]) || 'Cargando...' }}</span>
                   </li>
-                  <li class="flex flex-col p-2 text-white bg-blue-600 rounded-md sm:flex-row sm:items-center sm:justify-between sm:p-3">
+                  <li class="flex flex-col p-2 text-white bg-pink-500 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3">
                     <span class="mb-1 text-sm sm:text-base sm:mb-0">Fecha de pago:</span>
                     <span class="text-sm font-medium sm:text-base">{{ calcularFechaPago || 'Cargando...' }}</span>
                   </li>
                 </ul>
               </div>
 
-              <div class="p-4 bg-white rounded-lg shadow-sm sm:p-6">
+              <div class="p-4 bg-white shadow-sm rounded-2xl sm:p-6">
                 <div class="flex items-center mb-4">
-                  <div class="flex items-center justify-center w-10 h-10 mr-3 text-white bg-blue-600 rounded-full sm:w-12 sm:h-12 sm:mr-4">
+                  <div class="flex items-center justify-center w-10 h-10 mr-3 text-white bg-pink-500 rounded-full sm:w-12 sm:h-12 sm:mr-4">
                     <Icon name="uil:money-withdraw" size="20" class="sm:text-2xl" />
                   </div>
                   <h4 class="text-lg font-semibold text-gray-800 sm:text-xl">Información de TRM</h4>
@@ -198,11 +314,11 @@
                     <div class="text-xl font-bold text-gray-800 sm:text-2xl">{{ formatearPesos(trmActual) }}</div>
                   </div>
                   
-                  <div class="w-12 h-px my-2 bg-gray-200 sm:w-16"></div>
+                  <div class="w-12 h-px my-2 bg-pink-200 sm:w-16"></div>
                   
                   <div class="text-center">
                     <div class="text-xs font-medium text-gray-500 sm:text-sm">TRM de liquidación</div>
-                    <div class="text-2xl font-bold text-green-600 sm:text-3xl">{{ formatearPesos(trmLiquidacion) }}</div>
+                    <div class="text-2xl font-bold text-pink-600 sm:text-3xl">{{ formatearPesos(trmLiquidacion) }}</div>
                     <div class="mt-2 text-xs text-gray-500">* La TRM utilizada para tu pago</div>
                   </div>
                 </div>
@@ -211,15 +327,15 @@
           </div>
         </div>
         
-        <div class="p-8 mt-8 text-center rounded-lg bg-gray-50" v-else>
-          <Icon name="uil:sync" class="mx-auto mb-4 text-4xl text-gray-400 animate-spin" />
+        <div class="p-8 mt-8 text-center rounded-2xl bg-pink-50" v-else>
+          <Icon name="uil:sync" class="mx-auto mb-4 text-4xl text-pink-400 animate-spin" />
           <p class="text-gray-600">Cargando información de pagos...</p>
         </div>
       </div>
     </section>
 
-    <!-- Plataformas Section -->
-    <section id="plataformas" class="py-16 bg-gradient-to-b from-gray-100 to-white">
+    <!-- Plataformas Section con diseño más redondeado -->
+    <section id="plataformas" class="py-16 bg-gradient-to-b from-purple-50 to-white">
       <div class="max-w-6xl px-6 mx-auto">
         <div class="max-w-3xl mx-auto text-center">
           <h2 class="mb-2 text-3xl font-bold text-gray-900">Plataformas con las que Trabajamos</h2>
@@ -230,72 +346,73 @@
 
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-6">
           <div v-for="(plataforma, index) in plataformas" :key="index" 
-               class="flex flex-col items-center p-3 transition-all duration-300 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6 hover:shadow-md hover:-translate-y-1">
-            <div class="flex items-center justify-center w-12 h-12 mb-2 text-white rounded-full sm:w-16 sm:h-16 sm:mb-4 bg-gradient-to-br from-purple-600 to-indigo-600">
+               class="flex flex-col items-center p-3 transition-all duration-300 bg-white border border-pink-100 shadow-sm rounded-2xl sm:p-6 hover:shadow-md hover:-translate-y-1">
+            <div class="flex items-center justify-center w-12 h-12 mb-2 text-white rounded-full sm:w-16 sm:h-16 sm:mb-4 bg-gradient-to-br from-pink-500 to-purple-500">
               <Icon :name="plataforma.icon" size="20" class="sm:text-3xl" />
             </div>
             <h3 class="mb-1 text-sm font-semibold text-gray-800 sm:text-lg">{{ plataforma.nombre }}</h3>
-            <!-- <p class="text-xs text-center text-gray-500 sm:text-sm">Plataforma global</p> -->
           </div>
         </div>
       </div>
     </section>
 
-<!-- FAQ Section -->
-<section id="faq" class="py-16 bg-white">
-  <div class="max-w-4xl px-6 mx-auto">
-    <div class="max-w-3xl mx-auto text-center">
-      <h2 class="mb-2 text-3xl font-bold text-gray-900">Preguntas Frecuentes</h2>
-      <p class="mb-12 text¿Tienes más preguntas?-lg text-gray-600">
-        Respuestas a las dudas más comunes sobre nuestras reglas y condiciones
-      </p>
-    </div>
-
-    <div class="space-y-6">
-      <div v-for="(faq, index) in faqs" :key="index"
-        class="overflow-hidden transition-all duration-300 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md">
-        <div class="p-6">
-          <h3 class="mb-3 text-xl font-semibold text-gray-900">{{ faq.pregunta }}</h3>
-          <p class="text-gray-600">{{ faq.respuesta }}</p>
+    <!-- FAQ Section con diseño cute -->
+    <section id="faq" class="py-16 bg-white">
+      <div class="max-w-4xl px-6 mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Preguntas Frecuentes</h2>
+          <p class="mb-12 text-lg text-gray-600">
+            Respuestas a las dudas más comunes sobre nuestras reglas y condiciones
+          </p>
         </div>
-      </div>
-    </div>
 
-    <div class="p-8 mt-12 text-center rounded-lg bg-purple-50">
-      <h3 class="mb-4 text-xl font-semibold text-purple-900">¿Tienes más preguntas?</h3>
-      <p class="mb-6 text-gray-600">Nuestro equipo está listo para ayudarte con cualquier duda adicional</p>
-      <NuxtLink to="/contacto"
-        class="inline-flex items-center px-6 py-3 text-white transition-colors bg-purple-600 rounded-lg hover:bg-purple-700">
-        Contáctanos
-        <Icon name="uil:arrow-right" class="ml-2" />
-      </NuxtLink>
-    </div>
-  </div>
-</section>
+        <div class="space-y-6">
+          <div v-for="(faq, index) in faqs" :key="index"
+            class="overflow-hidden transition-all duration-300 bg-white border border-pink-200 shadow-sm rounded-2xl hover:shadow-md">
+            <div class="p-6">
+              <h3 class="mb-3 text-xl font-semibold text-gray-900">{{ faq.pregunta }}</h3>
+              <p class="text-gray-600">{{ faq.respuesta }}</p>
+            </div>
+          </div>
+        </div>
 
-    <!-- CTA Section -->
-    <section class="py-12 bg-gradient-to-r from-purple-900 to-indigo-900">
-      <div class="max-w-4xl px-6 mx-auto text-center">
-        <h2 class="mb-4 text-3xl font-bold text-white">¿Listo para comenzar?</h2>
-        <p class="mb-8 text-lg text-purple-100">
-          Únete a DAHOUSE y lleva tu carrera al siguiente nivel
-        </p>
-        <div class="flex flex-wrap justify-center gap-4">
-          <NuxtLink to="/registro" class="px-8 py-3 font-medium text-purple-900 transition-colors bg-white border-2 border-white rounded-lg hover:bg-purple-50">
-            Registrarme
-          </NuxtLink>
-          <NuxtLink to="/contacto" class="px-8 py-3 font-medium text-white transition-colors bg-transparent border-2 border-white rounded-lg hover:bg-white/10">
-            Más información
+        <div class="p-8 mt-12 text-center rounded-2xl bg-pink-50">
+          <h3 class="mb-4 text-xl font-semibold text-pink-900">¿Tienes más preguntas?</h3>
+          <p class="mb-6 text-gray-600">Nuestro equipo está listo para ayudarte con cualquier duda adicional</p>
+          <NuxtLink to="/contacto"
+            class="inline-flex items-center px-6 py-3 text-white transition-colors bg-pink-500 rounded-full shadow-md hover:bg-pink-600">
+            Contáctanos
+            <Icon name="uil:arrow-right" class="ml-2" />
           </NuxtLink>
         </div>
       </div>
     </section>
 
-
-
+    <!-- CTA Section con esquinas redondeadas -->
+    <section class="py-12 bg-gradient-to-r from-pink-600 to-purple-700">
+      <!-- Decoraciones cute en esquinas -->
+      <div class="absolute top-0 left-0 w-full overflow-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" class="absolute top-0 w-full h-20 text-white transform rotate-180 opacity-10">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="currentColor"></path>
+        </svg>
+      </div>
+      
+      <div class="relative max-w-4xl px-6 mx-auto text-center">
+        <h2 class="mb-4 text-3xl font-bold text-white">¿Lista para comenzar?</h2>
+        <p class="mb-8 text-lg text-pink-100">
+          Únete a DAHOUSE y lleva tu carrera al siguiente nivel
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <NuxtLink to="/registro" class="px-8 py-3 font-medium text-pink-700 transition-colors bg-white border-2 border-white rounded-full shadow-md hover:bg-pink-50">
+            Registrarme
+          </NuxtLink>
+          <NuxtLink to="/contacto" class="px-8 py-3 font-medium text-white transition-colors bg-transparent border-2 border-white rounded-full shadow-md hover:bg-white/10">
+            Más información
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
   </div>
-
-  
 </template>
 
 <script setup>

@@ -1,174 +1,555 @@
+// pages/index.vue
 <template>
-    <div class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <!-- Efecto de fondo con blur -->
-        <div class="absolute inset-0 bg-grid-white/[0.02] bg-grid" aria-hidden="true"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-gray-900/30 via-gray-900/80 to-gray-900/30 backdrop-blur-sm"></div>
-
-        <!-- Card principal -->
-        <div class="relative w-full max-w-md">
-            <!-- Efectos de resplandor -->
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl opacity-20 blur"></div>
-            <div class="relative overflow-hidden bg-gray-900 border border-gray-800 shadow-2xl rounded-xl">
-                <!-- Logo Section con animación -->
-                <div class="px-6 pt-8">
-                    <div class="flex justify-center transition-transform duration-300 transform hover:scale-105">
-                        <img src="assets/dh-white.png" alt="Logo" class="w-auto h-12 drop-shadow-2xl" />
-                    </div>
-                </div>
-
-                <!-- Header con mejor tipografía -->
-                <div class="p-6 space-y-2">
-                    <h2 class="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                        Bienvenido
-                    </h2>
-                    <p class="text-sm font-medium text-center text-gray-400">
-                        Ingresa tus credenciales para acceder
-                    </p>
-                </div>
-
-                <!-- Form con mejor interactividad -->
-                <div class="p-6 pt-2">
-                    <form @submit.prevent="handleLogin" class="space-y-5">
-                        <!-- Campo Usuario -->
-                        <div class="space-y-2">
-                            <label for="username" class="block text-sm font-medium text-gray-300">
-                                Usuario
-                            </label>
-                            <div class="relative group">
-                                <div class="absolute inset-0 transition-opacity duration-300 rounded-lg opacity-50 bg-gradient-to-r from-blue-500 to-purple-600 blur-sm group-hover:opacity-100 -z-10"></div>
-                                <input 
-                                    id="username" 
-                                    v-model="credentials.nombre_usuario" 
-                                    type="text" 
-                                    required
-                                    :disabled="isLoading" 
-                                    placeholder="Nombre de usuario"
-                                    class="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all duration-200" 
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Campo Contraseña -->
-                        <div class="space-y-2">
-                            <label for="password" class="block text-sm font-medium text-gray-300">
-                                Contraseña
-                            </label>
-                            <div class="relative group">
-                                <div class="absolute inset-0 transition-opacity duration-300 rounded-lg opacity-50 bg-gradient-to-r from-blue-500 to-purple-600 blur-sm group-hover:opacity-100 -z-10"></div>
-                                <input 
-                                    id="password" 
-                                    v-model="credentials.password" 
-                                    type="password" 
-                                    required
-                                    :disabled="isLoading" 
-                                    placeholder="••••••••"
-                                    class="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all duration-200" 
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Error Message con mejor animación -->
-                        <TransitionRoot appear :show="!!errorMessage" as="div"
-                            enter="transform transition-all duration-300"
-                            enter-from="opacity-0 translate-y-4"
-                            enter-to="opacity-100 translate-y-0"
-                            leave="transform transition-all duration-300"
-                            leave-from="opacity-100 translate-y-0"
-                            leave-to="opacity-0 translate-y-4">
-                            <div v-if="errorMessage"
-                                class="px-4 py-3 text-sm text-red-200 border rounded-lg bg-red-500/10 border-red-500/50">
-                                {{ errorMessage }}
-                            </div>
-                        </TransitionRoot>
-
-                        <!-- Login Button con mejor interacción -->
-                        <button type="submit" :disabled="isLoading"
-                            class="relative w-full overflow-hidden rounded-lg group">
-                            <!-- Fondo animado -->
-                            <div class="absolute inset-0 transition-transform duration-300 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:scale-105"></div>
-                            <!-- Contenido del botón -->
-                            <div class="relative flex items-center justify-center px-4 py-3 space-x-2 transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 group-hover:bg-opacity-90">
-                                <!-- Loading Spinner mejorado -->
-                                <span v-if="isLoading" 
-                                    class="w-5 h-5 animate-spin">
-                                    <svg class="text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </span>
-                                <!-- Lock Icon mejorado -->
-                                <span v-else class="text-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0110 0v4"></path>
-                                    </svg>
-                                </span>
-                                <span class="font-medium text-white">
-                                    {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
-                                </span>
-                            </div>
-                        </button>
-
-                        <!-- Footer con mejor diseño -->
-                        <div class="mt-6 text-center">
-                            <NuxtLink to="/password-reset"
-                                class="relative inline-block group">
-                                <span class="relative z-10 text-sm font-medium text-blue-400 transition-colors duration-200 group-hover:text-blue-300">
-                                    ¿Olvidaste tu contraseñaa?
-                                </span>
-                                <div class="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                            </NuxtLink>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+  <div class="min-h-screen bg-gradient-to-b from-pink-50 to-purple-50">
+    <!-- Hero Section with Softer Aesthetic -->
+   <!-- Hero integrado con menú y galería -->
+<div class="relative w-full overflow-hidden">
+  <!-- Sección de fotos a pantalla completa como fondo -->
+  <div class="relative h-screen">
+    <!-- Grid de imágenes en formato elegante -->
+    <div class="grid h-full grid-cols-3">
+      <!-- Primera imagen -->
+      <div class="relative h-full overflow-hidden">
+        <img src="/assets/test5.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+      </div>
+      
+      <!-- Segunda imagen -->
+      <div class="relative h-full overflow-hidden">
+        <img src="/assets/test2.jpg" alt="DAHOUSE Webcam" class="object-cover w-full h-full"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+      </div>
+      
+      <!-- Tercera imagen -->
+      <div class="relative h-full overflow-hidden">
+        <img src="/assets/test3.jpg" alt="DAHOUSE Bogotá" class="object-cover w-full h-full"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+      </div>
     </div>
+    
+    <!-- Versión móvil (solo visible en móvil) -->
+    <div class="absolute inset-0 md:hidden">
+      <div class="relative h-full overflow-hidden">
+        <img src="/assets/test5.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20"></div>
+      </div>
+    </div>
+    
+    <!-- Overlay decorativo para mejorar la transición -->
+    <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-pink-600/30 to-transparent"></div>
+    
+    <!-- Contenido: Logo, menú y texto central integrados -->
+    <div class="absolute inset-0 flex flex-col">
+      <!-- Sección superior con logo y menú -->
+      <div class="w-full pt-8 pb-4 md:pt-12 md:pb-8">
+        <div class="relative max-w-5xl px-4 mx-auto text-center sm:px-6">
+          <h1 class="mb-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
+            DAHOUSE
+          </h1>
+          
+          <!-- Menú de navegación para móvil con estilo integrado -->
+          <div class="flex flex-wrap justify-center gap-2 md:hidden">
+            <NuxtLink to="#modalidades" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+              Modalidades
+            </NuxtLink>
+            <NuxtLink to="#beneficios" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+              Beneficios
+            </NuxtLink>
+            <NuxtLink to="#pagos" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+              Pagos
+            </NuxtLink>
+            <NuxtLink to="#plataformas" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+              Plataformas
+            </NuxtLink>
+            <NuxtLink to="#faq" class="px-4 py-2 text-sm font-medium text-white rounded-full shadow-md bg-pink-500/70 backdrop-blur-sm hover:bg-pink-500/90">
+              FAQ
+            </NuxtLink>
+          </div>
+          
+          <!-- Menú de navegación para tablet/desktop con estilo integrado -->
+          <div class="hidden p-1 space-x-1 rounded-full shadow-lg backdrop-blur-sm bg-white/90 md:inline-flex">
+            <NuxtLink to="#modalidades" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
+              Modalidades
+            </NuxtLink>
+            <NuxtLink to="#beneficios" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
+              Beneficios
+            </NuxtLink>
+            <NuxtLink to="#pagos" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
+              Pagos
+            </NuxtLink>
+            <NuxtLink to="#plataformas" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
+              Plataformas
+            </NuxtLink>
+            <NuxtLink to="#faq" class="px-6 py-3 text-sm font-medium text-pink-700 transition-colors rounded-full hover:bg-pink-100">
+              FAQ
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Espacio flexible para centrar el texto descriptivo -->
+      <div class="flex-grow"></div>
+      
+      <!-- Texto central descriptivo -->
+      <div class="z-10 flex flex-col items-center justify-center p-4 mb-16 md:mb-32">
+        <div class="text-center text-white">
+          <h2 class="mb-4 text-4xl font-bold sm:text-5xl md:text-6xl drop-shadow-lg">DAHOUSE</h2>
+          <div class="flex flex-col items-center justify-center gap-4 text-xl font-semibold sm:flex-row sm:gap-6 sm:text-2xl md:text-3xl">
+            <span class="drop-shadow-md">Estudio</span>
+            <span class="hidden sm:inline">•</span>
+            <span class="drop-shadow-md">Webcam</span>
+            <span class="hidden sm:inline">•</span>
+            <span class="drop-shadow-md">Bogotá</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Decoración inferior con efecto de desvanecimiento -->
+      <div class="w-full h-24 bg-gradient-to-t from-white to-transparent"></div>
+    </div>
+  </div>
+</div>
+
+    <!-- Modalidades Section with reordered cards and softer corners -->
+    <section id="modalidades" class="py-16">
+      <div class="max-w-6xl px-6 mx-auto">
+        <div class="text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Modalidades de Trabajo</h2>
+          <p class="max-w-2xl mx-auto mb-12 text-lg text-gray-600">
+            Ofrecemos diferentes opciones para que trabajes de la manera que mejor se adapte a ti
+          </p>
+        </div>
+
+        <div class="grid max-w-4xl grid-cols-1 gap-6 mx-auto sm:gap-8 md:grid-cols-2">
+          <!-- Tarjeta de Trabajo Presencial (AHORA PRIMERO) -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white border-t-4 border-pink-500 shadow-lg rounded-2xl group hover:-translate-y-2 hover:shadow-xl">
+            <div class="absolute inset-0 transition-opacity opacity-0 bg-gradient-to-br from-pink-500/10 to-purple-500/10 group-hover:opacity-100"></div>
+            <div class="relative p-5 sm:p-8">
+              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white rounded-full sm:w-20 sm:h-20 sm:mb-6 bg-gradient-to-br from-pink-500 to-purple-600">
+                <Icon name="uil:building" class="text-2xl sm:text-3xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-center text-gray-900 sm:mb-3 sm:text-2xl">Trabajo Presencial</h3>
+              <p class="mb-4 text-sm text-center text-gray-600 sm:mb-6 sm:text-base">Trabaja en nuestras instalaciones con equipamiento profesional completo.</p>
+              
+              <div class="p-3 mb-4 rounded-full sm:p-4 sm:mb-6 bg-pink-50">
+                <div class="text-center">
+                  <span class="block text-2xl font-bold text-pink-600 sm:text-3xl">50%</span>
+                  <span class="text-xs text-gray-500 sm:text-sm">de ganancias para ti</span>
+                </div>
+              </div>
+              
+              <ul class="mb-6 space-y-2 text-sm sm:mb-8 sm:space-y-3 sm:text-base">
+                <li class="flex items-start">
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-pink-500 sm:mr-3" />
+                  <span class="text-gray-600">Equipos de alta gama</span>
+                </li>
+                <li class="flex items-start">
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-pink-500 sm:mr-3" />
+                  <span class="text-gray-600">Sets profesionales</span>
+                </li>
+                <li class="flex items-start">
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-pink-500 sm:mr-3" />
+                  <span class="text-gray-600">Ambiente controlado</span>
+                </li>
+              </ul>
+              
+              <NuxtLink to="/rules/presencial" class="flex items-center justify-center w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-colors bg-pink-500 rounded-full hover:bg-pink-600 shadow-md">
+                Ver todas las reglas
+                <Icon name="uil:arrow-right" class="ml-2" />
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Trabajo Remoto (AHORA SEGUNDO) -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white border-t-4 border-purple-500 shadow-lg rounded-2xl group hover:-translate-y-2 hover:shadow-xl">
+            <div class="absolute inset-0 transition-opacity opacity-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 group-hover:opacity-100"></div>
+            <div class="relative p-5 sm:p-8">
+              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-white rounded-full sm:w-20 sm:h-20 sm:mb-6 bg-gradient-to-br from-purple-500 to-indigo-600">
+                <Icon name="uil:laptop" class="text-2xl sm:text-3xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-center text-gray-900 sm:mb-3 sm:text-2xl">Trabajo Remoto (Satélite)</h3>
+              <p class="mb-4 text-sm text-center text-gray-600 sm:mb-6 sm:text-base">Trabaja desde la comodidad de tu hogar con tu propio equipo y horarios flexibles.</p>
+              
+              <div class="p-3 mb-4 rounded-full sm:p-4 sm:mb-6 bg-purple-50">
+                <div class="text-center">
+                  <span class="block text-2xl font-bold text-purple-600 sm:text-3xl">70%</span>
+                  <span class="text-xs text-gray-500 sm:text-sm">de ganancias para ti</span>
+                </div>
+              </div>
+              
+              <ul class="mb-6 space-y-2 text-sm sm:mb-8 sm:space-y-3 sm:text-base">
+                <li class="flex items-start">
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-purple-500 sm:mr-3" />
+                  <span class="text-gray-600">Soporte técnico 24/7</span>
+                </li>
+                <li class="flex items-start">
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-purple-500 sm:mr-3" />
+                  <span class="text-gray-600">Horarios flexibles</span>
+                </li>
+                <li class="flex items-start">
+                  <Icon name="uil:check-circle" class="flex-shrink-0 mt-1 mr-2 text-purple-500 sm:mr-3" />
+                  <span class="text-gray-600">Asesoría profesional</span>
+                </li>
+              </ul>
+              
+              <NuxtLink to="/rules/remote" class="flex items-center justify-center w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white transition-colors bg-purple-500 rounded-full hover:bg-purple-600 shadow-md">
+                Ver todas las reglas
+                <Icon name="uil:arrow-right" class="ml-2" />
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NUEVA SECCIÓN: Beneficios Section con estilo femenino y cute -->
+    <section id="beneficios" class="py-16 bg-gradient-to-b from-pink-50 to-white">
+      <div class="max-w-6xl px-6 mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Nuestros Beneficios</h2>
+          <p class="mb-12 text-lg text-gray-600">
+            En DAHOUSE nos preocupamos por tu bienestar y crecimiento profesional
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <!-- Beneficio 1: Psicóloga Personal -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-100">
+                <path d="M12 2a8 8 0 0 0-8 8c0 5.2 8 12 8 12s8-6.8 8-12a8 8 0 0 0-8-8z"></path>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-pink-500 to-purple-500">
+                <Icon name="uil:heart" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Psicóloga Personal</h3>
+              <p class="text-gray-600">Sabemos la importancia de la salud mental, siempre cuenta con nosotros. Acceso a profesionales que te apoyarán en tu desarrollo personal y profesional.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 2: Programa de Crecimiento -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-100">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-purple-500 to-indigo-500">
+                <Icon name="uil:chart-line" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Programa de Crecimiento</h3>
+              <p class="text-gray-600">Desde que ingresas haces parte de un programa personalizado para garantizar tu crecimiento. Mentoras expertas te guiarán en cada paso del camino.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 3: Facilidades de Pago -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-100">
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <circle cx="12" cy="12" r="2"></circle>
+                <path d="M6 12h.01M18 12h.01"></path>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-pink-500 to-purple-500">
+                <Icon name="uil:tag" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Facilidades de Pago</h3>
+              <p class="text-gray-600">Aprovecha tarifas especiales en lencería, juguetes y págalo a cuotas o por descuento de nómina. Queremos hacerte la vida más fácil con opciones flexibles.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 4: Adelantos y Créditos -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-100">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-purple-500 to-indigo-500">
+                <Icon name="uil:money-bill" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Adelantos de Nómina y Créditos</h3>
+              <p class="text-gray-600">Entendemos que a veces necesitas un poco de ayuda financiera. Ofrecemos adelantos de nómina y pequeños créditos con tasas preferenciales para nuestras modelos.</p>
+            </div>
+          </div>
+
+          <!-- Beneficio 5: Fotografías Profesionales -->
+          <div class="relative overflow-hidden transition-all duration-300 bg-white shadow-md rounded-2xl hover:-translate-y-2 hover:shadow-lg">
+            <div class="absolute top-0 right-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-100">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                <circle cx="12" cy="13" r="3"></circle>
+              </svg>
+            </div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-center w-16 h-16 mb-4 text-white rounded-full bg-gradient-to-br from-pink-500 to-purple-500">
+                <Icon name="uil:camera" class="text-2xl" />
+              </div>
+              <h3 class="mb-2 text-xl font-bold text-gray-900">Fotografías Profesionales</h3>
+              <p class="text-gray-600">Mejora tu perfil con nuestro servicio de fotografía profesional. Nuestro equipo de fotógrafos captará tu mejor ángulo para destacar tu belleza natural y autenticidad.</p>
+            </div>
+          </div>
+          
+          <!-- Espaciador para mantener la simetría en cuadrícula de 3 -->
+          <div class="hidden lg:block"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pagos Section con diseño más femenino -->
+    <section id="pagos" class="py-16 bg-white">
+      <div class="max-w-6xl px-6 mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Información de Pagos</h2>
+          <p class="mb-12 text-lg text-gray-600">
+            En DAHOUSE valoramos la transparencia y te ofrecemos información detallada sobre tus pagos
+          </p>
+        </div>
+
+        <div class="overflow-hidden shadow-lg rounded-3xl" v-if="datosFinancieros">
+          <div class="px-6 py-5 bg-gradient-to-r from-pink-500 to-purple-600">
+            <h3 class="text-xl font-semibold text-white">Próximo Periodo de Pago</h3>
+          </div>
+
+          <div class="p-4 sm:p-6 bg-gradient-to-b from-pink-50 to-white">
+            <div class="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+              <div class="p-4 bg-white shadow-sm rounded-2xl sm:p-6">
+                <div class="flex items-center mb-4">
+                  <div class="flex items-center justify-center w-10 h-10 mr-3 text-white bg-pink-500 rounded-full sm:w-12 sm:h-12 sm:mr-4">
+                    <Icon name="uil:calendar-alt" size="20" class="sm:text-2xl" />
+                  </div>
+                  <h4 class="text-lg font-semibold text-gray-800 sm:text-xl">Fechas Importantes</h4>
+                </div>
+
+                <ul class="space-y-2 sm:space-y-4">
+                  <li class="flex flex-col p-2 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-pink-50">
+                    <span class="mb-1 text-sm text-gray-600 sm:text-base sm:mb-0">Periodo:</span>
+                    <span class="text-sm font-medium text-gray-900 sm:text-base">{{ periodoActual[0] || 'Cargando...' }}</span>
+                  </li>
+                  <li class="flex flex-col p-2 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-pink-50">
+                    <span class="mb-1 text-sm text-gray-600 sm:text-base sm:mb-0">Fecha inicio:</span>
+                    <span class="text-sm font-medium text-gray-900 sm:text-base">{{ formatDate(periodoActual[1]) || 'Cargando...' }}</span>
+                  </li>
+                  <li class="flex flex-col p-2 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3 bg-pink-50">
+                    <span class="mb-1 text-sm text-gray-600 sm:text-base sm:mb-0">Fecha corte:</span>
+                    <span class="text-sm font-medium text-gray-900 sm:text-base">{{ formatDate(periodoActual[2]) || 'Cargando...' }}</span>
+                  </li>
+                  <li class="flex flex-col p-2 text-white bg-pink-500 rounded-xl sm:flex-row sm:items-center sm:justify-between sm:p-3">
+                    <span class="mb-1 text-sm sm:text-base sm:mb-0">Fecha de pago:</span>
+                    <span class="text-sm font-medium sm:text-base">{{ calcularFechaPago || 'Cargando...' }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="p-4 bg-white shadow-sm rounded-2xl sm:p-6">
+                <div class="flex items-center mb-4">
+                  <div class="flex items-center justify-center w-10 h-10 mr-3 text-white bg-pink-500 rounded-full sm:w-12 sm:h-12 sm:mr-4">
+                    <Icon name="uil:money-withdraw" size="20" class="sm:text-2xl" />
+                  </div>
+                  <h4 class="text-lg font-semibold text-gray-800 sm:text-xl">Información de TRM</h4>
+                </div>
+
+                <div class="flex flex-col items-center justify-center h-auto py-4 sm:h-44">
+                  <div class="mb-4 text-center">
+                    <div class="text-xs font-medium text-gray-500 sm:text-sm">TRM actual</div>
+                    <div class="text-xl font-bold text-gray-800 sm:text-2xl">{{ formatearPesos(trmActual) }}</div>
+                  </div>
+                  
+                  <div class="w-12 h-px my-2 bg-pink-200 sm:w-16"></div>
+                  
+                  <div class="text-center">
+                    <div class="text-xs font-medium text-gray-500 sm:text-sm">TRM de liquidación</div>
+                    <div class="text-2xl font-bold text-pink-600 sm:text-3xl">{{ formatearPesos(trmLiquidacion) }}</div>
+                    <div class="mt-2 text-xs text-gray-500">* La TRM utilizada para tu pago</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-8 mt-8 text-center rounded-2xl bg-pink-50" v-else>
+          <Icon name="uil:sync" class="mx-auto mb-4 text-4xl text-pink-400 animate-spin" />
+          <p class="text-gray-600">Cargando información de pagos...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plataformas Section con diseño más redondeado -->
+    <section id="plataformas" class="py-16 bg-gradient-to-b from-purple-50 to-white">
+      <div class="max-w-6xl px-6 mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Plataformas con las que Trabajamos</h2>
+          <p class="mb-10 text-lg text-gray-600">
+            Colaboramos con las mejores plataformas del sector para maximizar tu alcance e ingresos
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-6">
+          <div v-for="(plataforma, index) in plataformas" :key="index" 
+               class="flex flex-col items-center p-3 transition-all duration-300 bg-white border border-pink-100 shadow-sm rounded-2xl sm:p-6 hover:shadow-md hover:-translate-y-1">
+            <div class="flex items-center justify-center w-12 h-12 mb-2 text-white rounded-full sm:w-16 sm:h-16 sm:mb-4 bg-gradient-to-br from-pink-500 to-purple-500">
+              <Icon :name="plataforma.icon" size="20" class="sm:text-3xl" />
+            </div>
+            <h3 class="mb-1 text-sm font-semibold text-gray-800 sm:text-lg">{{ plataforma.nombre }}</h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section con diseño cute -->
+    <section id="faq" class="py-16 bg-white">
+      <div class="max-w-4xl px-6 mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="mb-2 text-3xl font-bold text-gray-900">Preguntas Frecuentes</h2>
+          <p class="mb-12 text-lg text-gray-600">
+            Respuestas a las dudas más comunes sobre nuestras reglas y condiciones
+          </p>
+        </div>
+
+        <div class="space-y-6">
+          <div v-for="(faq, index) in faqs" :key="index"
+            class="overflow-hidden transition-all duration-300 bg-white border border-pink-200 shadow-sm rounded-2xl hover:shadow-md">
+            <div class="p-6">
+              <h3 class="mb-3 text-xl font-semibold text-gray-900">{{ faq.pregunta }}</h3>
+              <p class="text-gray-600">{{ faq.respuesta }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 mt-12 text-center rounded-2xl bg-pink-50">
+          <h3 class="mb-4 text-xl font-semibold text-pink-900">¿Tienes más preguntas?</h3>
+          <p class="mb-6 text-gray-600">Nuestro equipo está listo para ayudarte con cualquier duda adicional</p>
+          <NuxtLink to="/contacto"
+            class="inline-flex items-center px-6 py-3 text-white transition-colors bg-pink-500 rounded-full shadow-md hover:bg-pink-600">
+            Contáctanos
+            <Icon name="uil:arrow-right" class="ml-2" />
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section con esquinas redondeadas -->
+    <section class="py-12 bg-gradient-to-r from-pink-600 to-purple-700">
+      <!-- Decoraciones cute en esquinas -->
+      <div class="absolute top-0 left-0 w-full overflow-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" class="absolute top-0 w-full h-20 text-white transform rotate-180 opacity-10">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="currentColor"></path>
+        </svg>
+      </div>
+      
+      <div class="relative max-w-4xl px-6 mx-auto text-center">
+        <h2 class="mb-4 text-3xl font-bold text-white">¿Lista para comenzar?</h2>
+        <p class="mb-8 text-lg text-pink-100">
+          Únete a DAHOUSE y lleva tu carrera al siguiente nivel
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <NuxtLink to="/registro" class="px-8 py-3 font-medium text-pink-700 transition-colors bg-white border-2 border-white rounded-full shadow-md hover:bg-pink-50">
+            Registrarme
+          </NuxtLink>
+          <NuxtLink to="/contacto" class="px-8 py-3 font-medium text-white transition-colors bg-transparent border-2 border-white rounded-full shadow-md hover:bg-white/10">
+            Más información
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { TransitionRoot } from '@headlessui/vue'
-import { useAuthStore } from '~/stores/auth'
+import { ref, computed, onMounted } from 'vue';
+import { useFinancieroStore } from '~/stores/financiero';
 
-const authStore = useAuthStore()
-const credentials = ref({
-    nombre_usuario: '',
-    password: ''
-})
-const errorMessage = ref('')
-const isLoading = ref(false)
+const financieroStore = useFinancieroStore();
+const datosFinancieros = ref(null);
+const periodoActual = ref(['', '', '']);
+const trmActual = ref(0);
+const trmLiquidacion = ref(0);
 
-const handleLogin = async () => {
-    if (isLoading.value) return
+// Plataformas con las que trabajamos
+const plataformas = [
+  { nombre: 'Chaturbate', icon: 'uil:globe' },
+  { nombre: 'Stripchat', icon: 'uil:globe' },
+  { nombre: 'Bongacams', icon: 'uil:globe' },
+  { nombre: 'Camsoda', icon: 'uil:globe' },
+  { nombre: 'Streamate', icon: 'uil:globe' }
+];
 
-    try {
-        isLoading.value = true
-        errorMessage.value = ''
+// FAQs
+const faqs = [
+  {
+    pregunta: '¿Cuándo se realizan los pagos?',
+    respuesta: 'Los pagos se realizan el miércoles siguiente a la fecha de corte del periodo, garantizando siempre la máxima puntualidad y transparencia en el proceso.'
+  },
+  {
+    pregunta: '¿Qué necesito para trabajar en modalidad remota?',
+    respuesta: 'Para trabajar de forma remota, necesitas un computador con cámara HD, buena iluminación, conexión a internet estable (mínimo 10 Mbps de subida) y un espacio privado sin interrupciones.'
+  },
+  {
+    pregunta: '¿Cómo se calcula mi pago?',
+    respuesta: 'Tu pago se calcula según los tokens generados en las plataformas, convertidos a dólares según la tasa de cada plataforma, y luego a pesos colombianos usando la TRM de liquidación establecida por DAHOUSE.'
+  },
+  {
+    pregunta: '¿Puedo cambiar de modalidad de trabajo?',
+    respuesta: 'Sí, puedes solicitar un cambio de modalidad con un aviso previo de 15 días para que podamos hacer los ajustes necesarios. El cambio está sujeto a disponibilidad en el caso de trabajo presencial.'
+  }
+];
 
-        const success = await authStore.login(credentials.value)
+// Función para formatear fechas
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('es-CO', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  }).format(date);
+};
 
-        if (success) {
-            await navigateTo('/dashboard')
-        } else {
-            errorMessage.value = 'Nombre de usuario o contraseña incorrectos.'
-        }
-    } catch (error) {
-        console.error('Error de inicio de sesión:', error)
-        errorMessage.value = 'Ocurrió un error al intentar iniciar sesión. Por favor, inténtalo de nuevo.'
-    } finally {
-        isLoading.value = false
+// Formatear pesos colombianos
+const formatearPesos = (valor) => {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 2
+  }).format(valor);
+};
+
+// Calcular la fecha de pago (día siguiente a la fecha de corte)
+const calcularFechaPago = computed(() => {
+  if (!periodoActual.value[2]) return '';
+  
+  const fechaCorte = new Date(periodoActual.value[2]);
+  const fechaPago = new Date(fechaCorte);
+  
+  // Avanzar al día siguiente
+  fechaPago.setDate(fechaCorte.getDate() + 1);
+  
+  return formatDate(fechaPago);
+});
+
+onMounted(async () => {
+  try {
+    const datos = await financieroStore.fetchDatosFinancieros();
+    datosFinancieros.value = datos;
+    
+    if (datos && datos.periodo_actual) {
+      periodoActual.value = datos.periodo_actual;
+      trmActual.value = datos.trm_actual;
+      trmLiquidacion.value = datos.trm_liquidacion;
     }
-}
+  } catch (error) {
+    console.error('Error al cargar datos financieros:', error);
+  }
+});
 </script>
-
-<style>
-/* Patrón de fondo */
-.bg-grid {
-    background-size: 40px 40px;
-    background-image: 
-        linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
-}
-</style>
