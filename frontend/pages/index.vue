@@ -510,11 +510,11 @@ import { useFinancieroStore } from '~/stores/financiero';
 import { useServerSeoMeta } from 'nuxt/app'
 
 useServerSeoMeta({
-  title: 'DAHOUSE - Estudio Webcam en Bogotá | Gana Dinero Seguro en Línea',
-  ogTitle: 'DAHOUSE - Estudio Webcam en Bogotá',
+  title: 'DAHOUSE - Studio Webcam en Bogotá | Gana Dinero Seguro en Línea',
+  ogTitle: 'DAHOUSE - Studio Webcam en Bogotá',
   description: 'Descubre DAHOUSE, el mejor estudio webcam en Bogotá. Gana dinero seguro trabajando en nuestras instalaciones o desde casa con asesoría profesional.',
-  ogDescription: 'Gana dinero de forma segura en el mejor estudio webcam en Bogotá, DAHOUSE.',
-  ogImage: '/dh-white.png',
+  ogDescription: 'Descubre DAHOUSE, el mejor estudio webcam en Bogotá. Gana dinero seguro trabajando en nuestras instalaciones o desde casa con asesoría profesional.',
+  ogImage: '/logo-og.webp',
   robots: 'index, follow',
   keywords: 'estudio webcam en Bogotá, ganar dinero en línea, DAHOUSE, trabajo webcam seguro, webcam studio',
   canonical: 'https://dahouse.co'
