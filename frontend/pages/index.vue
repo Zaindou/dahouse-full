@@ -4,7 +4,7 @@
 <!-- Hero con experiencia móvil mejorada -->
 <div class="relative w-full overflow-hidden">
   <!-- Sección de fotos a pantalla casi completa como fondo -->
-  <div class="relative" style="height: 100vh">
+  <div class="relative h-[91vh] md:h-screen">
     <!-- Grid de imágenes con efecto de transición suave (escritorio) -->
     <div class="relative hidden h-full grid-cols-3 md:grid">
       <!-- Primera imagen -->

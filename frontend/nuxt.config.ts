@@ -1,8 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", 'nuxt-icon'],
+
   pinia: {
     storesDirs: ['./stores/**', './custom-folder/stores/**'],
   },
@@ -21,7 +21,6 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vue-sonner'],
   },
-
 
   nitro: {
     devProxy: {
@@ -52,6 +51,6 @@ export default defineNuxtConfig({
         { rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css' },
       ]
     }
-  }
+  },
 
 })
