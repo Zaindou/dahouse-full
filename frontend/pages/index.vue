@@ -43,22 +43,24 @@
     </div>
     
     <!-- Versión móvil mejorada (autocarrusel simulado) -->
-    <div class="h-full md:hidden">
-      <div class="relative h-full overflow-hidden">
-        <!-- Imagen principal -->
-        <img src="/assets/test3.jpg" alt="DAHOUSE Estudio" class="object-cover w-full h-full animate-slow-fade"/>
-        
-        <!-- Degradado optimizado para texto -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
-        
-        <!-- Indicador de scroll para mejorar UX -->
-        <div class="absolute left-0 right-0 flex justify-center bottom-3 animate-bounce">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white opacity-80">
-            <path d="M7 13l5 5 5-5M7 7l5 5 5-5"/>
-          </svg>
-        </div>
-      </div>
+<div class="h-full md:hidden">
+  <div class="relative h-full overflow-hidden">
+    <!-- Imagen principal (se elige aleatoriamente) -->
+    <ClientOnly>
+      <img :src="randomImage" alt="DAHOUSE Studio" class="object-cover w-full h-full animate-slow-fade"/>
+    </ClientOnly>
+    
+    <!-- Degradado optimizado para texto -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
+    
+    <!-- Indicador de scroll para mejorar UX -->
+    <div class="absolute left-0 right-0 flex justify-center bottom-3 animate-bounce">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white opacity-80">
+        <path d="M7 13l5 5 5-5M7 7l5 5 5-5"/>
+      </svg>
     </div>
+  </div>
+</div>
     
     <!-- Overlay decorativo para mejorar la transición -->
     <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-pink-600/30 to-transparent"></div>
@@ -574,6 +576,29 @@ const calcularFechaPago = computed(() => {
   return formatDate(fechaPago);
 });
 
+// Array de imágenes disponibles
+const availableImages = [
+  '_nuxt/assets/test2.jpg',
+  '_nuxt/assets/test3.jpg',
+  '_nuxt/assets/test7.jpg',
+  '_nuxt/assets/test8.jpg',
+  '_nuxt/assets/test9.jpg'
+];
+
+// Referencia para la imagen aleatoria
+const randomImage = ref('');
+
+// Función para elegir una imagen aleatoria del array
+const selectRandomImage = () => {
+  const randomIndex = Math.floor(Math.random() * availableImages.length);
+  randomImage.value = availableImages[randomIndex];
+};
+
+// Inicializar con una imagen aleatoria al montar el componente
+onMounted(() => {
+  selectRandomImage();
+});
+
 onMounted(async () => {
   try {
     const datos = await financieroStore.fetchDatosFinancieros();
@@ -588,4 +613,16 @@ onMounted(async () => {
     console.error('Error al cargar datos financieros:', error);
   }
 });
+
+
 </script>
+
+<style>
+@keyframes slow-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+.animate-slow-fade {
+  animation: slow-fade 8s infinite;
+}
+</style>
