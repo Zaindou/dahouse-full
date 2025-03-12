@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   }
 
   // Lista de rutas públicas que no requieren autenticación
-  const publicRoutes = ["/password-reset", "/rules/*"];
+  const publicRoutes = ["/login/password-reset", "/rules/*", "/"];
 
   // Función para verificar si una ruta coincide con un patrón
   const isRoutePublic = (path) => {
@@ -30,12 +30,12 @@ export default defineNuxtRouteMiddleware((to, from) => {
   }
 
   // Redirige al dashboard si está autenticado y va al login
-  if ((authStore.isAuthenticated || token) && to.path === "/") {
+  if ((authStore.isAuthenticated || token) && to.path === "/login") {
     return navigateTo("/dashboard");
   }
 
   // Redirige al login si no está autenticado y no va al login
-  if (!authStore.isAuthenticated && !token && to.path !== "/") {
-    return navigateTo("/");
+  if (!authStore.isAuthenticated && !token && to.path !== "/login") {
+    return navigateTo("/login");
   }
 });
