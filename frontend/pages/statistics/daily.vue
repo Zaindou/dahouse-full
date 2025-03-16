@@ -1,89 +1,92 @@
 // pages/index.vue
 <template>
   <NuxtLayout>
-    <div class='container mx-auto'>
+    <div class='container mx-auto sm:px-6 md:px-8'>
     <!-- Filtros -->
       <Filters
-    :periodo="selectedPeriodo"
-    :subperiodo="selectedSubPeriodo"
-    :modelo="selectedModelo"
-    @update:periodo="selectedPeriodo = $event"
-    @update:subperiodo="selectedSubPeriodo = $event"
-    @update:modelo="selectedModelo = $event"
-  />
+        :periodo="selectedPeriodo"
+        :subperiodo="selectedSubPeriodo"
+        :modelo="selectedModelo"
+        @update:periodo="selectedPeriodo = $event"
+        @update:subperiodo="selectedSubPeriodo = $event"
+        @update:modelo="selectedModelo = $event"
+        class="mt-4"
+      />
 
+      <!-- Tabs -->
+      <div class="mb-6 overflow-x-auto border-b border-gray-200">
+        <nav class="flex space-x-4 min-w-max" aria-label="Tabs">
+          <button
+            v-for="tab in visibleTabs"
+            :key="tab.key"
+            @click="activeTab = tab.key"
+            :class="[
+              activeTab === tab.key
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+            ]"
+          >
+            <div class="flex items-center">
+              <Icon :name="tab.icon" class="w-5 h-5 mr-2" />
+              {{ tab.name }}
+            </div>
+          </button>
+        </nav>
+      </div>
 
-    <!-- Tabs -->
-    <div class="mb-6 border-b border-gray-200">
-      <nav class="flex space-x-4" aria-label="Tabs">
-        <button
-          v-for="tab in visibleTabs"
-          :key="tab.key"
-          @click="activeTab = tab.key"
-          :class="[
-            activeTab === tab.key
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
-        >
-          <div class="flex items-center">
-            <Icon :name="tab.icon" class="w-5 h-5 mr-2" />
-            {{ tab.name }}
-          </div>
-        </button>
-      </nav>
-    </div>
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <div class="w-12 h-12 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+      </div>
 
-    <div v-if="loading" class="flex items-center justify-center py-8">
-      <div class="w-12 h-12 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-    </div>
-
-    <template v-else>
-      <!-- Vista de Estadísticas -->
-      <div v-if="activeTab === 'stats'">
-        <!-- Tarjetas de estadísticas -->
-        <StatsCards
-          v-if="earningsData"
-          :data="earningsData"
-          class="mb-6"
-        />
-
-        <div class="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
-          <!-- Gráfica de tokens por día -->
-          <TokensChart
+      <template v-else>
+        <!-- Vista de Estadísticas -->
+        <div v-if="activeTab === 'stats'" class="w-full">
+          <!-- Tarjetas de estadísticas -->
+          <StatsCards
             v-if="earningsData"
-            :data="earningsData.tokens_por_dia_y_semana"
-            v-model:selectedDate="selectedDate"
-            @update:selectedDate="handleDateSelection"
+            :data="earningsData"
+            class="mb-6"
           />
 
-          <!-- Distribución por página -->
-          <DistributionChart
-            v-if="distributionData"
-            :data="distributionData"
-            :model-value="selectedModelo"
+          <div class="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
+            <!-- Gráfica de tokens por día -->
+            <TokensChart
+              v-if="earningsData"
+              :data="earningsData.tokens_por_dia_y_semana"
+              v-model:selectedDate="selectedDate"
+              @update:selectedDate="handleDateSelection"
+              class="w-full"
+            />
+
+            <!-- Distribución por página -->
+            <DistributionChart
+              v-if="distributionData"
+              :data="distributionData"
+              :model-value="selectedModelo"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <!-- Vista de Podio -->
+        <div v-else-if="activeTab === 'podium' && !selectedModelo" class="w-full">
+          <ModelsPodium
+            v-if="earningsData"
+            :data="earningsData"
           />
         </div>
-      </div>
 
-      <!-- Vista de Podio -->
-      <div v-else-if="activeTab === 'podium' && !selectedModelo">
-        <ModelsPodium
-          v-if="earningsData"
-          :data="earningsData"
-        />
-      </div>
-
-      <!-- Vista de Metas -->
-      <div v-else-if="activeTab === 'goals' && !selectedModelo">
-        <GoalProgress
-          v-if="goalProgress"
-          :data="goalProgress"
-        />
-      </div>
-    </template>
-  </div></NuxtLayout>
+        <!-- Vista de Metas -->
+        <div v-else-if="activeTab === 'goals' && !selectedModelo" class="w-full">
+          <GoalProgress
+            v-if="goalProgress"
+            :data="goalProgress"
+          />
+        </div>
+      </template>
+    </div>
+  </NuxtLayout>
 </template>
 
 <script setup>
@@ -160,7 +163,7 @@ watch([selectedPeriodo, selectedSubPeriodo, selectedModelo], async ([periodo, su
     
     // Realizar las peticiones
     const requests = [
-      store.fetchEarnings(periodo,subperiodo, modelo),
+      store.fetchEarnings(periodo, subperiodo, modelo),
       store.fetchDistribution(periodo, subperiodo, modelo)
     ]
 
@@ -192,3 +195,12 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+/* Ensure horizontal scrolling for tabs on very small screens if needed */
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+</style>

@@ -2,7 +2,7 @@
 <template>
 <NuxtLayout>
   <div class="min-h-screen bg-gray-50">
-    <div class="container px-4 py-8 mx-auto max-w-7xl">
+    <div class="container mx-auto sm:px-6 md:px-8">
       <!-- Skeleton loader -->
       <div v-if="loading" class="animate-pulse">
         <!-- Header Skeleton -->
