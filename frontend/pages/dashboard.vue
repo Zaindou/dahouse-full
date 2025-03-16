@@ -1,6 +1,6 @@
 <template>
     <NuxtLayout>
-        <div class="container px-4 py-6 mx-auto">
+        <div class="container mx-auto sm:px-6 md:px-8">
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <!-- Módulo Financiero con fondo blanco -->
                 <div class="col-span-1 bg-white rounded-lg shadow-md lg:col-span-2">

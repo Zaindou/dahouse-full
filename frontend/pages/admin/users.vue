@@ -1,6 +1,6 @@
 <template>
     <NuxtLayout>
-        <div class="container mx-auto">
+        <div class="container mx-auto sm:px-6 md:px-8">
             <UserManagement />
         </div>
     </NuxtLayout>
